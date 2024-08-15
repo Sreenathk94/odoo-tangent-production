@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	<!-- User Form view -->
+        <record id="view_company_form" model="ir.ui.view">
+            <field name="name">res.company.view.form.inherit.tg.base</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <field name="email" position="after">
+                    <field name="erp_email"/>
+                </field>
+                <field name="company_registry" position="after">
+                    <field name="company_seal" widget="image" class="float-left oe_avatar"/>
+                    <!-- <field name="company_footer" widget="image" class="float-left oe_avatar"/> -->
+                </field>
+                <field name="vat" position="attributes">
+                    <attribute name="string">VAT</attribute>
+                </field>
+                <page name="general_info" position="after">
+                    <page string="Alerts Settings" name="Alerts_settings">
+                        <group>
+                            <group string="Timesheet">
+                                <field name="timesheet_working_hrs" widget="float_time"/>
+                                <!--<label for="timesheet_manager_alert"/>
+                                <div class="o_row">
+                                    <field name="timesheet_manager_alert"/><span> - </span>
+                                    <field name="timesheet_manager_nxt_date"/>
+                                </div>-->
+                                <!-- <label for="timesheet_admin_alert"/>
+                                <div class="o_row">
+                                    <field name="timesheet_admin_alert"/><span> - </span>
+                                    <field name="timesheet_admin_nxt_date"/>
+                                </div> -->
+                            </group>
+                            <!--<group string="Absent/Leave">
+                                <label for="absent_manager_alert"/>
+                                <div class="o_row">
+                                    <field name="absent_manager_alert"/><span> - </span>
+                                    <field name="absent_manager_nxt_date"/>
+                                </div>
+                            </group>-->
+                        </group>
+                        <group>
+                            <group string="Attendance">
+                                <field name="attend_work_hrs" widget="float_time"/>
+                                <field name="company_start_time"/>
+                            </group>
+                        </group>
+                    </page>
+                </page>
+            </field>
+        </record>
+    </data>
+</odoo>
