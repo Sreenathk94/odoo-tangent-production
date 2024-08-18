@@ -6,7 +6,7 @@ from odoo.exceptions import UserError, ValidationError
 from dateutil import parser
 import math
 from collections import namedtuple
-from odoo.addons.resource.models.resource import float_to_time
+from odoo.addons.resource.models.utils import float_to_time
 from pytz import timezone
 
 DummyAttendance = namedtuple('DummyAttendance', 'hour_from, hour_to, dayofweek, day_period, week_type')
@@ -193,7 +193,7 @@ class HrLeave(models.Model):
 
     message = fields.Text('Message')
     dr_certificate = fields.Binary("Medical Certificate")
-    type_code = fields.Char("Code", related="holiday_status_id.code")
+    type_code = fields.Integer("Code", related="holiday_status_id.sequence")
     leave_manager_id = fields.Many2one("res.users", "Leave Manager", related='employee_id.leave_manager_id', store=True)
 
     @api.onchange('holiday_status_id')

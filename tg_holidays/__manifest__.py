@@ -7,13 +7,12 @@
     'author': 'Fouvty',
     'maintainer': 'Fouvty',
     'website': '',
-    'depends': ['base', 'hr', 'hr_holidays', 'tg_base'
-                # , ax_group
+    'depends': ['base', 'hr', 'hr_holidays', 'tg_base', 'resource'
                 ],
     'data': [
       'security/ir.model.access.csv',
       'views/tg_employee_views.xml',
-      # 'views/tg_leave_form_view.xml',
+      'views/tg_leave_form_view.xml',
       'views/tg_leave_report.xml',
     ],
     'license': 'AGPL-3',

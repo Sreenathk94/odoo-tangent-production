@@ -41,7 +41,7 @@ class HrEmployee(models.Model):
                         'subject': "System Notification: Leave Update Required for Employees",
                         'emp_ids': employees_with_unprocessed_leaves,
                     }
-                    template = self.env['ir.model.data'].get_object('ax_holidays',
+                    template = self.env['ir.model.data'].get_object('tg_holidays',
                                                                     'email_template_manager_absent_alert')
                     self.env['mail.template'].browse(template.id).with_context(context).send_mail(manager.id,
                                                                                                   force_send=True)
