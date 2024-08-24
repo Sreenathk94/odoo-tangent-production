@@ -122,7 +122,7 @@ class tgLeaveRegister(models.TransientModel):
             row += 1
         fp = BytesIO()
         workbook.save(fp)
-        self.write({'excel_file': base64.encodestring(fp.getvalue())})
+        self.write({'excel_file': base64.b64encode(fp.getvalue())})
         return {
             'type': 'ir.actions.act_url',
             'url': 'web/content/?model=tg.leave.register&field=excel_file&download=true&id=%s&filename=%s' % (

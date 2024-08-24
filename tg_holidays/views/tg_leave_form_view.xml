@@ -281,17 +281,17 @@
 	    <record id="email_template_absent_alert" model="mail.template">
 	        <field name="name">Employee Absent Alert</field>
 	        <field name="model_id" ref="model_tg_leave"/>
-	        <field name="email_from">${ctx['email_from'] |safe}</field>
-	        <field name="email_to">${ctx['email_to'] |safe}</field>
-	        <field name="email_cc">${ctx['email_cc'] |safe}</field>
-	        <field name="subject">${ctx['subject']}</field>
+	        <field name="email_from">{{ ctx['email_from'] }}</field>
+	        <field name="email_to">{{ ctx['email_to'] }}</field>
+	        <field name="email_cc">{{ ctx['email_cc'] }}</field>
+	        <field name="subject">{{ ctx['subject'] }}</field>
 	        <field name="body_html" type="html">
 	            <div style="margin: 0px; padding: 0px;">
 	                <p style="margin: 0px; padding: 0px; font-size: 13px;">
-	                    Dear <b>${object.employee_id.name}</b>,
+	                    Dear <b><t t-out="object.employee_id.name"/></b>,
 	                    <br></br>
 	                    <br></br>
-	                    This is to inform you that you were marked as absent for the following date <b>${object.from_date.strftime("%d/%m/%Y")}</b> according to our records. If this is accurate, we kindly request you to formally apply for leave through our leave management system.
+	                    This is to inform you that you were marked as absent for the following date <b><t t-out="object.from_date.strftime('%d/%m/%Y')"/></b> according to our records. If this is accurate, we kindly request you to formally apply for leave through our leave management system.
 	                    <br/><br/>
 	                    If you have already applied for leave or if there are any discrepancies, please disregard this notification. However, if you have not yet applied for leave, it's essential to do so to maintain accurate records and ensure proper coverage for your absence.
 	                    <br/><br/>
@@ -299,7 +299,7 @@
 	                </p>
 	            </div>
 	        </field>
-	        <field name="lang">${object.employee_id.user_id.lang}</field>
+	        <field name="lang">{{ object.employee_id.user_id.lang }}</field>
 	        <field name="auto_delete" eval="True"/>
 	    </record>
 
@@ -319,22 +319,22 @@
 	    <record id="email_template_approve_alert" model="mail.template">
 	        <field name="name">Employee Leave Approve Alert</field>
 	        <field name="model_id" ref="model_hr_leave"/>
-	        <field name="email_from">${ctx['email_from'] |safe}</field>
-	        <field name="email_to">${ctx['email_to'] |safe}</field>
-	        <field name="subject">${ctx['subject']}</field>
+	        <field name="email_from">{{ ctx['email_from'] }}</field>
+	        <field name="email_to">{{ ctx['email_to'] }}</field>
+	        <field name="subject">{{ ctx['subject'] }}</field>
 	        <field name="body_html" type="html">
 	            <div style="margin: 0px; padding: 0px;">
 	                <p style="margin: 0px; padding: 0px; font-size: 13px;">
-	                    Dear <b>${object.employee_id.parent_id.name}</b>,
+	                    Dear <b><t t-out="object.employee_id.parent_id.name"/></b>,
 	                    <br></br>
 	                    <br></br>
-	                    <b>${object.employee_id.name}</b> has applied for ${object.holiday_status_id.name}, Kindly verify and approve.
+	                    <b><t t-out="object.employee_id.name"/></b> has applied for <t t-out="object.holiday_status_id.name"/>, Kindly verify and approve.
 	                    <br/><br/>
 	                    Please note: This is an automated message, and there is no need to reply to this email.
 	                </p>
 	            </div>
 	        </field>
-	        <field name="lang">${object.employee_id.user_id.lang}</field>
+	        <field name="lang">{{ object.employee_id.user_id.lang }}</field>
 	        <field name="auto_delete" eval="True"/>
 	    </record>
 

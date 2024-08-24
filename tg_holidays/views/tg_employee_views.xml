@@ -14,13 +14,13 @@
     <record id="email_template_manager_absent_alert" model="mail.template">
         <field name="name">Manager Absent Alert</field>
         <field name="model_id" ref="model_hr_employee"/>
-        <field name="email_from">${ctx['email_from'] |safe}</field>
-        <field name="email_to">${ctx['email_to'] |safe}</field>
-        <field name="email_cc">${ctx['email_cc'] |safe}</field>
-        <field name="subject">${ctx['subject']}</field>
+        <field name="email_from">{{ ctx['email_from'] }}</field>
+        <field name="email_to">{{ ctx['email_to'] }}</field>
+        <field name="email_cc">{{ ctx['email_cc'] }}</field>
+        <field name="subject">{{ ctx['subject'] }}</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
-                Dear <b>${object.name}</b>,
+                Dear <b><t t-out="object.name"/></b>,
                 <br></br>
                 <br></br>
                 This is to inform you that below employees were marked as absent for the following date according to our
@@ -28,28 +28,30 @@
                 our leave management system.
                 <br/>
                 <br/>
-                % set emp_ids = ctx['emp_ids']
+                <t t-set="emp_ids"  t-value="{{ ctx['emp_ids'] }}"/>
                 <ol type="1">
-                    % for emp in emp_ids:
-                    <li>
-                        <h4>${emp.name}</h4>
-                        % set dates = object.get_absent_dates(emp)
-                        %if dates:
-                        <ol type="1">
-                            % for date in dates:
-                            <li>${date.strftime("%d/%m/%Y")}</li>
-                            %endfor
-                        </ol>
-                        %endif
-                    </li>
-                    % endfor
+                    <t t-foreach="emp_ids" t-as="emp">
+                        <li>
+                            <h4><t t-out="emp.name"/></h4>
+                            <t t-set="dates"  t-value="{{  object.get_absent_dates(emp) }}"/>
+                            <t t-if="dates">
+                                <ol type="1">
+                                   <t t-foreach="date" t-as="dates">
+                                    <li>
+                                        <t t-out="{{ date.strftime('%d/%m/%Y') }}"/>
+                                    </li>
+                                   </t>
+                                </ol>
+                            </t>
+                        </li>
+                    </t>
                 </ol>
                 <br/>
                 <br/>
                 Please note: This is an automated message, and there is no need to reply to this email.
             </div>
         </field>
-        <field name="lang">${object.user_id.lang}</field>
+        <field name="lang">{{ object.user_id.lang }}</field>
         <field name="auto_delete" eval="True"/>
     </record>
 </odoo>

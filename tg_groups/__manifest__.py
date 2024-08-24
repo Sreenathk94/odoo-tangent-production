@@ -6,6 +6,7 @@
     'description': 'Access groups for Tangent Users',
     'website': '',
     'category': 'Human Resources',
+    'depends': ['account'],
     'data': [
         'security/security.xml',
     ],

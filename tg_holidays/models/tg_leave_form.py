@@ -18,10 +18,10 @@ class TgLeave(models.Model):
     _order = "id desc"
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    from_date = fields.Date("First day of leave", default=fields.Date.today, tracking=True)
-    to_date = fields.Date("Last day of leave", default=fields.Date.today, tracking=True)
-    date_from = fields.Datetime('Start Date', readonly=False)
-    date_to = fields.Datetime('End Date', readonly=False)
+    from_date = fields.Date(string="First day of leave", default=fields.Date.today, tracking=True)
+    to_date = fields.Date(string="Last day of leave", default=fields.Date.today, tracking=True)
+    date_from = fields.Datetime(string='Start Date', readonly=False)
+    date_to = fields.Datetime(string='End Date', readonly=False)
     request_date_from_period = fields.Selection([('am', 'Morning'), ('pm', 'Afternoon')], default="am", string="Period")
     request_unit_half = fields.Boolean("Half Day", copy=False)
     employee_id = fields.Many2one("hr.employee", 'Employee', tracking=True, required=True)
