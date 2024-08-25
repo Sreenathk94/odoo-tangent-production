@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hr_timesheet_submit,hr.timesheet.submit,model_hr_timesheet_submit,tg_groups.admin_user_group,1,1,1,0
+access_hr_timesheet_submit_emp,hr.timesheet.submit.emp,model_hr_timesheet_submit,base.group_user,1,1,1,0
+access_hr_timesheet_submit_line,hr.timesheet.submit.line,model_hr_timesheet_submit_line,tg_groups.admin_user_group,1,1,1,1
+access_hr_timesheet_submit_line_emp,hr.timesheet.submit.line,model_hr_timesheet_submit_line,base.group_user,1,1,1,0
+access_hr_timesheet_submit_wizard_emp,hr.timesheet.submit.wizard,model_hr_timesheet_submit_wizard,base.group_user,1,1,1,0
+access_hr_timesheet_submit_report,hr.timesheet.submit.report,model_hr_timesheet_submit_report,tg_groups.admin_user_group,1,1,1,1
+access_resource_calendar_admin,resource.calendar,resource.model_resource_calendar,tg_groups.admin_user_group,1,1,1,1
+access_resource_calendar_attendance_admin,resource.calendar.attendance,resource.model_resource_calendar_attendance,tg_groups.admin_user_group,1,1,1,1
+access_hr_timesheet_status,hr.timesheet.status,model_hr_timesheet_status,tg_groups.admin_user_group,1,1,1,1
+access_hr_timesheet_status_emp,hr.timesheet.status,model_hr_timesheet_status,base.group_user,1,0,0,0
+hr_timesheet.access_project_project,project.project.timesheet.user,hr_timesheet.model_project_project,hr_timesheet.group_hr_timesheet_user,1,1,0,0
+project.access_project_task,project.task,project.model_project_task,project.group_project_user,1,1,0,0
+access_project_cost_stage,project.cost.stage,model_project_cost_stage,base.group_user,1,1,1,1
+access_hr_individual_timesheet_report,hr.individual.timesheet.report,model_hr_individual_timesheet_report,base.group_user,1,1,1,1
