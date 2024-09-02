@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	<!-- User Form view -->
+        <record id="ax_res_company_form_view_inherit" model="ir.ui.view">
+            <field name="name">Companies</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <page name="general_info" position="after">
+                    <page string="Biometric Configuration" name="bio_conf">
+                        <group>
+                            <group>
+                            	<field name="db_hostname"/>
+                            	<field name="db_name"/>
+                            	<field name="db_port"/>
+                            </group>
+                            <group>
+								<field name="db_username"/>
+                            	<field name="db_password"/>
+                            	<field name="fetch_date"/>
+							</group>
+                        </group>
+                        <group>
+							<field name="db_test_query"/>
+                            <field name="db_query_result"/>
+						</group>
+						<group>
+							<button name="run_testquery" type="object" string="Test Connection" class="oe_highlight"/>
+						</group>
+                    </page>
+                </page>
+            </field>
+        </record>
+        
+        <record id="email_template_manager_missing_count_alert" model="mail.template">
+	        <field name="name">Missing attendance log warning</field>
+	        <field name="model_id" ref="hr.model_hr_employee"/>
+	        <field name="email_from">{{ctx['email_from'] }}</field>
+	        <field name="email_to">{{ctx['email_to'] }}</field>
+	        <field name="email_cc">{{ctx['email_cc'] }}</field>
+	        <field name="subject">System Notification: Missing attendance log warning</field>
+	        <field name="body_html" type="html">
+	            <div style="margin: 0px; padding: 0px;">
+	                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+	                	Dear <b t-out="object.parent_id.name"/>,
+	                    <br/><br/>
+	                    Please Check <b t-out="object.name"/> attendance log and take action.
+	                    He failed to check in or out in the biometric device, or attendance log is containing incorrect information. 
+	                    It has happened more than five times. 
+	                    <br/><br/>
+	                    Please note: This is an automated message, and there is no need to reply to this email.
+	                </p>
+	            </div>
+	        </field>
+	        <field name="auto_delete" eval="True"/>
+	    </record>
+    </data>
+</odoo>
