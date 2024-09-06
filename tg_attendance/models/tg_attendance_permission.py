@@ -24,7 +24,8 @@ class TgAttendancePermission(models.Model):
 
 	name = fields.Char('Name')
 	employee_id = fields.Many2one('hr.employee', "Employee", domain=_domain_employee_id, required=True)
-	date = fields.Date(string='Attendance Date', default=date.today(), required=True, tracking=True)
+	date_end = fields.Date(string='Attendance Date', default=date.today(), required=True, tracking=True)
+	date_start = fields.Date(string='Attendance Start', default=date.today(), required=True, tracking=True)
 	check_in = fields.Datetime("Check In", required=True)
 	check_out = fields.Datetime("Check Out", required=True)
 	start_time = fields.Float("Start Time (HH:MM)")
@@ -44,13 +45,13 @@ class TgAttendancePermission(models.Model):
 					start = rec.start_time+12
 					if start >= 24:
 						rec.start = rec.start_time
-						rec.check_in = (datetime.combine(rec.date, time(0,0,0))+timedelta(hours=rec.start_time-5.5))
+						rec.check_in = (datetime.combine(rec.date_end, time(0,0,0))+timedelta(hours=rec.start_time-5.5))
 					else:
 						rec.start = start
-						rec.check_in = (datetime.combine(rec.date, time(0,0,0))+timedelta(hours=start-5.5))
+						rec.check_in = (datetime.combine(rec.date_end, time(0,0,0))+timedelta(hours=start-5.5))
 				else:
 					rec.start = rec.start_time
-					rec.check_in = (datetime.combine(rec.date, time(0,0,0))+timedelta(hours=rec.start_time-5.5))
+					rec.check_in = (datetime.combine(rec.date_end, time(0,0,0))+timedelta(hours=rec.start_time-5.5))
 			else:
 				rec.start = 0
 			if rec.end_time and rec.end_meridiem:
@@ -58,13 +59,13 @@ class TgAttendancePermission(models.Model):
 					end = rec.end_time+12
 					if end >= 24:
 						rec.end = rec.end_time
-						rec.check_out = (datetime.combine(rec.date, time(0,0,0))+timedelta(hours=rec.end_time-5.5))
+						rec.check_out = (datetime.combine(rec.date_end, time(0,0,0))+timedelta(hours=rec.end_time-5.5))
 					else:
 						rec.end = end
-						rec.check_out = (datetime.combine(rec.date, time(0,0,0))+timedelta(hours=end-5.5))
+						rec.check_out = (datetime.combine(rec.date_end, time(0,0,0))+timedelta(hours=end-5.5))
 				else:
 					rec.end = rec.end_time
-					rec.check_out = (datetime.combine(rec.date, time(0,0,0))+timedelta(hours=rec.end_time-5.5))
+					rec.check_out = (datetime.combine(rec.date_end, time(0,0,0))+timedelta(hours=rec.end_time-5.5))
 			else:
 				rec.end = 0
 	
@@ -72,18 +73,20 @@ class TgAttendancePermission(models.Model):
 	def create(self, vals_list):
 		lines = super(TgAttendancePermission, self).create(vals_list)
 		for res in lines:
+			res.date_start = res.date_end
 			if res.check_in > res.check_out:
 				raise UserError(_("Check Out time should be the greater then Check In time"))
-			if self.env['hr.leave'].search([('employee_id','=',res.employee_id.id),('request_date_from','<=',res.date),('request_date_to','>=',res.date)]):
+			if self.env['hr.leave'].search([('employee_id','=',res.employee_id.id),('request_date_from','<=',res.date_end),('request_date_to','>=',res.date_end)]):
 				raise UserError(_("As of this date, you have already applied for the leave"))
 			res.name = res.employee_id.name
 		return lines
 	
 	def write(self, vals):
 		rec = super(TgAttendancePermission, self).write(vals)
+		rec.date_start = rec.date_end
 		if self.check_in > self.check_out:
 			raise UserError(_("Check Out time should be the greater then Check In time"))
-		if self.env['hr.leave'].search([('employee_id','=',self.employee_id.id),('request_date_from','<=',self.date),('request_date_to','>=',self.date)]):
+		if self.env['hr.leave'].search([('employee_id','=',self.employee_id.id),('request_date_from','<=',self.date_end),('request_date_to','>=',self.date_end)]):
 			raise UserError(_("As of this date, you have already applied for the leave"))
 		return rec
 	
@@ -106,7 +109,7 @@ class TgAttendancePermission(models.Model):
 	def entry_approve(self):
 		if self.env.user.id == self.employee_id.user_id.id:
 			raise UserError(_('Only your manager can approve your request.'))
-		attendance_id = self.env['hr.attendance'].search([('employee_id','=',self.employee_id.id),('fetch_date','=',self.date)])
+		attendance_id = self.env['hr.attendance'].search([('employee_id','=',self.employee_id.id),('fetch_date','=',self.date_end)])
 		if attendance_id:
 			if attendance_id.check_in > self.check_in:
 				attendance_id.check_in = self.check_in

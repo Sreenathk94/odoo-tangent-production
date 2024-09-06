@@ -227,6 +227,24 @@
         <!--        	            </calendar>-->
         <!--        	        </field>-->
         <!--        	    </record>-->
+        <!--                  Fixed Calendar View-->
+        <record id="hr_attendance_line_calendar_view" model="ir.ui.view">
+            <field name="name">Attendance Check In/Check Out</field>
+            <field name="model">hr.attendance.permission</field>
+            <field name="arch" type="xml">
+                <calendar date_start="date_start" date_stop="date_end" string="Leave Request" mode="month" event_limit="5">
+
+                    <field name="employee_id" filters="1" can_create="true" can_write="true"
+                           />
+                    <field name="date_end"/>
+                    <field name="date_start" invisible="1"/>
+                    <field name="check_in"/>
+                    <field name="check_out"/>
+                    <field name="state"/>
+                </calendar>
+            </field>
+        </record>
+
 
         <!-- actions -->
 

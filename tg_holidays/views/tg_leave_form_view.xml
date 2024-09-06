@@ -1,342 +1,397 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-    	<!-- Form view -->
+        <!-- Form view -->
         <record id="tg_leave_form_view" model="ir.ui.view">
             <field name="name">Absent</field>
             <field name="model">tg.leave</field>
             <field name="type">form</field>
             <field name="arch" type="xml">
-				<form string="Employee Leave">
-					<header>
-						<button name="entry_confirm" type="object" string="Apply" class="oe_highlight" invisible="state!='draft'" groups="tg_groups.admin_user_group"/>
-						<button name="set_draft" type="object" string="Set to Draft" class="oe_highlight" invisible="state not in ['confirm','cancel']" groups="tg_groups.admin_user_group"/>
-						<field name="state" widget="statusbar" statusbar_visible='draft,confirm'/>
-					</header>
-					<sheet>
-						<div class="oe_title">
-	                        <h2>
-	                            <field name="employee_id" readonly="state!='draft'" options="{'no_open':True,'no_create':True}"/>
-	                        </h2>
-	                    </div>
-	                    <group>
-<!--                    		<field name="holiday_status_id" attrs="{'readonly':[('state','!=','draft')]}" options="{'no_open':True,'no_create':True}" domain="['&amp;', ('virtual_remaining_leaves', '&gt;', 0), '|', ('allocation_type', 'in', ['fixed_allocation', 'no']),'&amp;',('allocation_type', '=', 'fixed'), ('max_leaves', '&gt;', '0')]" context="{'employee_id':employee_id}"/>-->
-                    		<field name="holiday_status_id" readonly="state!='draft'" options="{'no_open':True,'no_create':True}" domain="[('virtual_remaining_leaves', '&gt;', 0), ('max_leaves', '&gt;', '0')]" context="{'employee_id':employee_id}"/>
-                    		<label for="from_date" string="Dates"/>
-                    		<div class="o_row o_row_readonly o_hr_holidays_dates">
-                    			<span class="oe_inline">First day of leave</span>
-                    			<field name="from_date" required='1' widget="daterange" no_label='1' class="oe_inline" options="{'related_end_date': 'to_date'}" readonly="state!='draft'"/>
-                    			<span class="oe_inline" invisible="request_unit_half">Last day of leave</span>
-                    			<field name="to_date" widget="daterange" no_label='1' class="oe_inline" options="{'related_start_date': 'from_date'}" readonly="state!='draft'" invisible="request_unit_half ==True"/>
-                    			<field name="request_date_from_period" class="oe_inline" string="In"
-                                options="{'horizontal': True}" required="request_unit_half" invisible="request_unit_half==False" readonly="state!='draft'"/>
-                    		</div>
-                    	</group>
-	                    <group>
-	                    	<group>
-	                    		<field name="request_unit_half" readonly="state!='draft'"/>
-	                    		<!--<field name="number_of_days" widget="timesheet_uom"/>-->
-	                    		<field name="description" widget="text" readonly="state!='draft'"/>
-	                    		<field name="is_leave_applied" invisible='1'/>
-	                    	</group>
-	                    	<group>
-	                    		<field name="entry_date" readonly='1' invisible='1'/>
-	                    		<field name="user_id" readonly='1' invisible='1'/>
-	                    	</group>
-	                    </group>
-					</sheet>
-					<footer></footer>
-					<div class="oe_chatter">
-                       <field name="message_follower_ids" widget="mail_followers"/>
-                       <field name="activity_ids" widget="mail_activity"/>
-                       <field name="message_ids" widget="mail_thread"/>
-                   </div>
-				</form>
-			</field>
-		</record>
+                <form string="Employee Leave">
+                    <header>
+                        <button name="entry_confirm" type="object" string="Apply" class="oe_highlight"
+                                invisible="state!='draft'" groups="tg_groups.admin_user_group"/>
+                        <button name="set_draft" type="object" string="Set to Draft" class="oe_highlight"
+                                invisible="state not in ['confirm','cancel']" groups="tg_groups.admin_user_group"/>
+                        <field name="state" widget="statusbar" statusbar_visible='draft,confirm'/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h2>
+                                <field name="employee_id" readonly="state!='draft'"
+                                       options="{'no_open':True,'no_create':True}"/>
+                            </h2>
+                        </div>
+                        <group>
+                            <!--                    		<field name="holiday_status_id" attrs="{'readonly':[('state','!=','draft')]}" options="{'no_open':True,'no_create':True}" domain="['&amp;', ('virtual_remaining_leaves', '&gt;', 0), '|', ('allocation_type', 'in', ['fixed_allocation', 'no']),'&amp;',('allocation_type', '=', 'fixed'), ('max_leaves', '&gt;', '0')]" context="{'employee_id':employee_id}"/>-->
+                            <field name="holiday_status_id" readonly="state!='draft'"
+                                   options="{'no_open':True,'no_create':True}"
+                                   domain="[('virtual_remaining_leaves', '&gt;', 0), ('max_leaves', '&gt;', '0')]"
+                                   context="{'employee_id':employee_id}"/>
+                            <label for="from_date" string="Dates"/>
+                            <div class="o_row o_row_readonly o_hr_holidays_dates">
+                                <span class="oe_inline">First day of leave</span>
+                                <field name="from_date" required='1' widget="daterange" no_label='1' class="oe_inline"
+                                       options="{'related_end_date': 'to_date'}" readonly="state!='draft'"/>
+                                <span class="oe_inline" invisible="request_unit_half">Last day of leave</span>
+                                <field name="to_date" widget="daterange" no_label='1' class="oe_inline"
+                                       options="{'related_start_date': 'from_date'}" readonly="state!='draft'"
+                                       invisible="request_unit_half ==True"/>
+                                <field name="request_date_from_period" class="oe_inline" string="In"
+                                       options="{'horizontal': True}" required="request_unit_half"
+                                       invisible="request_unit_half==False" readonly="state!='draft'"/>
+                            </div>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="request_unit_half" readonly="state!='draft'"/>
+                                <!--<field name="number_of_days" widget="timesheet_uom"/>-->
+                                <field name="description" widget="text" readonly="state!='draft'"/>
+                                <field name="is_leave_applied" invisible='1'/>
+                            </group>
+                            <group>
+                                <field name="entry_date" readonly='1' invisible='1'/>
+                                <field name="user_id" readonly='1' invisible='1'/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer></footer>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
 
-		<!-- Tree View -->
+        <!-- Tree View -->
         <record id="tg_leave_tree_view" model="ir.ui.view">
             <field name="name">Absent</field>
             <field name="model">tg.leave</field>
             <field name="type">tree</field>
             <field name="arch" type="xml">
-             <tree string="Employee Leave">
-				<field name="employee_id"/>
-				<field name="holiday_status_id"/>
-				<field name="from_date"/>
-				<field name="to_date"/>
-				<field name="state" widget="badge"/>
-				<field name="company_id" groups="base.group_multi_company" optional='hide'/>
+                <tree string="Employee Leave">
+                    <field name="employee_id"/>
+                    <field name="holiday_status_id"/>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="state" widget="badge"/>
+                    <field name="company_id" groups="base.group_multi_company" optional='hide'/>
                 </tree>
             </field>
         </record>
 
         <record id="tg_leave_calendar_view" model="ir.ui.view">
-	        <field name="name">Absent</field>
-	        <field name="model">tg.leave</field>
-	        <field name="arch" type="xml">
-				  <calendar date_start="date_from" date_stop="date_to" string="Event Description" mode="month" color="holiday_status_id" event_limit="5">
-	            	<field name="employee_id"/>
-	            	<field name="holiday_status_id" filters="1" color="kanban_color"/>
-	                <field name="from_date"/>
-	                <field name="to_date"/>
-	                <field name="description"/>
-	                <field name="state"/>
-	            </calendar>
-	        </field>
-	    </record>
+            <field name="name">Absent</field>
+            <field name="model">tg.leave</field>
+            <field name="arch" type="xml">
+                <calendar date_start="date_from" date_stop="date_to" string="Event Description" mode="month"
+                          color="holiday_status_id" event_limit="5">
+                    <field name="employee_id"/>
+                    <field name="holiday_status_id" filters="1" color="kanban_color"/>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="description"/>
+                    <field name="state"/>
+                </calendar>
+            </field>
+        </record>
 
         <!-- Search View Start -->
 
-		<record id="tg_leave_search_view" model="ir.ui.view">
-			<field name="name">Absent</field>
-			<field name="model">tg.leave</field>
-			<field name="arch" type="xml">
-				<search string="Employee Leave">
-					<field name="employee_id" string="Employee"  filter_domain="[('employee_id','ilike',self)]" />
-					<field name="holiday_status_id" string="Leave Type"  filter_domain="[('holiday_status_id','ilike',self)]" />
-					<filter name="applied" string="Leave Applied" domain="[('is_leave_applied','=',True)]"/>
-					<filter name="not_applied" string="Leave Not Applied" domain="[('is_leave_applied','=',False)]"/>
-					<group expand="0" string="Group By...">
-						<filter name="employee" string="Employee" domain="[]" context="{'group_by':'employee_id'}"/>
-						<filter name="holiday_status_id" string="Leave Type" domain="[]" context="{'group_by':'holiday_status_id'}"/>
-						<filter name="state" string="Status" domain="[]" context="{'group_by':'state'}"/>
-					</group>
-				</search>
-			</field>
-		</record>
+        <record id="tg_leave_search_view" model="ir.ui.view">
+            <field name="name">Absent</field>
+            <field name="model">tg.leave</field>
+            <field name="arch" type="xml">
+                <search string="Employee Leave">
+                    <field name="employee_id" string="Employee" filter_domain="[('employee_id','ilike',self)]"/>
+                    <field name="holiday_status_id" string="Leave Type"
+                           filter_domain="[('holiday_status_id','ilike',self)]"/>
+                    <filter name="applied" string="Leave Applied" domain="[('is_leave_applied','=',True)]"/>
+                    <filter name="not_applied" string="Leave Not Applied" domain="[('is_leave_applied','=',False)]"/>
+                    <group expand="0" string="Group By...">
+                        <filter name="employee" string="Employee" domain="[]" context="{'group_by':'employee_id'}"/>
+                        <filter name="holiday_status_id" string="Leave Type" domain="[]"
+                                context="{'group_by':'holiday_status_id'}"/>
+                        <filter name="state" string="Status" domain="[]" context="{'group_by':'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
 
-		<!-- Search View End -->
+        <!-- Search View End -->
 
-	    <record id="action_tg_leave" model="ir.actions.act_window">
-	        <field name="name">Absent</field>
-	        <field name="type">ir.actions.act_window</field>
-	        <field name="res_model">tg.leave</field>
-	        <field name="view_mode">calendar,form,tree</field>
-	        <field name="view_id" ref="tg_leave_calendar_view"></field>
-	        <field name="search_view_id" ref="tg_leave_search_view"/>
-	    </record>
+        <record id="action_tg_leave" model="ir.actions.act_window">
+            <field name="name">Absent</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tg.leave</field>
+            <field name="view_mode">calendar,form,tree</field>
+            <field name="view_id" ref="tg_leave_calendar_view"></field>
+            <field name="search_view_id" ref="tg_leave_search_view"/>
+        </record>
 
-	    <!-- Menuitems -->
-		<menuitem name="Absent" id="pm_leave" parent="hr_holidays.menu_hr_holidays_root" action="action_tg_leave" sequence='0' groups="tg_groups.admin_user_group"/>
+        <!-- Menuitems -->
+        <menuitem name="Absent" id="pm_leave" parent="hr_holidays.menu_hr_holidays_root" action="action_tg_leave"
+                  sequence='0' groups="tg_groups.admin_user_group"/>
 
-	    <!-- Record Rule -->
-		<record id="rule_tg_leave" model="ir.rule">
-	        <field name="name">Absent multi-company</field>
-	        <field name="model_id" ref="model_tg_leave"/>
-	        <field eval="True" name="global"/>
-	        <field name="domain_force">['|',('company_id','=',False),('company_id','in',company_ids)]</field>
-	    </record>
+        <!-- Record Rule -->
+        <record id="rule_tg_leave" model="ir.rule">
+            <field name="name">Absent multi-company</field>
+            <field name="model_id" ref="model_tg_leave"/>
+            <field eval="True" name="global"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id','in',company_ids)]</field>
+        </record>
 
-	    <record id="hr_holidays.hr_leave_view_dashboard" model="ir.ui.view">
-	        <field name="name">hr.leave.view.dashboard</field>
-	        <field name="model">hr.leave</field>
-	        <field name="arch" type="xml">
-				  <calendar date_start="date_from" date_stop="date_to" string="Leave Request" mode="month" color="holiday_status_id" event_limit="5">
-	                <field name="display_name"/>
-	                <field name="holiday_status_id" filters="1" color="kanban_color"/>
-	                <field name="state" invisible="1"/>
-	            </calendar>
-	        </field>
-	    </record>
+        <record id="hr_holidays.hr_leave_view_dashboard" model="ir.ui.view">
+            <field name="name">hr.leave.view.dashboard</field>
+            <field name="model">hr.leave</field>
+            <field name="arch" type="xml">
+                <calendar date_start="date_from" date_stop="date_to" string="Leave Request" mode="month"
+                          color="holiday_status_id" event_limit="5">
+                    <field name="display_name"/>
+                    <field name="holiday_status_id" filters="1" color="kanban_color"/>
+                    <field name="state" invisible="1"/>
+                </calendar>
+            </field>
+        </record>
 
-	    <record id="hr_holidays.hr_leave_view_calendar" model="ir.ui.view">
-	        <field name="name">hr.leave.view.calendar</field>
-	        <field name="model">hr.leave</field>
-	        <field name="arch" type="xml">
-				 <calendar date_start="date_from" date_stop="date_to" string="Leave Request" mode="month" color="holiday_status_id" event_limit="5">
-	                <field name="display_name"/>
-	                <field name="holiday_status_id" filters="1" color="kanban_color"/>
-	                <field name="employee_id" invisible="1"/>
-	            </calendar>
-	        </field>
-	    </record>
+        <record id="hr_holidays.hr_leave_view_calendar" model="ir.ui.view">
+            <field name="name">hr.leave.view.calendar</field>
+            <field name="model">hr.leave</field>
+            <field name="arch" type="xml">
+                <calendar date_start="date_from" date_stop="date_to" string="Leave Request" mode="month"
+                          color="holiday_status_id" event_limit="5">
+                    <field name="display_name"/>
+                    <field name="holiday_status_id" filters="1" color="kanban_color"/>
+                    <field name="employee_id" invisible="1"/>
+                </calendar>
+            </field>
+        </record>
 
-	    <record id="hr_leave_view_form_manager_inherit" model="ir.ui.view">
-	        <field name="name">hr.leave.view.calendar</field>
-	        <field name="model">hr.leave</field>
-	        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form_manager"/>
-	        <field name="arch" type="xml">
-				<xpath expr="//form/sheet/div[@class='alert alert-info']" position="before">
-	                <div class="oe_button_box" name="button_box">
+        <record id="hr_leave_view_form_manager_inherit" model="ir.ui.view">
+            <field name="name">hr.leave.view.calendar</field>
+            <field name="model">hr.leave</field>
+            <field name="inherit_id" ref="hr_holidays.hr_leave_view_form_manager"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet/div[@class='alert alert-info']" position="before">
+                    <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" name="view_calendar"
-                            string="View Calendar" type="object" icon="fa-calendar"/>
+                                string="View Calendar" type="object" icon="fa-calendar"/>
                     </div>
-	            </xpath>
-	        </field>
-	    </record>
+                </xpath>
+            </field>
+        </record>
 
-	    <record id="hr_leave_report_calendar_view_inherit" model="ir.ui.view">
-	        <field name="name">hr.leave.report.calendar.inherit</field>
-	        <field name="model">hr.leave.report.calendar</field>
-	        <field name="inherit_id" ref="hr_holidays.hr_leave_report_calendar_view"/>
-	        <field name="arch" type="xml">
-	            <xpath expr="//field[@name='employee_id']" position="replace">
-	                <field name="employee_id" invisible="1"/>
-	            </xpath>
-	        </field>
-	    </record>
+        <record id="hr_leave_report_calendar_view_inherit" model="ir.ui.view">
+            <field name="name">hr.leave.report.calendar.inherit</field>
+            <field name="model">hr.leave.report.calendar</field>
+            <field name="inherit_id" ref="hr_holidays.hr_leave_report_calendar_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='employee_id']" position="replace">
+                    <field name="employee_id" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
 
-	    <record id="hr_leave_view_form_inherit" model="ir.ui.view">
-	        <field name="name">hr.leave.inherit</field>
-	        <field name="model">hr.leave</field>
-	        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form"/>
-	        <field name="arch" type="xml">
-	            <xpath expr="//field[@name='tz_mismatch']" position="before">
-	            	<div class="row" invisible="message==False">
-						<h4 class="alert alert-danger" role="alert"><field name="message" nolabel="1" readonly="1"/></h4>
-					</div>
-	                <field name="message" invisible="1"/>
-	            </xpath>
-	            <xpath expr="//field[@name='name']" position="after">
-	            	<field name="type_code" invisible="1"/>
-					<field name="dr_certificate" invisible="type_code!= 'SL'"/>
-					<field name="leave_manager_id" invisible='1'/>
-				</xpath>
-				<xpath expr="//button[@name='action_draft']" position="after">
-					<button name="remainder_notification" type="object" string="Remainder Email" class="oe_highlight" invisible="state!='confirm'"/>
-				</xpath>
-	        </field>
-	    </record>
+        <record id="hr_leave_view_form_inherit" model="ir.ui.view">
+            <field name="name">hr.leave.inherit</field>
+            <field name="model">hr.leave</field>
+            <field name="inherit_id" ref="hr_holidays.hr_leave_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='tz_mismatch']" position="before">
+                    <div class="row" invisible="message==False">
+                        <h4 class="alert alert-danger" role="alert">
+                            <field name="message" nolabel="1" readonly="1"/>
+                        </h4>
+                    </div>
+                    <field name="message" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="type_code" invisible="1"/>
+                    <field name="dr_certificate" invisible="type_code!= 'SL'"/>
+                    <field name="leave_manager_id" invisible='1'/>
+                </xpath>
+                <xpath expr="//button[@name='action_draft']" position="after">
+                    <button name="remainder_notification" type="object" string="Remainder Email" class="oe_highlight"
+                            invisible="state!='confirm'"/>
+                </xpath>
+            </field>
+        </record>
 
-	    <record id="hr_leave_view_tree_inherit" model="ir.ui.view">
-	        <field name="name">hr.leave.tree.inherit</field>
-	        <field name="model">hr.leave</field>
-	        <field name="inherit_id" ref="hr_holidays.hr_leave_view_tree"/>
-	        <field name="arch" type="xml">
-	        	<field name="employee_id" position="after">
-	        		<field name="leave_manager_id" invisible='1'/>
-	        	</field>
-	        </field>
-	    </record>
+        <record id="hr_leave_view_tree_inherit" model="ir.ui.view">
+            <field name="name">hr.leave.tree.inherit</field>
+            <field name="model">hr.leave</field>
+            <field name="inherit_id" ref="hr_holidays.hr_leave_view_tree"/>
+            <field name="arch" type="xml">
+                <field name="employee_id" position="after">
+                    <field name="leave_manager_id" invisible='1'/>
+                </field>
+            </field>
+        </record>
 
-	    <record id="hr_leave_view_search_inherit" model="ir.ui.view">
-	        <field name="name">hr.leave.search.inherit</field>
-	        <field name="model">hr.leave</field>
-	        <field name="inherit_id" ref="hr_holidays.view_hr_holidays_filter"/>
-	        <field name="arch" type="xml">
-	        	<xpath expr="//group/filter[@name='group_employee']" position="after">
-	        		<filter name="group_manager" string="Leave Manager" context="{'group_by':'leave_manager_id'}"/>
-	        	</xpath>
-	        </field>
-	    </record>
+        <record id="hr_leave_view_search_inherit" model="ir.ui.view">
+            <field name="name">hr.leave.search.inherit</field>
+            <field name="model">hr.leave</field>
+            <field name="inherit_id" ref="hr_holidays.view_hr_holidays_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group/filter[@name='group_employee']" position="after">
+                    <filter name="group_manager" string="Leave Manager" context="{'group_by':'leave_manager_id'}"/>
+                </xpath>
+            </field>
+        </record>
 
-	    <record id="edit_holiday_status_form_inherit" model="ir.ui.view">
-	        <field name="name">hr.leave.type.inherit</field>
-	        <field name="model">hr.leave.type</field>
-	        <field name="inherit_id" ref="hr_holidays.edit_holiday_status_form"/>
-	        <field name="arch" type="xml">
-	            <xpath expr="//group[@name='allocation_validation']" position="inside">
-	                <field name="leave_limit"/>
-	                <field name="future_days"/>
-	                <field name="kanban_color"/>
-	            </xpath>
-	        </field>
-	    </record>
+        <record id="edit_holiday_status_form_inherit" model="ir.ui.view">
+            <field name="name">hr.leave.type.inherit</field>
+            <field name="model">hr.leave.type</field>
+            <field name="inherit_id" ref="hr_holidays.edit_holiday_status_form"/>
+            <field name="arch" type="xml">
+                <field name="leave_validation_type" position="before">
+                    <field name="code" string="Code"/>
+                </field>
+                <xpath expr="//group[@name='allocation_validation']" position="inside">
+                    <field name="leave_limit"/>
+                    <field name="future_days"/>
+                    <field name="kanban_color"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="edit_holiday_status_tree_inherit" model="ir.ui.view">
+            <field name="name">hr.leave.type.inherit</field>
+            <field name="model">hr.leave.type</field>
+            <field name="inherit_id" ref="hr_holidays.view_holiday_status_normal_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='display_name']" position="after">
+                    <field name="code"/>
+                </xpath>
+            </field>
+        </record>
 
-	    <record id="hr_holidays.action_view_calendar_manager_approve" model="ir.actions.act_window.view">
-	        <field name="sequence" eval="0"/>
-	        <field name="view_mode">calendar</field>
-	        <field name="view_id" eval="False"/>
-	        <field name="act_window_id" ref="hr_holidays.hr_leave_action_action_approve_department"/>
-	    </record>
+        <record id="hr_holidays.action_view_calendar_manager_approve" model="ir.actions.act_window.view">
+            <field name="sequence" eval="0"/>
+            <field name="view_mode">calendar</field>
+            <field name="view_id" eval="False"/>
+            <field name="act_window_id" ref="hr_holidays.hr_leave_action_action_approve_department"/>
+        </record>
 
-	    <record id="hr_leave_action_action_approve_department_approve" model="ir.actions.act_window">
-	        <field name="name">Approve Leave</field>
-	        <field name="res_model">hr.leave</field>
-	        <field name="view_mode">tree,kanban,form,calendar,activity</field>
-	        <field name="search_view_id" ref="hr_holidays.hr_leave_view_search_manager"/>
-	        <field name="context">{
-	            'search_default_managed_people': 1,
-	            'hide_employee_name': 1}
-	        </field>
-	        <field name="domain">[('state', '=', 'confirm')]</field>
-	        <field name="help" type="html">
-	            <p class="o_view_nocontent_smiling_face">
-	                Meet the Leave dashboard.
-	            </p><p>
-	                A great way to keep track on employee’s PTOs, sick days, and approval status.
-	            </p>
-	        </field>
-	    </record>
+        <record id="hr_leave_action_action_approve_department_approve" model="ir.actions.act_window">
+            <field name="name">Approve Leave</field>
+            <field name="res_model">hr.leave</field>
+            <field name="view_mode">tree,kanban,form,calendar,activity</field>
+            <field name="search_view_id" ref="hr_holidays.hr_leave_view_search_manager"/>
+            <field name="context">{
+                'search_default_managed_people': 1,
+                'hide_employee_name': 1}
+            </field>
+            <field name="domain">[('state', '=', 'confirm')]</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Meet the Leave dashboard.
+                </p>
+                <p>
+                    A great way to keep track on employee’s PTOs, sick days, and approval status.
+                </p>
+            </field>
+        </record>
 
-	    <menuitem id="menu_open_department_leave_approve_state" name="Approve Leave" sequence="2"
-	        parent="hr_holidays.hr_holidays_menu_manager_approve_allocations" action="hr_leave_action_action_approve_department_approve"/>
+        <menuitem id="menu_open_department_leave_approve_state" name="Approve Leave" sequence="2"
+                  parent="hr_holidays.hr_holidays_menu_manager_approve_allocations"
+                  action="hr_leave_action_action_approve_department_approve"/>
 
-	    <!-- Absent alert scheduler -->
-	    <record id="tg_absent_alert_scheduler" model="ir.cron">
-	        <field name="name">Employee Absent Alert Scheduler</field>
-	        <field name="model_id" ref="model_tg_leave"/>
-	        <field name="state">code</field>
-	        <field name="code">model._entry_employee_absent_alert()</field>
-	        <field name="interval_number">1</field>
-	        <field name="interval_type">days</field>
-	        <field name="numbercall">-1</field>
-	        <field name="active">True</field>
-	        <field name="doall" eval="False"/>
-	    </record>
+        <!-- Absent alert scheduler -->
+        <record id="tg_absent_alert_scheduler" model="ir.cron">
+            <field name="name">Employee Absent Alert Scheduler</field>
+            <field name="model_id" ref="model_tg_leave"/>
+            <field name="state">code</field>
+            <field name="code">model._entry_employee_absent_alert()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+            <field name="doall" eval="False"/>
+        </record>
 
-	    <!-- Absent Alerts Mail -->
-	    <record id="email_template_absent_alert" model="mail.template">
-	        <field name="name">Employee Absent Alert</field>
-	        <field name="model_id" ref="model_tg_leave"/>
-	        <field name="email_from">{{ ctx['email_from'] }}</field>
-	        <field name="email_to">{{ ctx['email_to'] }}</field>
-	        <field name="email_cc">{{ ctx['email_cc'] }}</field>
-	        <field name="subject">{{ ctx['subject'] }}</field>
-	        <field name="body_html" type="html">
-	            <div style="margin: 0px; padding: 0px;">
-	                <p style="margin: 0px; padding: 0px; font-size: 13px;">
-	                    Dear <b><t t-out="object.employee_id.name"/></b>,
-	                    <br></br>
-	                    <br></br>
-	                    This is to inform you that you were marked as absent for the following date <b><t t-out="object.from_date.strftime('%d/%m/%Y')"/></b> according to our records. If this is accurate, we kindly request you to formally apply for leave through our leave management system.
-	                    <br/><br/>
-	                    If you have already applied for leave or if there are any discrepancies, please disregard this notification. However, if you have not yet applied for leave, it's essential to do so to maintain accurate records and ensure proper coverage for your absence.
-	                    <br/><br/>
-	                    Please note: This is an automated message, and there is no need to reply to this email.
-	                </p>
-	            </div>
-	        </field>
-	        <field name="lang">{{ object.employee_id.user_id.lang }}</field>
-	        <field name="auto_delete" eval="True"/>
-	    </record>
+        <!-- Absent Alerts Mail -->
+        <record id="email_template_absent_alert" model="mail.template">
+            <field name="name">Employee Absent Alert</field>
+            <field name="model_id" ref="model_tg_leave"/>
+            <field name="email_from">{{ ctx['email_from'] }}</field>
+            <field name="email_to">{{ ctx['email_to'] }}</field>
+            <field name="email_cc">{{ ctx['email_cc'] }}</field>
+            <field name="subject">{{ ctx['subject'] }}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <b>
+                            <t t-out="object.employee_id.name"/>
+                        </b>
+                        ,
+                        <br></br>
+                        <br></br>
+                        This is to inform you that you were marked as absent for the following date
+                        <b>
+                            <t t-out="object.from_date.strftime('%d/%m/%Y')"/>
+                        </b>
+                        according to our records. If this is accurate, we kindly request you to formally apply for leave
+                        through our leave management system.
+                        <br/>
+                        <br/>
+                        If you have already applied for leave or if there are any discrepancies, please disregard this
+                        notification. However, if you have not yet applied for leave, it's essential to do so to
+                        maintain accurate records and ensure proper coverage for your absence.
+                        <br/>
+                        <br/>
+                        Please note: This is an automated message, and there is no need to reply to this email.
+                    </p>
+                </div>
+            </field>
+            <field name="lang">{{ object.employee_id.user_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
 
-	    <record id="tg_absent_update_scheduler" model="ir.cron">
-	        <field name="name">Employee Absent Update Scheduler</field>
-	        <field name="model_id" ref="model_tg_leave"/>
-	        <field name="state">code</field>
-	        <field name="code">model._employee_is_leave_applied_update()</field>
-	        <field name="interval_number">1</field>
-	        <field name="interval_type">days</field>
-	        <field name="numbercall">-1</field>
-	        <field name="active">True</field>
-	        <field name="doall" eval="False"/>
-	    </record>
+        <record id="tg_absent_update_scheduler" model="ir.cron">
+            <field name="name">Employee Absent Update Scheduler</field>
+            <field name="model_id" ref="model_tg_leave"/>
+            <field name="state">code</field>
+            <field name="code">model._employee_is_leave_applied_update()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+            <field name="doall" eval="False"/>
+        </record>
 
-	    <!-- Leave approve Alerts Mail -->
-	    <record id="email_template_approve_alert" model="mail.template">
-	        <field name="name">Employee Leave Approve Alert</field>
-	        <field name="model_id" ref="model_hr_leave"/>
-	        <field name="email_from">{{ ctx['email_from'] }}</field>
-	        <field name="email_to">{{ ctx['email_to'] }}</field>
-	        <field name="subject">{{ ctx['subject'] }}</field>
-	        <field name="body_html" type="html">
-	            <div style="margin: 0px; padding: 0px;">
-	                <p style="margin: 0px; padding: 0px; font-size: 13px;">
-	                    Dear <b><t t-out="object.employee_id.parent_id.name"/></b>,
-	                    <br></br>
-	                    <br></br>
-	                    <b><t t-out="object.employee_id.name"/></b> has applied for <t t-out="object.holiday_status_id.name"/>, Kindly verify and approve.
-	                    <br/><br/>
-	                    Please note: This is an automated message, and there is no need to reply to this email.
-	                </p>
-	            </div>
-	        </field>
-	        <field name="lang">{{ object.employee_id.user_id.lang }}</field>
-	        <field name="auto_delete" eval="True"/>
-	    </record>
+        <!-- Leave approve Alerts Mail -->
+        <record id="email_template_approve_alert" model="mail.template">
+            <field name="name">Employee Leave Approve Alert</field>
+            <field name="model_id" ref="model_hr_leave"/>
+            <field name="email_from">{{ ctx['email_from'] }}</field>
+            <field name="email_to">{{ ctx['email_to'] }}</field>
+            <field name="subject">{{ ctx['subject'] }}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <b>
+                            <t t-out="object.employee_id.parent_id.name"/>
+                        </b>
+                        ,
+                        <br></br>
+                        <br></br>
+                        <b>
+                            <t t-out="object.employee_id.name"/>
+                        </b>
+                        has applied for<t t-out="object.holiday_status_id.name"/>, Kindly verify and approve.
+                        <br/>
+                        <br/>
+                        Please note: This is an automated message, and there is no need to reply to this email.
+                    </p>
+                </div>
+            </field>
+            <field name="lang">{{ object.employee_id.user_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
 
-	</data>
+    </data>
 </odoo>
