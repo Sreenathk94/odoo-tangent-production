@@ -90,29 +90,26 @@
     <record id="email_template_monthly_attendance_alert" model="mail.template">
         <field name="name">Employee Attendance Monthly Alert</field>
         <field name="model_id" ref="hr.model_hr_employee"/>
-        <field name="email_from">${ctx['email_from'] |safe}</field>
-        <field name="email_to">${ctx['email_to'] |safe}</field>
+        <field name="email_from">{{ctx['email_from']}}</field>
+        <field name="email_to">{{ctx['email_to']}}</field>
         <field name="subject">Employee Attendance Monthly Alert</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
-                Dear ${ctx['name']},
+                Dear <t t-out="ctx['name']">Name</t>,
                 <br></br>
                 <br></br>
-            	We would like to bring to your attention that the following employees have not monthly average ${ctx['actual_time']} hours.
+            	We would like to bring to your attention that the following employees have not monthly average <t t-out="ctx['actual_time']">Actual Time</t> hours.
             	<br/><br/>
-            	% set emp_list = ctx['emp_list']
-            	<ol type="1">
-            	% for emp in emp_list:
-            		<li>
-            			<h4>${emp['name']} - ${emp['avg']}</h4>
+                <t t-set="emp_list" t-val="ctx['emp_list']"/>
+            	<ol type="1"><li t-foreach="emp_list" t-as="emp">
+            			<h4 t-out="emp['name'] - emp['avg']"></h4>
             		</li>
-            	% endfor
                 </ol>
             	<br/><br/>
                 Please note: This is an automated message, and there is no need to reply to this email.
             </div>
         </field>
-        <field name="lang">${object.user_id.lang}</field>
+        <field name="lang">{{object.user_id.lang}}</field>
         <field name="auto_delete" eval="True"/>
     </record>
     
@@ -158,40 +155,34 @@
     <record id="email_template_manager_timesheet_alert" model="mail.template">
         <field name="name">Manager Timesheet Alert</field>
         <field name="model_id" ref="model_hr_employee"/>
-        <field name="email_from">${ctx['email_from'] |safe}</field>
-        <field name="email_to">${ctx['email_to'] |safe}</field>
-        <field name="email_cc">${ctx['email_cc'] |safe}</field>
-        <field name="subject">${ctx['subject']}</field>
+        <field name="email_from">{{ctx['email_from']}}</field>
+        <field name="email_to">{{ctx['email_to']}}</field>
+        <field name="email_cc">{{ctx['email_cc'] }}</field>
+        <field name="subject">{{ctx['subject']}}</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
-                Dear ${object.name},
+                 Dear <t t-out="object.name">Name</t>,
                 <br></br>
                 <br></br>
             	We would like to bring to your attention that the following employees have not updated their timesheets on the listed days.
             	<br/><br/>
-            	% set emp_ids = ctx['emp_ids']
-            	% set from_date = ctx['from_date']
-            	% set to_date = ctx['to_date']
+                <t t-set="emp_ids" t-val="ctx['emp_ids']"/>
+                <t t-set="from_date" t-val="ctx['from_date']"/>
+                <t t-set="to_date" t-val="ctx['to_date']"/>
             	<ol type="1">
-            	% for emp in emp_ids:
-            		<li>
-            			<h4>${emp.name}</h4>
-            			% set dates = object.get_missed_timesheet_dates(emp,from_date,to_date)
-            			%if dates:
-            				<ol type="1">
-            					% for date in dates:
-            						<li>${date.strftime("%d/%m/%Y")}</li>
-            					%endfor
+            		<li t-foreach="emp_ids" t-as="emp">
+            			<h4 t-out="emp.name"/>
+                        <t t-set="dates" t-val="object.get_missed_timesheet_dates(emp,from_date,to_date)"/>
+            				<ol type="1" t-if="dates">
+                                <li t-foreach="dates" t-as="date"><t t-out="date.strftime('%d/%m/%Y')"/></li>
             				</ol>
-            			%endif
             		</li>
-            	% endfor
                 </ol>
             	<br/><br/>
                 Please note: This is an automated message, and there is no need to reply to this email.
             </div>
         </field>
-        <field name="lang">${object.user_id.lang}</field>
+        <field name="lang">{{object.user_id.lang}}</field>
         <field name="auto_delete" eval="True"/>
     </record>
 </odoo>

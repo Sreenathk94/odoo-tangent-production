@@ -26,10 +26,11 @@
         'views/hr_individual_timesheet_report.xml',
         'views/hr_employee_view.xml',
     ],
-    'qweb': [
-        'static/src/xml/web_calendar.xml',
-        'static/src/xml/template.xml'
-    ],
+    'assets': {
+        'web.assets_backend': [
+            '/sttl_timesheet_calendar/static/src/**/*'
+        ]
+    },
     'installable': True,
     'application': True,
     'auto_install': False,
