@@ -305,25 +305,25 @@
         <record id="email_template_employee_daily_attendance_alert" model="mail.template">
             <field name="name">Employee Attendance Daily Average time report</field>
             <field name="model_id" ref="hr_attendance.model_hr_attendance"/>
-            <field name="email_from">${ctx['email_from'] |safe}</field>
-            <field name="email_to">${ctx['email_to'] |safe}</field>
+            <field name="email_from">{{ctx['email_from']}}</field>
+            <field name="email_to">{{ctx['email_to']}}</field>
             <field name="subject">System Notification: Attendance Daily Average time report</field>
             <field name="body_html" type="html">
                 <div style="margin: 0px; padding: 0px;">
                     <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                        Dear <b>${object.employee_id.name}</b>,
+                        Dear <b><t t-out="object.employee_id.name">Employee Name</t></b>,
                         <br/>
                         <br/>
                         Kindly note that your daily average time inside office on (<b>
-                        ${ctx['sterday'].strftime("%d/%b/%Y")}</b>) is less than required hours (<b>
-                        ${ctx['com_work_hrs']}
+                        <t t-out="ctx['sterday'].strftime('%d/%b/%Y')"></t></b>) is less than required hours (<b>
+                        <t t-out="ctx['com_work_hrs']">Work Hours</t>
                     </b> hrs).
                         <br/>
                         Please make sure you manage this lose hours in the coming days so that you maintain a monthly
-                        average of <b>${ctx['com_work_hrs']}</b> hrs per day.
+                        average of <b><t t-out="ctx['com_work_hrs']"/></b> hrs per day.
                         <br/>
                         For your information we have attached your daily log for the (<b>
-                        ${ctx['sterday'].strftime("%d/%b/%Y")}</b>)
+                        <t t-out="{ctx['sterday'].strftime('%d/%b/%Y')"/></b>)
                         <br/>
                         <br/>
                         We look forward for your support in this regards,
@@ -352,22 +352,22 @@
         <record id="email_template_employee_weekly_attendance_timesheet_alert" model="mail.template">
             <field name="name">Employee Attendance Weekly Average time</field>
             <field name="model_id" ref="hr.model_hr_employee"/>
-            <field name="email_from">${ctx['email_from'] |safe}</field>
-            <field name="email_to">${ctx['email_to'] |safe}</field>
+            <field name="email_from">{{ctx['email_from']}}</field>
+            <field name="email_to">{{ctx['email_to']}}</field>
             <field name="subject">System Notification: Attendance Weekly Average time</field>
             <field name="body_html" type="html">
                 <div style="margin: 0px; padding: 0px;">
                     <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                        Dear <b>${object.display_name}</b>,
+                        Dear <b><t t-out="object.display_name">Employee Name</t></b>,
                         <br/>
                         <br/>
                         Kindly note that your daily average time inside office for the week starting from <b>
-                        ${ctx['last_week'].strftime("%d/%b/%Y")}
-                    </b> to <b>${ctx['today'].strftime("%d/%b/%Y")}</b> (<b>${ctx['act_work_hrs']}</b> hrs) is less than
-                        required hours (<b>${ctx['com_work_hrs']}</b> hrs).
+                        <t t-out="ctx['last_week'].strftime('%d/%b/%Y')">Last Week</t>
+                    </b> to <b><t t-out="ctx['today'].strftime('%d/%b/%Y')">Today</t></b> (<b><t t-out="ctx['act_work_hrs']">Actual Work Hours</t></b> hrs) is less than
+                        required hours (<b><t t-out="ctx['com_work_hrs']"/></b> hrs).
                         <br/>
                         Please make sure you manage this lose hours in the coming days so that you maintain a monthly
-                        average of <b>${ctx['com_work_hrs']}</b> hrs per day.
+                        average of <b><t t-out="ctx['com_work_hrs']"/></b> hrs per day.
                         <br/>
                         Kindly check the daily average report sent by the system to you directly for understanding your
                         daily time attendance.
