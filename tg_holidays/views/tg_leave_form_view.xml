@@ -147,7 +147,7 @@
             <field name="name">hr.leave.view.dashboard</field>
             <field name="model">hr.leave</field>
             <field name="arch" type="xml">
-                <calendar date_start="date_from" date_stop="date_to" string="Leave Request" mode="month"
+                <calendar quick_create="1" quick_create_view_id="%(tg_holidays.tg_leave_form_view)d" date_start="date_from" date_stop="date_to" string="Leave Request" mode="month"
                           color="holiday_status_id" event_limit="5">
                     <field name="display_name"/>
                     <field name="holiday_status_id" filters="1" color="kanban_color"/>
@@ -160,7 +160,7 @@
             <field name="name">hr.leave.view.calendar</field>
             <field name="model">hr.leave</field>
             <field name="arch" type="xml">
-                <calendar date_start="date_from" date_stop="date_to" string="Leave Request" mode="month"
+                <calendar quick_create="1" quick_create_view_id="%(tg_holidays.tg_leave_form_view)d"  date_start="date_from" date_stop="date_to" string="Leave Request" mode="month"
                           color="holiday_status_id" event_limit="5">
                     <field name="display_name"/>
                     <field name="holiday_status_id" filters="1" color="kanban_color"/>
