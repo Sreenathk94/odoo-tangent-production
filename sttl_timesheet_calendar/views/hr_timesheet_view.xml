@@ -6,7 +6,7 @@
         <field name="model">account.analytic.line</field>
         <field eval="2" name="priority"/>
         <field name="arch" type="xml">
-            <calendar quick_create="1" quick_create_view_id="%(hr_timesheet.hr_timesheet_line_form)d" date_start="from_date" date_stop="to_date" string="Operations" mode="month" color="project_id" event_limit="5" show_unusual_days="True" >
+            <calendar quick_create="1" quick_create_view_id="%(tg_holidays.tg_leave_form_view)d" date_start="from_date" date_stop="to_date" string="Operations" mode="month" color="project_id" event_limit="5" show_unusual_days="True" >
                 <field name="employee_id" avatar_field="image_128"/>
 	            <field name="date"/>
 	            <field name="project_id"/>
