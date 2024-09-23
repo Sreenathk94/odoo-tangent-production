@@ -43,7 +43,7 @@ class AccountAnalyticLine(models.Model):
         domain="[('id', 'in', allowed_stage_ids)]"
     )
     project_task_id = fields.Many2one(
-        "project.task",'Task',order='sequence asc',
+        "project.task",'Task',order='sequence asc', required=True,
         domain="[('project_id', '=', project_id)]"
     )
 
