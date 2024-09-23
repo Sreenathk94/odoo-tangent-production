@@ -42,6 +42,11 @@ class AccountAnalyticLine(models.Model):
         "hr.timesheet.status",'Stages',order='sequence asc',
         domain="[('id', 'in', allowed_stage_ids)]"
     )
+    project_task_id = fields.Many2one(
+        "project.task",'Task',order='sequence asc',
+        domain="[('project_id', '=', project_id)]"
+    )
+
     description = fields.Text('Description')
     message = fields.Text('Message')
     # is_project_start_mail_sent = fields.Boolean("Project Start Mail Sent?",default=False,copy=False)
