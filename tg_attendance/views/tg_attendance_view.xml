@@ -323,8 +323,21 @@
                         average of <b><t t-out="ctx['com_work_hrs']"/></b> hrs per day.
                         <br/>
                         For your information we have attached your daily log for the (<b>
-                        <t t-out="{ctx['sterday'].strftime('%d/%b/%Y')"/></b>)
+                        <t t-out="ctx['sterday'].strftime('%d/%b/%Y')"/></b>)
                         <br/>
+
+                        <table class="table" style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;" width="100" t-if="ctx['datas']">
+                            <tbody>
+                                <tr t-foreach="ctx['datas']" t-as="data" style="background-color: #f9f9f9;">
+                                    <td t-foreach="data" t-as="line" style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-if="line != 'claim'"> <t t-out="line"/></t>
+                                        <t t-else="">
+                                            <a t-att-href="ctx['base_url']" style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim</a>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                         <br/>
                         We look forward for your support in this regards,
                         <br/>

@@ -69,11 +69,13 @@ class TgAttendance(models.Model):
 		hours = int(float_value)
 		minutes = int(round((float_value - hours) * 60))
 		return f"{hours:02d}:{minutes:02d}"
-	
+
+	@api.model
 	def _employee_alert_daily_attendance(self):
 		today = self.env.company.fetch_date
+		data_to_load_html_template = []
 		sterday = today - relativedelta(days=1)
-		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
+		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)[0]:
 			workbook = xlwt.Workbook(encoding="UTF-8")
 			format1 = xlwt.easyxf('font:bold True,name Calibri;align: horiz left;')
 			format2 = xlwt.easyxf('font:name Calibri;align: horiz right;')
@@ -92,45 +94,75 @@ class TgAttendance(models.Model):
 			sheet.write(1, 1, (attendance.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
 			sheet.write(1, 2, (attendance.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
 			sheet.write(1, 3, self.float_to_time(attendance.worked_hours), format3)
+			data_to_load_html_template.append([
+				'First Check-in & Last Check-out',
+				(attendance.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
+				(attendance.check_out + timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
+				self.float_to_time(attendance.worked_hours),
+				' ',
+			])
 			if attendance.employee_id.location_id.detect_lunch == True:
 				if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids):
 					pass
 				else:
 					sheet.write(2, 0, 'Less 1 hour for the lunch break', format1)
 					sheet.write(2, 3, self.float_to_time(-1), format3)
+					data_to_load_html_template.append([
+						'Less 1 hour for the lunch break', ' ', ' ', self.float_to_time(-1)
+					])
+			row_3 = ['Total time excluding break', ' ', ' ' ]
 			sheet.write(3, 0, 'Total time excluding break', format1)
 			if attendance.employee_id.location_id.detect_lunch == True:
 				if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids):
 					sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
+					row_3.append(self.float_to_time((attendance.worked_hours)))
 				else:
 					sheet.write(3, 3, self.float_to_time((attendance.worked_hours-1)), format3)
+					row_3.append(self.float_to_time((attendance.worked_hours-1)))
 			else:
 				sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
+				row_3.append(self.float_to_time((attendance.worked_hours)))
+			row_3.append(' ')
+			data_to_load_html_template.append(row_3)
 			sheet.write(4, 0, 'Breaks', format4)
 			sheet.write(4, 3, 'Counted', format4)
 			sheet.write(4, 4, 'Non-Counted', format4)
+			data_to_load_html_template.append([
+				'Breaks', ' ', ' ', 'Counted', 'Non-Counted'
+			])
 			check_out = False;non_count = timedelta(days=0);count = timedelta(days=0)
+			row = [' ', ' ', ' ', ' ', ' ']
 			for line in attendance.line_ids:
 				if j!=1:
 					sheet.write(i, 2, (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
+					row[2] = (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
 					dif = (line.check_in+timedelta(hours=5.5)) - check_out
 					hours = int(dif.seconds / 3600)
-					minutes = (dif.seconds % 3600) / 60 
+					minutes = (dif.seconds % 3600) / 60
 					if hours == 0 and minutes <= 15:
 						sheet.write(i, 4, str(dif), format7)
+						row[4] = str(dif)
 						non_count += dif
 					else:
 						sheet.write(i, 3, str(dif), format2)
+						row[3] = str(dif)
 						count += dif
+					data_to_load_html_template.append(row)
 				if k!=j:
+					row = [' ', ' ', ' ', ' ', ' ', 'claim']
 					sheet.write(i+1, 0, 'Break '+str(j), format1)
 					sheet.write(i+1, 1, (line.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
+					row[0] = 'Break '+str(j)
+					row[1] = (line.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
 					check_out = line.check_out+timedelta(hours=5.5)
 				i+=1;j+=1
 			sheet.write(i, 0, 'Total Breaks', format1)
 			sheet.write(i, 4, str(non_count), format8)
 			sheet.write(i, 3, str(count), format3)
 			sheet.write(i+2, 0, 'Net total time inside the office ('+str(self.float_to_time(attendance.worked_hours))+' - '+str(count)+')', format5)
+			data_to_load_html_template.append([
+				'Total Breaks', ' ', ' ', str(count), ' '
+			])
 			wk_hr=timedelta(hours=attendance.worked_hours)
 			if attendance.employee_id.location_id.detect_lunch == True:
 				if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids):
@@ -140,14 +172,22 @@ class TgAttendance(models.Model):
 			else:
 				bk_hr=count
 			sheet.write(i+2, 3, str(wk_hr-bk_hr), format6)
+			data_to_load_html_template.append([
+				'Net total time inside the office (' + str(
+					self.float_to_time(attendance.worked_hours)) + ' - ' + str(
+					count) + ')', ' ', ' ', str(wk_hr-bk_hr), ' '
+			])
 			fp = BytesIO()
-			workbook.save(fp)     
+			workbook.save(fp)
 			report_id = self.env['ir.attachment'].create({'name': sterday.strftime("%d/%b/%Y")+' - Employee attendance Report.xls','type': 'binary',
-                'datas': base64.encodestring(fp.getvalue()),'res_model': 'hr.attendance','res_id': self.id})
+                'datas': base64.b64encode(fp.getvalue()),'res_model': 'hr.attendance','res_id': self.id})
+			base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 			context = {
 			    'email_to':attendance.employee_id.work_email,
 				'email_from':self.env.company.erp_email,
 				'sterday':sterday,
+				'base_url': f"{base_url}/attendance?date={sterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}" ,
+				'datas': data_to_load_html_template,
 				'com_work_hrs':self.env.company.attend_work_hrs
 				}
 			template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')

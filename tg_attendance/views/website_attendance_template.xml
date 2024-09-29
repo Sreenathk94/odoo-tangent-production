@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Template for the legal case registration view -->
+    <template id="attendance_claim_view" name="Attendance Overview">
+        <t t-call="website.layout">
+            <div style="margin: 0px; padding: 0px;" class="container">
+                <p style="margin: 60px; padding: 0px; font-size: 20px;">
+                    Dear
+                    <b>
+                        <t t-out="name">Employee Name</t>
+                    </b>
+                    ,
+                    <br/>
+                    <br/>
+                    Kindly note that your daily average time inside office on (
+                    <b>
+                        <t t-out="sterday.strftime('%d/%b/%Y')"></t>
+                    </b>
+                    ) is less than required hours (
+                    <b>
+                        <t t-out="com_work_hrs">Work Hours</t>
+                    </b>
+                    hrs).
+                    <br/>
+                    Please make sure you manage this lose hours in the coming
+                    days so that you maintain a monthly
+                    average of
+                    <b>
+                        <t t-out="com_work_hrs"/>
+                    </b>
+                    hrs per day.
+                    <br/>
+                    For your information we have attached your daily log for
+                    the (
+                    <b>
+                        <t t-out="sterday.strftime('%d/%b/%Y')"/>
+                    </b>
+                    )
+                    <br/>
+
+                    <table class="table"
+                           style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; margin-top:10px; margin-left: 60px;"
+                           width="100" t-if="datas">
+                        <tbody>
+                            <tr t-foreach="datas" t-as="data"
+                                style="background-color: #f9f9f9;">
+                                <td t-foreach="data" t-as="line"
+                                    style="border: 1px solid #ddd; padding: 8px;">
+                                    <t t-if="line != 'claim'">
+                                        <t t-out="line"/>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-set="from" t-value="data[1]"/>
+                                        <t t-set="to" t-value="data[2]"/>
+                                        <a t-attf-href="{{base_url}}?employee_id={{id}}&amp;from={{from}}&amp;to={{to}}"
+                                           style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">
+                                            Claim
+                                        </a>
+                                    </t>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                </p>
+            </div>
+        </t>
+    </template>
+
+    <template id="attendance_claim_view_from" name="Attendance | Claim Form">
+        <t t-call="website.layout">
+            <div class="oe_structure oe_empty">
+                <div>
+                    <div class="container s_allow_columns case_register_form">
+                        <div class="container">
+                            <br/>
+                            <h3 class="text-center">Claim Attendance</h3>
+                            <br/>
+                        </div>
+                        <div class="container mt-4 mb-5">
+                            <form role="form" action="/submit/claim/attendance"
+                                  method="POST">
+                                <input type="hidden" name="csrf_token"
+                                       t-att-value="request.csrf_token()"/>
+
+                                <!-- Name Field (Read-only) -->
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="name"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Employee Name
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <input type="text" id="name"
+                                                   class="form-control s_website_form_input"
+                                                   readonly="readonly"
+                                                   t-att-value="request.env.user.partner_id.name"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Email Field (Read-only) -->
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required"
+                                     style="display:none;">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="email"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Email
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <input type="text" id="email"
+                                                   class="form-control s_website_form_input"
+                                                   name="employee_id"
+                                                   readonly="readonly"
+                                                   t-att-value="employee_id['id']"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Case Details Field -->
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="description"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Date From
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <input type="text" id="email"
+                                                   class="form-control s_website_form_input"
+                                                   name="date_from"
+                                                   readonly="readonly"
+                                                   t-att-value="date_from"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Case Category Field -->
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="case_category"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Date To
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <input type="text" id="email"
+                                                   class="form-control s_website_form_input"
+                                                   name="date_to"
+                                                   readonly="readonly"
+                                                   t-att-value="date_to"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <!-- Contact No Field -->
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="contact"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Reason
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <textarea id="reason"
+                                                      class="form-control s_website_form_input"
+                                                      name="reason"
+                                                      required="true"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="form-group col-12 s_website_form_submit"
+                                         data-name="Submit Button">
+                                        <div style="width: 200px;"
+                                             class="s_website_form_label"></div>
+                                        <button type="submit" id="upload"
+                                                class="btn btn-primary btn-block upload">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+        <template id="attendance_claim_view_from_confirm_view" name="Claim | Confirmation">
+            <t t-call="website.layout">
+                    <div class="alert alert-success" role="alert">
+                       The requested created with the reference of <t t-out="reference"/>
+                    </div>
+            </t>
+        </template>
+</odoo>

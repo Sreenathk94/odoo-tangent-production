@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+        <record id="action_attendance_claim_approval" model="ir.actions.act_window">
+            <field name="name">Approvals</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">attendance.claim.approval</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="view_tree_attendance_claim_approval" model="ir.ui.view">
+            <field name="name">attendance.claim.approval.tree</field>
+            <field name="model">attendance.claim.approval</field>
+            <field name="arch" type="xml">
+                <tree create="0">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="manager_id"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="reason"/>
+                    <field name="state" widget="badge" decoration-danger="state == 'rejected'"
+                     decoration-info="state == 'draft'" decoration-success="state == 'accepted'"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <record id="view_from_attendance_claim_approval" model="ir.ui.view">
+            <field name="name">attendance.claim.approval.from</field>
+            <field name="model">attendance.claim.approval</field>
+            <field name="arch" type="xml">
+                <form create="0" edit="0">
+                    <header>
+                        <button name="action_accept" string="Accept" type="object"
+                                class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_reject" string="Reject" type="object"
+                                invisible="state != 'draft'"/>
+                        <field name="state" widget="statusbar"  />
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                            </group>
+                            <group>
+                                <field name="employee_id"/>
+                                <field name="manager_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Reason">
+                                <field name="reason"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <menuitem id="menu_attendance_claim_approval"
+              name="Attendance Approval"
+              parent="hr_attendance.menu_hr_attendance_root"
+              action="action_attendance_claim_approval" sequence="16"/>
+</odoo>

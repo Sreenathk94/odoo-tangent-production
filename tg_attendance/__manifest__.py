@@ -11,9 +11,11 @@
         'views/tg_attendance_view.xml',
         'views/tg_employee_view.xml',
         'views/tg_attendance_permission.xml',
+        'views/website_attendance_template.xml',
+        'views/attendance_clail_approval.xml',
     ],
     #Add Depends  sttl_timesheet_calendar
-    'depends': ['base', 'hr', 'hr_attendance', 'tg_base', 'tg_groups'],
+    'depends': ['base','website', 'hr', 'hr_attendance', 'tg_base', 'tg_groups'],
     'installable': True,
     'auto_install': False,
     'application': True,
