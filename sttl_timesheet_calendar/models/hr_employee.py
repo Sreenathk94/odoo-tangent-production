@@ -47,7 +47,7 @@ class HREmployee(models.Model):
 				if not timesheet_ids:
 					context = {
 						'email_to': emp.work_email,
-						'subject': "System Notification: Timesheet Update Required for %s" % (
+						'subject': "Fouvty - System Notification: Timesheet Update Required for %s" % (
 							sterday.strftime("%d/%m/%Y")),
 					}
 					template_id = self.env.ref(
