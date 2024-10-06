@@ -80,7 +80,8 @@
                         </group>
                         <group>
                             <field name="amount" invisible="1"/>
-                            <field name="status_id" options="{'no_create': True}"/>
+<!--                            <field name="status_id" options="{'no_create': True}"/>-->
+                            <field name="project_task_id" options="{'no_create': True}"/>
                             <label for="end_time"/>
                             <div class="o_row">
                                 <field name="end_time" required='1' widget="float_time" decoration-danger="unit_amount &gt; 24"/>
