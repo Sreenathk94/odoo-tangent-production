@@ -328,11 +328,15 @@
 
                         <table class="table" style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;" width="100" t-if="ctx['datas']">
                             <tbody>
+                                <t t-set="index" t-value="-4"/>
                                 <tr t-foreach="ctx['datas']" t-as="data" style="background-color: #f9f9f9;">
+                                    <t t-set="index" t-value="index + 1"/>
                                     <td t-foreach="data" t-as="line" style="border: 1px solid #ddd; padding: 8px;">
                                         <t t-if="line != 'claim'"> <t t-out="line"/></t>
                                         <t t-else="">
-                                            <a t-att-href="ctx['base_url']" style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim</a>
+                                            <t t-set="from" t-value="data[1]"/>
+                                            <t t-set="to" t-value="data[2]"/>
+                                            <a t-attf-href="{{ctx['base_url']}}&amp;from={{from}}&amp;to={{to}}&amp;index={{index}}" style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim <t t-out="index"/></a>
                                         </t>
                                     </td>
                                 </tr>
@@ -348,6 +352,7 @@
             </field>
             <field name="auto_delete" eval="True"/>
         </record>
+
 
         <!-- Employee Attendance Weekly Average time -->
         <record id="hr_attendance_employee_weekly_attendance_timesheet_alert_scheduler" model="ir.cron">

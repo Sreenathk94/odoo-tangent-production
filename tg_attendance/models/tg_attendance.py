@@ -75,7 +75,7 @@ class TgAttendance(models.Model):
 		today = self.env.company.fetch_date
 		data_to_load_html_template = []
 		sterday = today - relativedelta(days=1)
-		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)[0]:
+		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
 			workbook = xlwt.Workbook(encoding="UTF-8")
 			format1 = xlwt.easyxf('font:bold True,name Calibri;align: horiz left;')
 			format2 = xlwt.easyxf('font:name Calibri;align: horiz right;')
@@ -186,7 +186,7 @@ class TgAttendance(models.Model):
 			    'email_to':attendance.employee_id.work_email,
 				'email_from':self.env.company.erp_email,
 				'sterday':sterday,
-				'base_url': f"{base_url}/attendance?date={sterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}" ,
+				'base_url': f"{base_url}/attendance/claim/form?date={sterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}" ,
 				'datas': data_to_load_html_template,
 				'com_work_hrs':self.env.company.attend_work_hrs
 				}

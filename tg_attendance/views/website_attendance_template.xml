@@ -119,6 +119,11 @@
                                                    name="employee_id"
                                                    readonly="readonly"
                                                    t-att-value="employee_id['id']"/>
+                                            <input type="text" id="index"
+                                                   class="form-control s_website_form_input"
+                                                   name="index"
+                                                   readonly="readonly"
+                                                   t-att-value="index"/>
                                         </div>
                                     </div>
                                 </div>
@@ -159,6 +164,25 @@
                                                    name="date_to"
                                                    readonly="readonly"
                                                    t-att-value="date_to"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="request_hour"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Requested(in Minutes)
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <input type="text" id="email"
+                                                   class="form-control s_website_form_input"
+                                                   t-att-value="difference_in_minutes"
+                                                   required="true"
+                                                   name="request_hour"/>
                                         </div>
                                     </div>
                                 </div>
