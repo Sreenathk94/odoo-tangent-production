@@ -1,67 +1,136 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-        <record id="action_attendance_claim_approval" model="ir.actions.act_window">
-            <field name="name">Approvals</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">attendance.claim.approval</field>
-            <field name="view_mode">tree,form</field>
-        </record>
+    <record id="action_attendance_claim_approval"
+            model="ir.actions.act_window">
+        <field name="name">Approvals</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">attendance.claim.approval</field>
+        <field name="context">{'search_default_state': 1,
+            'search_default_manager_id':1}
+        </field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
-        <record id="view_tree_attendance_claim_approval" model="ir.ui.view">
-            <field name="name">attendance.claim.approval.tree</field>
-            <field name="model">attendance.claim.approval</field>
-            <field name="arch" type="xml">
-                <tree create="0">
-                    <field name="name"/>
-                    <field name="employee_id"/>
-                    <field name="manager_id"/>
-                    <field name="date_from"/>
-                    <field name="date_to"/>
-                    <field name="reason"/>
-                    <field name="state" widget="badge" decoration-danger="state == 'rejected'"
-                     decoration-info="state == 'draft'" decoration-success="state == 'accepted'"/>
-                </tree>
-            </field>
-        </record>
+    <record id="view_tree_attendance_claim_approval" model="ir.ui.view">
+        <field name="name">attendance.claim.approval.tree</field>
+        <field name="model">attendance.claim.approval</field>
+        <field name="arch" type="xml">
+            <tree create="0">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="manager_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="request_hour"/>
+                <field name="reason"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state == 'rejected'"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'accepted'"/>
+            </tree>
+        </field>
+    </record>
 
 
-        <record id="view_from_attendance_claim_approval" model="ir.ui.view">
-            <field name="name">attendance.claim.approval.from</field>
-            <field name="model">attendance.claim.approval</field>
-            <field name="arch" type="xml">
-                <form create="0" edit="0">
-                    <header>
-                        <button name="action_accept" string="Accept" type="object"
-                                class="btn-primary"
-                                invisible="state != 'draft'"/>
-                        <button name="action_reject" string="Reject" type="object"
-                                invisible="state != 'draft'"/>
-                        <field name="state" widget="statusbar"  />
-                    </header>
-                    <sheet>
+    <record id="view_search_attendance_claim_approval" model="ir.ui.view">
+        <field name="name">attendance.claim.approval.search</field>
+        <field name="model">attendance.claim.approval</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Draft" domain="[('state','=','draft')]"
+                        name="state"/>
+                <group expand="1" string="Group by">
+                    <filter string="Manager" name="manager_id"
+                            context="{'group_by': 'manager_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_from_attendance_claim_approval" model="ir.ui.view">
+        <field name="name">attendance.claim.approval.from</field>
+        <field name="model">attendance.claim.approval</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_accept" string="Accept" type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_reject" string="Reject" type="object"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
                         <group>
-                            <group>
-                                <field name="name"/>
-                                <field name="date_from"/>
-                                <field name="date_to"/>
-                            </group>
-                            <group>
-                                <field name="employee_id"/>
-                                <field name="manager_id"/>
-                            </group>
+                            <field name="name" readonly="1"/>
+                            <field name="date_from" readonly="1"/>
+                            <field name="date_to" readonly="1"/>
                         </group>
-                        <notebook>
-                            <page string="Reason">
-                                <field name="reason"/>
-                            </page>
-                        </notebook>
-                    </sheet>
-                </form>
-            </field>
-        </record>
+                        <group>
+                            <field name="employee_id" readonly="1"/>
+                            <field name="manager_id" readonly="1"/>
+                            <field name="request_hour" readonly="1"/>
+                            <field name="approved_hour"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Reason">
+                            <field name="reason" readonly="1"/>
+                        </page>
+                        <page string="Note">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
-        <menuitem id="menu_attendance_claim_approval"
+    <menuitem id="menu_attendance_claim_approval"
               name="Attendance Approval"
               parent="hr_attendance.menu_hr_attendance_root"
               action="action_attendance_claim_approval" sequence="16"/>
+
+    <record id="employee_daily_attendance_claim_alert_scheduler" model="ir.cron">
+        <field name="name">Manager Alert For Attendance Claim</field>
+        <field name="model_id" ref="tg_attendance.model_attendance_claim_approval"/>
+        <field name="state">code</field>
+        <field name="code">model.claim_approval_email()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+    </record>
+
+    <record id="email_template_employee_daily_attendance_claim_alert"
+            model="mail.template">
+        <field name="name">Manager Alert For Attendance Claim</field>
+        <field name="model_id"
+               ref="tg_attendance.model_attendance_claim_approval"/>
+        <field name="email_to">{{object.manager_id.work_email}}</field>
+        <field name="subject">System Notification: Attendance Claim Request</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear
+                    <b>
+                        <t t-out="object.manager_id.name">Manager Name</t>
+                    </b>
+                    ,
+                    <br/>
+                    <br/>
+                    This is to inform you that an attendance claim request has
+                    been created by <t t-out="object.employee_id.name">
+                    [Employee Name]</t>.
+                    Kindly review the request for the date <t
+                        t-out="object.date_from">[Date]
+                </t> at your earliest convenience.
+                    Please let us know if you need any further details or
+                    assistance.
+                    Thank you for your attention to this matter.
+                </p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
 </odoo>

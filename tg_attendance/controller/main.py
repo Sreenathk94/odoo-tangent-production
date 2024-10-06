@@ -134,13 +134,19 @@ class AttendanceClaim(Controller):
         if kwargs.get('from') and kwargs.get('to') and kwargs.get('employee_id'):
             date_from = datetime.strptime(kwargs.get('from'), '%d-%m-%Y %H:%M:%S')
             date_to = datetime.strptime(kwargs.get('to'), '%d-%m-%Y %H:%M:%S')
+            time_difference = date_to - date_from
+            index = kwargs.get('index')
+            # Convert the time difference to minutes
+            difference_in_minutes = round(time_difference.total_seconds() / 60, 2)
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(kwargs.get('employee_id')))
             return request.render(
                 "tg_attendance.attendance_claim_view_from", {
                     'date_from': date_from,
                     'date_to': date_to,
-                    'employee_id': employee_id.read(['id', 'name'])[0]
+                    'difference_in_minutes': difference_in_minutes,
+                    'employee_id': employee_id.read(['id', 'name'])[0],
+                    'index':index
                 })
 
     @route('/submit/claim/attendance',  auth='user', website=True)
@@ -151,15 +157,20 @@ class AttendanceClaim(Controller):
             date_to = datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S')
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(post.get('employee_id')))
-
+            index = int(post.get('index'))
             approval_id = request.env['attendance.claim.approval'].create({
                 'employee_id': employee_id.id,
                 'manager_id': employee_id.parent_id.id,
                 'date_from': date_from,
                 'date_to': date_to,
+                'index': index,
+                'request_hour': post.get('request_hour'),
+                'approved_hour': post.get('request_hour'),
                 'reason': post.get('reason')
             })
-            print(approval_id)
+            template = request.env.ref(
+                'tg_attendance.email_template_employee_daily_attendance_claim_alert')
+            template.send_mail(approval_id.id, force_send=True)
             return request.render(
                 "tg_attendance.attendance_claim_view_from_confirm_view", {'reference': approval_id.name})
     

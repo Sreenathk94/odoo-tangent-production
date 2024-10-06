@@ -1,18 +1,22 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 
 
 class AttendanceClaimApproval(models.Model):
     _name = 'attendance.claim.approval'
     _description = 'Attendance Claim Approval'
+    _order = 'name desc'
 
     name = fields.Char('Reference')
     employee_id = fields.Many2one('hr.employee', required=True)
     manager_id = fields.Many2one('hr.employee')
-
+    request_hour = fields.Float('Requested (in Minutes)')
+    approved_hour = fields.Float('Approved (in Minutes)')
     date_from = fields.Datetime(required=True)
     date_to = fields.Datetime(required=True)
-
+    index = fields.Integer()
     reason = fields.Text(required=True)
+    note = fields.Text()
     state = fields.Selection([
         ('draft', 'Draft'),
         ('accepted', 'Accepted'),
@@ -32,13 +36,25 @@ class AttendanceClaimApproval(models.Model):
             ('fetch_date', '=', day),
             ('employee_id', '=', self.employee_id.id)
         ])
-        self.env['hr.attendance.line'].create({
-            'header_id': header_id.id,
-            'employee_id': self.employee_id.id,
-            'check_out': self.date_to,
-            'check_in': self.date_from
-        })
+        try:
+            line_id = header_id.line_ids[self.index]
+            line_id.write({
+                'check_out': fields.Datetime.add(line_id.check_out,
+                                                 minutes=self.approved_hour),
+            })
+        except IndexError:
+            raise ValidationError('There is an issue with the request, Please say to resubmit')
         self.state = 'accepted'
 
     def action_reject(self):
         self.state = 'rejected'
+
+    @api.model
+    def claim_approval_email(self):
+        request_ids = self.search([
+            ('state', '=', 'draft')
+        ])
+        for rec in request_ids:
+            template = self.env.ref(
+                'tg_attendance.email_template_employee_daily_attendance_claim_alert')
+            template.send_mail(rec.id, force_send=True)
