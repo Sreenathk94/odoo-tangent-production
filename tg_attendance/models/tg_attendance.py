@@ -73,9 +73,9 @@ class TgAttendance(models.Model):
 	@api.model
 	def _employee_alert_daily_attendance(self):
 		today = self.env.company.fetch_date
-		data_to_load_html_template = []
 		sterday = today - relativedelta(days=1)
 		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
+			data_to_load_html_template = []
 			workbook = xlwt.Workbook(encoding="UTF-8")
 			format1 = xlwt.easyxf('font:bold True,name Calibri;align: horiz left;')
 			format2 = xlwt.easyxf('font:name Calibri;align: horiz right;')
