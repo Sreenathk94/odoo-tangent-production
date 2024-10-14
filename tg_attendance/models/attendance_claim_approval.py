@@ -17,17 +17,24 @@ class AttendanceClaimApproval(models.Model):
     index = fields.Integer()
     reason = fields.Text(required=True)
     note = fields.Text()
+    claim_url = fields.Char('URL')
     state = fields.Selection([
         ('draft', 'Draft'),
         ('accepted', 'Accepted'),
         ('rejected', 'Rejected')
     ], default='draft')
 
-    @api.model_create_multi
+   @api.model_create_multi
     def create(self, vals_list):
         res = super().create(vals_list=vals_list)
+        cid = self.env.company.id
+        base_url = self.env['ir.config_parameter'].sudo().get_param(
+            'web.base.url')
+        menu_id = self.env.ref('tg_attendance.menu_attendance_claim_approval').id
+        action_id = self.env.ref('tg_attendance.action_attendance_claim_approval').id
         for rec in res:
             rec.name = f'CLM00{rec.id}'
+            rec.claim_url = f"{base_url}/web#id={rec.id}&cids={cid}&menu_id={menu_id}&action={action_id}&model=attendance.claim.approval&view_type=form"
         return res
 
     def action_accept(self):
