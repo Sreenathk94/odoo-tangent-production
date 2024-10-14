@@ -78,7 +78,7 @@
                             <br/>
                         </div>
                         <div class="container mt-4 mb-5">
-                            <form role="form" action="/submit/claim/attendance"
+                            <form role="form" action="/submit/claim/attendance"  id="attendance_claim_form"
                                   method="POST">
                                 <input type="hidden" name="csrf_token"
                                        t-att-value="request.csrf_token()"/>
@@ -178,7 +178,8 @@
                                             </span>
                                         </label>
                                         <div class="col-sm">
-                                            <input type="text" id="email"
+                                            <span id="maximum_difference_in_minutes" t-att-data-minuts="difference_in_minutes"/>
+                                            <input type="text" id="request_hour"
                                                    class="form-control s_website_form_input"
                                                    t-att-value="difference_in_minutes"
                                                    required="true"
@@ -186,6 +187,7 @@
                                         </div>
                                     </div>
                                 </div>
+
 
 
                                 <!-- Contact No Field -->
