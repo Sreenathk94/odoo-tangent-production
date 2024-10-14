@@ -149,7 +149,7 @@ class TgAttendance(models.Model):
 						count += dif
 					data_to_load_html_template.append(row)
 				if k!=j:
-					row = [' ', ' ', ' ', ' ', ' ', 'claim']
+					row = [' ', ' ', ' ', False, False, 'claim']
 					sheet.write(i+1, 0, 'Break '+str(j), format1)
 					sheet.write(i+1, 1, (line.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
 					row[0] = 'Break '+str(j)
