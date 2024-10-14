@@ -14,6 +14,11 @@
         'views/website_attendance_template.xml',
         'views/attendance_clail_approval.xml',
     ],
+     'assets': {
+        'web.assets_frontend': [
+            '/tg_attendance/static/src/attendance_claim.js'
+        ]
+    },
     #Add Depends  sttl_timesheet_calendar
     'depends': ['base','website', 'hr', 'hr_attendance', 'tg_base', 'tg_groups'],
     'installable': True,
