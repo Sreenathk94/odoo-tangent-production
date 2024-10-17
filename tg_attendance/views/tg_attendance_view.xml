@@ -70,6 +70,7 @@
                     <field name="worked_hours" string="Work Hours" widget="float_time"/>
                     <field name="actual_hours" widget="float_time"/>
                     <field name="timesheet_hours" widget="float_time"/>
+                    <field name="claimed_hours" readonly="1"/>
                 </field>
                 <xpath expr="//group" position="after">
                     <notebook>

@@ -24,7 +24,7 @@ class AttendanceClaimApproval(models.Model):
         ('rejected', 'Rejected')
     ], default='draft')
 
-   @api.model_create_multi
+    @api.model_create_multi
     def create(self, vals_list):
         res = super().create(vals_list=vals_list)
         cid = self.env.company.id
@@ -43,14 +43,8 @@ class AttendanceClaimApproval(models.Model):
             ('fetch_date', '=', day),
             ('employee_id', '=', self.employee_id.id)
         ])
-        try:
-            line_id = header_id.line_ids[self.index]
-            line_id.write({
-                'check_out': fields.Datetime.add(line_id.check_out,
-                                                 minutes=self.approved_hour),
-            })
-        except IndexError:
-            raise ValidationError('There is an issue with the request, Please say to resubmit')
+
+        header_id.claimed_hours = self.approved_hour
         self.state = 'accepted'
 
     def action_reject(self):

@@ -9,6 +9,10 @@ from io import BytesIO
 from dateutil.relativedelta import relativedelta
 import calendar
 from odoo.tools import date_utils
+from odoo.addons.resource.models.utils import Intervals
+from pytz import timezone
+
+
 
 class LocationMaster(models.Model):
 	_name = "hr.location.master"
@@ -38,6 +42,27 @@ class TgAttendance(models.Model):
 	check_in = fields.Datetime(string="Check In", required=True)
 	check_out = fields.Datetime(string="Check Out", required=True)
 	fetch_date = fields.Date(string='Attendance Date', required=True, tracking=True)
+	claimed_hours = fields.Float(string='Attendance claimed hours')
+
+	@api.depends('check_in', 'check_out')
+	def _compute_worked_hours(self):
+		for attendance in self:
+			if attendance.check_out and attendance.check_in and attendance.employee_id:
+				calendar = attendance._get_employee_calendar()
+				resource = attendance.employee_id.resource_id
+				tz = timezone(calendar.tz)
+				check_in_tz = attendance.check_in.astimezone(tz)
+				check_out_tz = attendance.check_out.astimezone(tz)
+				lunch_intervals = calendar._attendance_intervals_batch(
+					check_in_tz, check_out_tz, resource, lunch=True)
+				attendance_intervals = Intervals([(check_in_tz, check_out_tz, attendance)]) - lunch_intervals[
+					resource.id]
+				delta = sum((i[1] - i[0]).total_seconds() for i in attendance_intervals)
+				temp_worked_hours = delta / 3600.0
+				attendance.worked_hours = temp_worked_hours + attendance.claimed_hours if attendance.claimed_hours else temp_worked_hours
+
+			else:
+				attendance.worked_hours = False
 
 	@api.depends('line_ids','line_ids.worked_hours')
 	def _compute_actual_hours(self):

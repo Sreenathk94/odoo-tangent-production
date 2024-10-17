@@ -137,14 +137,16 @@ class AttendanceClaim(Controller):
             time_difference = date_to - date_from
             index = kwargs.get('index')
             # Convert the time difference to minutes
-            difference_in_minutes = round(time_difference.total_seconds() / 60, 2)
+            difference_in_minutes = time_difference.total_seconds()/60
+            total_hours = difference_in_minutes / 60
+
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(kwargs.get('employee_id')))
             return request.render(
                 "tg_attendance.attendance_claim_view_from", {
                     'date_from': date_from,
                     'date_to': date_to,
-                    'difference_in_minutes': difference_in_minutes,
+                    'difference_in_minutes': total_hours,
                     'employee_id': employee_id.read(['id', 'name'])[0],
                     'index':index
                 })
