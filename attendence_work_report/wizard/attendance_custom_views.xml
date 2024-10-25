@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_attendance_custom_view_form" model="ir.ui.view">
+        <field name="name">attendance.custom.view.form</field>
+        <field name="model">attendance.custom.view</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Custom View">
+                <group>
+                    <field name="filter_wise" widget="radio"/>
+                    <field name="from_date"
+                           invisible="filter_wise != 'custom'"/>
+                    <field name="end_date" invisible="filter_wise != 'custom'"/>
+                </group>
+                <footer>
+                    <button string="Show the Report" type="object"
+                            name="show_report" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_attendance_custom_view" model="ir.actions.act_window">
+        <field name="name">Attendance Custom View</field>
+        <field name="res_model">attendance.custom.view</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_attendance_custom_view_form"/>
+        <field name="target">new</field>  <!-- Opens the wizard in a modal -->
+    </record>
+
+    <menuitem action="action_attendance_custom_view"
+              id="attendance_custom_view_menu_id"
+              parent="hr_attendance.menu_hr_attendance_root"
+              name="Attendance Custom View "
+              />
+</odoo>
