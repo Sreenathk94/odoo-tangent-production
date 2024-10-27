@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="visa_expiry_template_admin" model="mail.template">
+            <field name="name">Admin Alert for Document Expiry</field>
+            <field name="model_id" ref="base.model_res_users"/> <!-- Changed model to res.users -->
+            <field name="email_from">{{ object.company_id.email }}</field>
+            <field name="email_to">{{ object.email }}</field>
+            <field name="subject">Document Expiry Alert for Employees</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0; padding: 20px; font-family: Arial, sans-serif; color: #333;">
+                    <h2 style="color: #714B67;">Admin Document Expiry Alert</h2>
+                    <p>This email notifies you of upcoming document expirations
+                        for employees. Please review and take the necessary
+                        actions.
+                    </p>
+                    <br/>
+                    <div>
+                        <h3 style="color: #714B67;">Visa Expiry Reminders</h3>
+                        <ul>
+                            <t t-foreach="ctx.get('visa_expiry_list', [])" t-as="employee_name">
+                                <li>
+                                    <t t-esc="employee_name"/>
+                                </li>
+                            </t>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="color: #714B67;">Work Permit Expiry Reminders</h3>
+                        <ul>
+                            <t t-foreach="ctx.get('work_permit_expiry_list', [])" t-as="employee_name">
+                                <li>
+                                    <t t-esc="employee_name"/>
+                                </li>
+                            </t>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="color: #714B67;">Passport Expiry Reminders</h3>
+                        <ul>
+                            <t t-foreach="ctx.get('passport_expiry_list', [])" t-as="employee_name">
+                                <li>
+                                    <t t-esc="employee_name"/>
+                                </li>
+                            </t>
+                        </ul>
+                    </div>
+                    <br/>
+                    <p>Reminder period before expiry:
+                        <strong>
+                            <t t-esc="ctx.get('expiry_date_reminder')"/> days
+                        </strong>
+                    </p>
+                    <br/>
+                    <p>Best Regards,</p>
+                    <p>
+                        <t t-esc="object.company_id.name"/>
+                    </p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

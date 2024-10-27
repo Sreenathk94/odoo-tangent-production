@@ -1,0 +1,21 @@
+{
+    'name': 'tg_expiry_alert',
+    'version': '17.0.1.0.1',
+    'description': 'expiry alert for documents',
+    'summary': """Document Expiry Alter""",
+    'data': [
+        'security/res_groups.xml',
+        'data/work_permit_template.xml',
+        'data/passport_expiry_template.xml',
+        'data/visa_expire_template.xml',
+        'data/admin_expiry_alert_mail_template.xml',
+        'data/scheduled_action.xml',
+        'views/hr_employee_views.xml',
+        'views/res_config_setting.xml',
+        ],
+    'depends': ['base','hr',"hr_attendance"],
+    'installable': True,
+    'license': 'OPL-1',
+    'auto_install': False,
+    'application': False,
+}
