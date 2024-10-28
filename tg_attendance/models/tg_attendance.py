@@ -9,10 +9,6 @@ from io import BytesIO
 from dateutil.relativedelta import relativedelta
 import calendar
 from odoo.tools import date_utils
-from odoo.addons.resource.models.utils import Intervals
-from pytz import timezone
-
-
 
 class LocationMaster(models.Model):
 	_name = "hr.location.master"
@@ -42,27 +38,6 @@ class TgAttendance(models.Model):
 	check_in = fields.Datetime(string="Check In", required=True)
 	check_out = fields.Datetime(string="Check Out", required=True)
 	fetch_date = fields.Date(string='Attendance Date', required=True, tracking=True)
-	claimed_hours = fields.Float(string='Attendance claimed hours')
-
-	@api.depends('check_in', 'check_out')
-	def _compute_worked_hours(self):
-		for attendance in self:
-			if attendance.check_out and attendance.check_in and attendance.employee_id:
-				calendar = attendance._get_employee_calendar()
-				resource = attendance.employee_id.resource_id
-				tz = timezone(calendar.tz)
-				check_in_tz = attendance.check_in.astimezone(tz)
-				check_out_tz = attendance.check_out.astimezone(tz)
-				lunch_intervals = calendar._attendance_intervals_batch(
-					check_in_tz, check_out_tz, resource, lunch=True)
-				attendance_intervals = Intervals([(check_in_tz, check_out_tz, attendance)]) - lunch_intervals[
-					resource.id]
-				delta = sum((i[1] - i[0]).total_seconds() for i in attendance_intervals)
-				temp_worked_hours = delta / 3600.0
-				attendance.worked_hours = temp_worked_hours + attendance.claimed_hours if attendance.claimed_hours else temp_worked_hours
-
-			else:
-				attendance.worked_hours = False
 
 	@api.depends('line_ids','line_ids.worked_hours')
 	def _compute_actual_hours(self):
@@ -98,10 +73,10 @@ class TgAttendance(models.Model):
 	@api.model
 	def _employee_alert_daily_attendance(self):
 		today = self.env.company.fetch_date
-		sterday = today - relativedelta(days=1)
-		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
-			data_to_load_html_template = []
+		sterday = today - relativedelta(days=16)
+		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)[0]:
 			workbook = xlwt.Workbook(encoding="UTF-8")
+			data_to_load_html_template = []
 			format1 = xlwt.easyxf('font:bold True,name Calibri;align: horiz left;')
 			format2 = xlwt.easyxf('font:name Calibri;align: horiz right;')
 			format3 = xlwt.easyxf('font:bold True,name Calibri;align: horiz right;')
@@ -115,15 +90,17 @@ class TgAttendance(models.Model):
 			for r in range(1,5):
 				sheet.col(r).width = int(25*260)
 			i=4;j=1;k=len(attendance.line_ids)
+			total_time_in_office = attendance.check_out - attendance.check_in
 			sheet.write(1, 0, 'First Check-in & Last Check-out', format1)
 			sheet.write(1, 1, (attendance.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
 			sheet.write(1, 2, (attendance.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
-			sheet.write(1, 3, self.float_to_time(attendance.worked_hours), format3)
+			sheet.write(1, 3, self.float_to_time(total_time_in_office), format3)
+
 			data_to_load_html_template.append([
 				'First Check-in & Last Check-out',
-				(attendance.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
+				(attendance.check_in + timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
 				(attendance.check_out + timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
-				self.float_to_time(attendance.worked_hours),
+				self.float_to_time(total_time_in_office),
 				' ',
 			])
 			if attendance.employee_id.location_id.detect_lunch == True:
@@ -138,7 +115,8 @@ class TgAttendance(models.Model):
 			row_3 = ['Total time excluding break', ' ', ' ' ]
 			sheet.write(3, 0, 'Total time excluding break', format1)
 			if attendance.employee_id.location_id.detect_lunch == True:
-				if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids):
+				if (any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and
+						any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids)):
 					sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
 					row_3.append(self.float_to_time((attendance.worked_hours)))
 				else:
@@ -157,6 +135,19 @@ class TgAttendance(models.Model):
 			])
 			check_out = False;non_count = timedelta(days=0);count = timedelta(days=0)
 			row = [' ', ' ', ' ', ' ', ' ']
+			attendance_checkin = attendance.check_in+timedelta(hours=5.5)
+			# calculation mismatch
+			# Fouvty
+			attendance_checkin_time = attendance_checkin.hour + attendance_checkin.minute / 60
+			if attendance_checkin_time > self.env.company.company_start_time:
+				sheet.write(i, 3,
+							(attendance.check_in + timedelta(hours=5.5)).strftime(
+								"%d-%m-%Y %H:%M:%S"), format2)
+				row[3] = (attendance.check_in + timedelta(hours=5.5)).strftime(
+					"%d-%m-%Y %H:%M:%S")
+				sheet.write(i, 4, attendance_checkin_time - self.env.company.company_start_time
+							, format2)
+				row[4] = attendance_checkin_time - self.env.company.company_start_time
 			for line in attendance.line_ids:
 				if j!=1:
 					sheet.write(i, 2, (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
@@ -208,7 +199,7 @@ class TgAttendance(models.Model):
                 'datas': base64.b64encode(fp.getvalue()),'res_model': 'hr.attendance','res_id': self.id})
 			base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 			context = {
-			    'email_to':attendance.employee_id.work_email,
+			    'email_to':'fasil.fouvty@gmail.com',
 				'email_from':self.env.company.erp_email,
 				'sterday':sterday,
 				'base_url': f"{base_url}/attendance/claim/form?date={sterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}" ,
