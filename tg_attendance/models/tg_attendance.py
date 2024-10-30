@@ -74,7 +74,7 @@ class TgAttendance(models.Model):
 	def _employee_alert_daily_attendance(self):
 		today = self.env.company.fetch_date
 		sterday = today - relativedelta(days=16)
-		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)[0]:
+		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
 			workbook = xlwt.Workbook(encoding="UTF-8")
 			data_to_load_html_template = []
 			format1 = xlwt.easyxf('font:bold True,name Calibri;align: horiz left;')
@@ -135,19 +135,24 @@ class TgAttendance(models.Model):
 			])
 			check_out = False;non_count = timedelta(days=0);count = timedelta(days=0)
 			row = [' ', ' ', ' ', ' ', ' ']
-			attendance_checkin = attendance.check_in+timedelta(hours=5.5)
-			# calculation mismatch
-			# Fouvty
-			attendance_checkin_time = attendance_checkin.hour + attendance_checkin.minute / 60
-			if attendance_checkin_time > self.env.company.company_start_time:
+			start_time = self.env.company.company_start_time
+			# Extract hour and minute from the float
+			hours = int(start_time)
+			minutes = int((start_time - hours) * 100)
+			attendance_checkin = attendance.check_in + timedelta(hours=5.5)
+			# Create a datetime object with the extracted hour and minute
+			start_time_date = datetime(sterday.year, sterday.month, sterday.day, hours, minutes)
+			start_time_date = fields.Datetime.add(start_time_date, hours=5.5)
+
+			if attendance_checkin > start_time_date:
 				sheet.write(i, 3,
-							(attendance.check_in + timedelta(hours=5.5)).strftime(
+							attendance_checkin.strftime(
 								"%d-%m-%Y %H:%M:%S"), format2)
-				row[3] = (attendance.check_in + timedelta(hours=5.5)).strftime(
+				row[3] = attendance_checkin.strftime(
 					"%d-%m-%Y %H:%M:%S")
-				sheet.write(i, 4, attendance_checkin_time - self.env.company.company_start_time
-							, format2)
-				row[4] = attendance_checkin_time - self.env.company.company_start_time
+				sheet.write(i, 4, attendance_checkin - start_time_date, format2)
+				row[4] = attendance_checkin - start_time_date
+
 			for line in attendance.line_ids:
 				if j!=1:
 					sheet.write(i, 2, (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
