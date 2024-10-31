@@ -47,3 +47,32 @@ class HrLeave(models.Model):
                         raise ValidationError(
                             f"Employee must submit an attachment or medical report if the leave starts on {day}"
                         )
+
+    def action_refuse(self):
+        """
+        Overrides the default action_refuse method to display a wizard for collecting
+        a refusal reason before proceeding with the leave refusal.
+
+        The wizard popup is displayed unless the `skip_wizard` context key is present.
+        If the wizard is completed, it saves the reason and then calls the original
+        action_refuse to apply the refusal logic.
+
+        Returns:
+            dict: Action dictionary to open the wizard window, or the result of the
+                  original action_refuse when skip_wizard is in context.
+        """
+        if self.env.context.get('skip_wizard'):
+            # Call the default action_refuse when skip_wizard is set in context
+            return super(HrLeave, self).action_refuse()
+        else:
+            print("ttttttttttttttttttt")
+            # Otherwise, open the wizard to capture the refusal reason
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Refuse Leave',
+                'res_model': 'hr.leave.refuse.wizard',
+                'view_mode': 'form',
+                'views': [[False, "form"]],
+                'target': 'new',
+                'context': {'active_id': self.id},
+            }
