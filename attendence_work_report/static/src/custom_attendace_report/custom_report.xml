@@ -1,0 +1,99 @@
+<templates xml:space="preserve">
+    <t t-name="attendence_work_report.custom_hr_attendance_report">
+        <div class="p-5">
+        <div class="table-title">
+<!--            <h3>Attendance Work Report</h3>-->
+        </div>
+
+            <div class="d-flex justify-content-end attendance_filter_button">
+            <div>
+                <Dropdown togglerClass="'btn btn-light btn-sm px-1 p-0'">
+                    <t t-set-slot="toggler">
+                        <button class="btn btn-primary">
+                            <t t-if="state.filterLabel">
+                                <span t-esc="state.filterLabel"/>
+                            </t>
+                            <t t-else="">
+                                Choose Your Filter
+                            </t>
+                        </button>
+                    </t>
+                    <t t-foreach="state.filterWise" t-as="filter"
+                       t-key="filter.value">
+                        <DropdownItem
+                                onSelected="() => this.onFilterSelected(filter.value,filter.label)">
+                            <t t-esc="filter.label"/>
+                        </DropdownItem>
+                    </t>
+                </Dropdown>
+            </div>
+        </div>
+            <div class="d-flex justify-content-end mt-2">
+                <form>
+                    <div t-att-class="state.selectedFilter !== 'custom' ? 'd-none' : 'd-flex gap-2'">
+                        <input type="date" id="start_date" class="date w-10"
+                               t-att-required="state.selectedFilter == 'custom'"
+                               t-model="state.customStartDate"/>
+                        <input type="date" id="end_date" class="date w-10"
+                               t-att-required="state.selectedFilter == 'custom'"
+                               t-model="state.customEndDate"/>
+                        <button class="btn btn-primary mb-2"
+                                t-on-click="confirmCustomDate">Confirm</button>
+                    </div>
+                </form>
+            </div>
+
+
+            <t t-if="state.filteredRecords">
+            <div class="table-fill mt-5">
+                <table class="table table-striped">
+                    <thead class="attendance_table_head">
+                        <tr>
+                            <th class="text-left">Name</th>
+                            <th class="text-left">Department</th>
+                            <th class="text-left">Total Hours</th>
+                            <th class="text-left">Working Days</th>
+                            <th class="text-left">Average</th>
+                            <th class="text-left">Positive Value</th>
+                            <th class="text-left">Negative Value</th>
+                            <th class="text-left">Positive Cost</th>
+                            <th class="text-left">Negative Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-hover">
+                        <t t-if="state.filteredRecords.length === 0">
+                            <tr>
+                                <td colspan="9" class="text-center">No records found</td>
+                            </tr>
+                        </t>
+                        <t t-foreach="state.filteredRecords" t-as="record"
+                           t-key="record.employee_id">
+                            <tr>
+                                <td class="text-left text-bold"><t t-esc="record.name"/></td>
+                                <td class="text-left"><t t-esc="record.department"/></td>
+                                <td class="text-left"><t t-esc="record.total_hours"/></td>
+                                <td class="text-left"><t t-esc="record.total_working_days"/></td>
+                                <td class="text-left"><t t-esc="record.avg"/></td>
+                                <td class="text-left text-success"><t t-esc="record.positive_value"/></td>
+                                <td class="text-left text-danger"><t t-esc="record.negative_value"/></td>
+                                <td class="text-left text-success"><t t-esc="record.positive_cost"/></td>
+                                <td class="text-left text-danger"><t t-esc="record.negative_cost"/></td>
+                            </tr>
+                        </t>
+                        <tr t-if="state.totalPositiveCost || state.totalNegativeCost"
+                            class="font-weight-bold">
+                            <td colspan="7"
+                                class="text-right text-bold">Total:</td>
+                            <td class="text-left text-success text-bold"><t t-esc="state.totalPositiveCost"/></td>
+                            <td class="text-left text-danger text-bold"><t t-esc="state.totalNegativeCost"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+            <t t-else="">
+            <div class="text-center">Loading records...</div>
+        </t>
+        </div>
+    </t>
+</templates>

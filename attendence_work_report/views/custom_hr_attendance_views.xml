@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem action="action_custom_hr_attendance_report"
+              id="attendance_custom_view_menu_id"
+              parent="hr_attendance.menu_hr_attendance_root"
+              name="Attendance Custom Report "
+    />
+</odoo>

@@ -58,19 +58,11 @@ class AttendanceCustomView(models.TransientModel):
 
         # Search for records within the calculated date range
         print(start_time, end_time)
-        filtered_record = self.env['hr.attendance'].search(
-            [('check_in', ">=", start_time), ('check_in', "<=", end_time),
-             ("worked_hours", "<", 9.0)]).ids
-        if not filtered_record:
-            raise UserError(
-                "There are no records that match the filter criteria.")
-        else:
-            return {
-                'name': 'Attendance Report',
-                'view_type': 'form',
-                'view_mode': 'tree,form',
-                'res_model': 'hr.attendance',
-                'type': 'ir.actions.act_window',
-                'domain': [('id', 'in', filtered_record)],
-                'context': {'create': False},
-            }
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'custom_hr_attendance_action',
+            'context': {
+                "start_time": start_time,
+                "end_time": end_time
+            },
+        }
