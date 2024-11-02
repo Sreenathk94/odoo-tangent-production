@@ -145,13 +145,25 @@ class TgAttendance(models.Model):
 			start_time_date = fields.Datetime.add(start_time_date, hours=5.5)
 
 			if attendance_checkin > start_time_date:
-				sheet.write(i, 3,
+				sheet.write(i, 0, 'Break 1', format1)
+				sheet.write(i , 1, start_time_date.strftime(
+								"%d-%m-%Y %H:%M:%S"), format2)
+				row[0] = 'Break (Delay)'
+				row[1] = start_time_date.strftime("%d-%m-%Y %H:%M:%S")
+				sheet.write(i, 2,
 							attendance_checkin.strftime(
 								"%d-%m-%Y %H:%M:%S"), format2)
-				row[3] = attendance_checkin.strftime(
+				row[2] = attendance_checkin.strftime(
 					"%d-%m-%Y %H:%M:%S")
-				sheet.write(i, 4, attendance_checkin - start_time_date, format2)
-				row[4] = attendance_checkin - start_time_date
+				if attendance_checkin - start_time_date > 15:
+					sheet.write(i, 3, attendance_checkin - start_time_date, format2)
+					row[3] = attendance_checkin - start_time_date
+					row[5] = 'claim'
+				else:
+					sheet.write(i, 4, attendance_checkin - start_time_date,
+								format2)
+					row[4] = attendance_checkin - start_time_date
+				i+= 1
 
 			for line in attendance.line_ids:
 				if j!=1:
