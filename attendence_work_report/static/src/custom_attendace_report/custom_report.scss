@@ -5,3 +5,8 @@
 .attendance_table_head {
   background: #a7c8ca;
 }
+
+.attendance_table_scroll {
+  max-height: 737px;
+  overflow-y: auto;
+}

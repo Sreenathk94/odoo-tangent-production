@@ -4,8 +4,8 @@
         <div class="table-title">
 <!--            <h3>Attendance Work Report</h3>-->
         </div>
-
-            <div class="d-flex justify-content-end attendance_filter_button">
+            <div class="d-flex">
+                <div class="d-flex justify-content-end attendance_filter_button">
             <div>
                 <Dropdown togglerClass="'btn btn-light btn-sm px-1 p-0'">
                     <t t-set-slot="toggler">
@@ -26,8 +26,34 @@
                         </DropdownItem>
                     </t>
                 </Dropdown>
+
             </div>
+
         </div>
+                <div class="d-flex justify-content-center">
+                <Dropdown togglerClass="'btn btn-light btn-sm px-1 p-0'">
+                    <t t-set-slot="toggler">
+                        <button class="btn btn-primary">
+                            <t t-if="state.depFilterLabel">
+                                <span t-esc="state.depFilterLabel"/>
+                            </t>
+                            <t t-else="">
+                                Choose Your Department
+                            </t>
+                        </button>
+                    </t>
+                    <t t-foreach="state.departmentFilter" t-as="department"
+                       t-key="department.id">
+                        <DropdownItem
+                                onSelected="() => this.DepartmentSelected(department.id,department.name)">
+                            <t t-esc="department.name"/>
+                        </DropdownItem>
+                    </t>
+                </Dropdown>
+                    </div>
+            </div>
+
+
             <div class="d-flex justify-content-end mt-2">
                 <form>
                     <div t-att-class="state.selectedFilter !== 'custom' ? 'd-none' : 'd-flex gap-2'">
@@ -45,7 +71,7 @@
 
 
             <t t-if="state.filteredRecords">
-            <div class="table-fill mt-5">
+            <div class="table-fill attendance_table_scroll mt-5">
                 <table class="table table-striped">
                     <thead class="attendance_table_head">
                         <tr>
@@ -70,7 +96,7 @@
                            t-key="record.employee_id">
                             <tr>
                                 <td class="text-left text-bold"><t t-esc="record.name"/></td>
-                                <td class="text-left"><t t-esc="record.department"/></td>
+                                <td class="text-left"><t t-esc="record.department[0]"/></td>
                                 <td class="text-left"><t t-esc="record.total_hours"/></td>
                                 <td class="text-left"><t t-esc="record.total_working_days"/></td>
                                 <td class="text-left"><t t-esc="record.avg"/></td>
@@ -80,6 +106,8 @@
                                 <td class="text-left text-danger"><t t-esc="record.negative_cost"/></td>
                             </tr>
                         </t>
+                        <t t-log="state.filteredRecords.length,'lennnnnnnnnnnnnnnn'"/>
+                        <t t-if="state.filteredRecords.length !== 0">
                         <tr t-if="state.totalPositiveCost || state.totalNegativeCost"
                             class="font-weight-bold">
                             <td colspan="7"
@@ -87,6 +115,7 @@
                             <td class="text-left text-success text-bold"><t t-esc="state.totalPositiveCost"/></td>
                             <td class="text-left text-danger text-bold"><t t-esc="state.totalNegativeCost"/></td>
                         </tr>
+                        </t>
                     </tbody>
                 </table>
             </div>
