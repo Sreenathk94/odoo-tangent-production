@@ -57,7 +57,6 @@ class AttendanceCustomView(models.TransientModel):
             raise UserError("Invalid filter option selected.")
 
         # Search for records within the calculated date range
-        print(start_time, end_time)
         return {
             'type': 'ir.actions.client',
             'tag': 'custom_hr_attendance_action',

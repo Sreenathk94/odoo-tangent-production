@@ -22,7 +22,6 @@ class HrAttendance(models.Model):
     def _compute_custom_total_hours(self):
         """This function is used to compute the custom total hours based on the
         report"""
-        print("_compute_custom_total_hours")
         for rec in self:
             rec.custom_total_hours = False
             if rec.custom_report_based_on == 'today':
