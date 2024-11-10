@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-   <record id="res_config_settings_view_form" model="ir.ui.view">
-       <field name="name">res.config.settings.view.form.inherit.expiry</field>
-       <field name="model">res.config.settings</field>
-       <field name="inherit_id" ref="base.res_config_settings_view_form"/>
-       <field name="arch" type="xml">
-           <xpath expr="//setting[@id='profiling_enabled_until']" position="after">
-               <setting id="expiry_date_settings" documentation="https://www.odoo.com/documentation/17.0"
-                    title="User can set the days for alter before expire document." help="User can set the day in count">
-                       <div class="mt16">
-                           <label for="expiry_date_reminder"/>
-                       </div>
-                       <div>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.expiry</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='emails']" position="after">
+                <block title="Document Expiry Alert" name="employees_document_alert_container">
+                    <setting id="xexpiry_date_settings" documentation="https://www.odoo.com/documentation/17.0"
+                             title="User can set the days for alter before expire document."
+                             help="User can set the day in count">
+                        <div class="mt16">
+                            <label for="expiry_date_reminder"/>
+                        </div>
+                          <!-- Muted Text for Explanation -->
+                        <p class="text-muted">
+                            This field allows you to specify the number of days before a document expires to trigger an alert. The system will notify users in advance of the expiry.
+                        </p>
+                        <div>
                             <field name="expiry_date_reminder"/>
-                       </div>
-               </setting>
-           </xpath>
-       </field>
-   </record>
+                        </div>
+
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
 </odoo>
