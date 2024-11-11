@@ -65,7 +65,6 @@ class HrLeave(models.Model):
             # Call the default action_refuse when skip_wizard is set in context
             return super(HrLeave, self).action_refuse()
         else:
-            print("ttttttttttttttttttt")
             # Otherwise, open the wizard to capture the refusal reason
             return {
                 'type': 'ir.actions.act_window',

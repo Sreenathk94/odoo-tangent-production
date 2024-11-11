@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Define HR Leave Restricted Approvals Group -->
+        <record id="group_hr_leave_restricted" model="res.groups">
+            <field name="name">HR Leave Restricted Approvals</field>
+            <field name="category_id" ref="base.module_category_human_resources_time_off"/>
+        </record>
+    </data>
+</odoo>
