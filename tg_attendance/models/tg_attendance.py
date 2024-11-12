@@ -94,13 +94,16 @@ class TgAttendance(models.Model):
 			sheet.write(1, 0, 'First Check-in & Last Check-out', format1)
 			sheet.write(1, 1, (attendance.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
 			sheet.write(1, 2, (attendance.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
-			sheet.write(1, 3, self.float_to_time(total_time_in_office), format3)
+			total_seconds = total_time_in_office.total_seconds()
+			hours = int(total_seconds // 3600)  # Get the total hours
+			minutes = int((total_seconds % 3600) // 60)
+			sheet.write(1, 3, f"{hours:02d}:{minutes:02d}", format3)
 
 			data_to_load_html_template.append([
 				'First Check-in & Last Check-out',
 				(attendance.check_in + timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
 				(attendance.check_out + timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
-				self.float_to_time(total_time_in_office),
+				f"{hours:02d}:{minutes:02d}",
 				' ',
 			])
 			if attendance.employee_id.location_id.detect_lunch == True:
