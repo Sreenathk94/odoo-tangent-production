@@ -2,7 +2,7 @@ from odoo import fields,api,models,_
 from odoo.tools import format_datetime
 from datetime import datetime,time,timedelta
 from pytz import timezone
-from odoo.addons.resource.models.resource import make_aware, Intervals
+from odoo.addons.resource.models.utils import make_aware, Intervals
 from pytz import UTC
 from dateutil.rrule import rrule, DAILY
 import xlwt
