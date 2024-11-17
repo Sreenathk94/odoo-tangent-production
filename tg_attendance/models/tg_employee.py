@@ -233,7 +233,6 @@ class Employee(models.Model):
 		date_difference = (to_date - from_date).days+1
 		parent_ids = self.env["hr.employee"].search([]).mapped('parent_id')
 		parent_ids = self.env["hr.employee"].search([('id','in',parent_ids.ids),('id','!=',1)])
-		print(parent_ids)
 		for parent in parent_ids:
 			employee_ids = self.env["hr.employee"].search([('parent_id','child_of',parent.id),('not_required','=',False)])
 			emp_ids = []
