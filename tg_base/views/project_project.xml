@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<odoo>
+    <!-- Inherited Project Settings Form-->
+    <record id="edit_project" model="ir.ui.view">
+        <field name="name">project.project.view.form.inherit.extras</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="project_number"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Search view for the project.project model -->
+    <record id="project_project_search" model="ir.ui.view">
+        <field name="name">project.project.search</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_project_filter"/>
+        <field name="arch" type="xml">
+            <search>
+                <field name="project_number"/>
+            </search>
+        </field>
+    </record>
+
+
+</odoo>

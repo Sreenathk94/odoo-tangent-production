@@ -6,10 +6,11 @@
     'description': 'Alert Messages for the',
     'website': '',
     'category':'Human Resources',
-    'depends': ['base','hr_timesheet'],
+    'depends': ['base','hr_timesheet','project'],
     'data': [
         'data/res_company_views.xml',
         'data/res_users_views.xml',
+        'views/project_project.xml'
     ],
     'license': 'LGPL-3',
     'installable': True,
