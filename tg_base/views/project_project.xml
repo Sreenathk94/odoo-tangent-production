@@ -24,5 +24,18 @@
         </field>
     </record>
 
+        <!-- Inherited Project Tree View-->
+    <record id="view_project" model="ir.ui.view">
+        <field name="name">project.project.view.tree.inherit.extras</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="project_number"/>
+            </xpath>
+        </field>
+    </record>
+
+
 
 </odoo>
