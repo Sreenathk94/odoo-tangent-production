@@ -1,5 +1,8 @@
 /** @odoo-module **/
 
+import { jsonrpc } from "@web/core/network/rpc_service";
+
+console.log($('#attendance_claim_form'))
 
 $('#attendance_claim_form').submit(function(ev){
     ev.preventDefault()

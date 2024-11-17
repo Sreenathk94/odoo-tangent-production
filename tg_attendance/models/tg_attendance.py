@@ -1,6 +1,8 @@
 from odoo import fields,api,models,_
 from odoo.tools import format_datetime
 from datetime import datetime,time,timedelta
+from pytz import timezone
+from odoo.addons.resource.models.resource import make_aware, Intervals
 from pytz import UTC
 from dateutil.rrule import rrule, DAILY
 import xlwt
@@ -94,7 +96,7 @@ class TgAttendance(models.Model):
 	@api.model
 	def _employee_alert_daily_attendance(self):
 		today = self.env.company.fetch_date
-		sterday = today - relativedelta(days=1)
+		sterday = today
 		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
 			workbook = xlwt.Workbook(encoding="UTF-8")
 			data_to_load_html_template = []
@@ -216,23 +218,23 @@ class TgAttendance(models.Model):
 			sheet.write(i, 0, 'Total Breaks', format1)
 			sheet.write(i, 4, str(non_count), format8)
 			sheet.write(i, 3, str(count), format3)
-			sheet.write(i+2, 0, 'Net total time inside the office ('+str(self.float_to_time(attendance.worked_hours))+' - '+str(count)+')', format5)
+			sheet.write(i+2, 0, 'Net total time inside the office ('+str(self.float_to_time(attendance.worked_hours))+' - '+str(non_count)+')', format5)
 			data_to_load_html_template.append([
 				'Total Breaks', ' ', ' ', str(count), ' '
 			])
 			wk_hr=timedelta(hours=attendance.worked_hours)
 			if attendance.employee_id.location_id.detect_lunch == True:
 				if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids):
-					bk_hr=count
+					bk_hr=non_count
 				else:
-					bk_hr=count+timedelta(hours=1)
+					bk_hr=non_count+timedelta(hours=1)
 			else:
-				bk_hr=count
+				bk_hr=non_count
 			sheet.write(i+2, 3, str(wk_hr-bk_hr), format6)
 			data_to_load_html_template.append([
 				'Net total time inside the office (' + str(
 					self.float_to_time(attendance.worked_hours)) + ' - ' + str(
-					count) + ')', ' ', ' ', str(wk_hr-bk_hr), ' '
+					non_count) + ')', ' ', ' ', str(wk_hr-bk_hr), ' '
 			])
 			fp = BytesIO()
 			workbook.save(fp)
@@ -249,7 +251,6 @@ class TgAttendance(models.Model):
 				}
 			template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
 			template.write({'attachment_ids': [(6,0,[report_id.id])]})
-			print('Employee : ', attendance.employee_id.name)
 			template.with_context(context).send_mail(attendance.id, force_send=True)
 			report_id.unlink()
 
@@ -361,4 +362,4 @@ class TgAttendanceLine(models.Model):
 
 		works = {d[0].date() for d in calendar._work_intervals_batch(dfrom, dto)[False]}
 		return {fields.Date.to_string(day.date()): (day.date() not in works) for day in rrule(DAILY, dfrom, until=dto)}
-	
+
