@@ -120,8 +120,8 @@
                     <br/>
                     <br/>
                     This is to inform you that an attendance claim request has
-                    been created by <t t-out="object.employee_id.name">
-                    [Employee Name]</t>.
+                    been created by <strong><t t-out="object.employee_id.name">
+                    [Employee Name]</t>.</strong>
                     Kindly review the request for the date <t
                         t-out="object.date_from">[Date]
                 </t> at your earliest convenience.
