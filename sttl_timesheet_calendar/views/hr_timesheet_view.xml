@@ -10,9 +10,9 @@
                 <field name="employee_id" avatar_field="image_128"/>
 	            <field name="date"/>
 	            <field name="project_id"/>
-	            <field name="status_id"/>
+<!--	            <field name="status_id"/>-->
 	            <field name="unit_amount" string="Duration (HH:MM)" widget="float_time"/>
-                <field name="description"/>
+<!--                <field name="description"/>-->
             </calendar>
         </field>
     </record>

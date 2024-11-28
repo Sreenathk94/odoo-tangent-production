@@ -11,5 +11,15 @@
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
         </record>
+         <record id="ir_cron_action_weekly_timesheet" model="ir.cron">
+            <field name="name">Timesheet Weekly Remainder</field>
+            <field name="model_id" ref="tg_expiry_alert.model_hr_employee"/>
+            <field name="state">code</field>
+            <field name="code">model.weekly_timesheet_remainder()
+            </field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">weeks</field>
+            <field name="numbercall">-1</field>
+        </record>
     </data>
 </odoo>

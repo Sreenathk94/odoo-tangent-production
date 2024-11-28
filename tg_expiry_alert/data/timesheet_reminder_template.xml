@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <!-- Template to send work permit expiry notification to the employee -->
+        <record id="weekly_timesheet_reminder" model="mail.template">
+            <field name="name">Email Template for Timesheet Reminder</field>
+            <field name="model_id" ref="tg_expiry_alert.model_hr_employee"/>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <div style="justify-content: center; background-color: #714B67; padding: 0.6rem; padding-left: 35px; text-decoration: none; color: #fff; border-radius: 5px; font-size: 13px; width: 40%;">
+                        <h2>
+                            Hi, <t t-out="ctx['name']"/>
+                        </h2>
+                        <div>
+                            <h3>
+                               This email is to remind you that your timesheet did not meet the required 45 hours this week.
+                               Please review and update your timesheet accordingly.
+                            </h3>
+                        </div>
+                    </div>
+                    <br/>
+                    Regards,<br/>
+                    <t t-out="ctx['company']"/>
+                    <br/>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

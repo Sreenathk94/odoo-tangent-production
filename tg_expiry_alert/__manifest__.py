@@ -10,6 +10,7 @@
         'data/visa_expire_template.xml',
         'data/admin_expiry_alert_mail_template.xml',
         'data/scheduled_action.xml',
+        'data/timesheet_reminder_template.xml',
         'views/hr_employee_views.xml',
         'views/res_config_setting.xml',
         ],
