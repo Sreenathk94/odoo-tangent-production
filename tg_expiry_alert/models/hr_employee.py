@@ -1,5 +1,5 @@
 from odoo import fields, models, api
-from datetime import timedelta
+from datetime import timedelta,datetime
 
 
 class HrEmployee(models.Model):
@@ -82,3 +82,48 @@ class HrEmployee(models.Model):
                     passport_expiry_list=passport_expiry_employees,
                     expiry_date_reminder=expiry_date_reminder,
                 ).send_mail(res_id=admin.id, force_send=True)
+
+
+    def weekly_timesheet_remainder(self):
+        today = datetime.now()
+        this_week_monday = today - timedelta(days=today.weekday())
+        last_week_monday = this_week_monday - timedelta(days=7)
+        last_week_friday = last_week_monday + timedelta(days=4)
+        query = """
+            SELECT he.id,he.name, 
+                SUM(anl.unit_amount) AS total_unit_amount
+            FROM  hr_employee AS he
+            LEFT JOIN account_analytic_line AS anl 
+            ON he.id = anl.employee_id
+            WHERE anl.date BETWEEN %s AND %s
+                AND NOT EXISTS (
+                    SELECT 1 
+                    FROM hr_leave hl
+                    WHERE hl.employee_id = he.id 
+                    AND hl.request_date_from BETWEEN %s AND %s
+                    AND hl.state = 'validate'
+                )
+            GROUP BY he.id, he.name;
+        """
+        self.env.cr.execute(query, (
+            last_week_monday.strftime('%Y-%m-%d'),
+            last_week_friday.strftime('%Y-%m-%d'),
+            last_week_monday.strftime('%Y-%m-%d'),
+            last_week_friday.strftime('%Y-%m-%d'),
+        ))
+        results = self.env.cr.fetchall()
+
+        for record in results:
+            if record[2] < 45:
+                employee_id = self.env['hr.employee'].search([('id', '=', record[0])])
+                context = {
+                    'email_from':self.env.company.email,
+                    'email_to': employee_id.work_email,
+                    'subject': "Sphere - System Notification: Timesheet Update Required for last week"
+                }
+                template_id = self.env.ref("tg_expiry_alert.weekly_timesheet_reminder")
+                template_id.with_context(
+							name=employee_id.name,
+                            company = self.env.company.name).send_mail(res_id=employee_id.id,force_send=True,email_values=context)
+
+
