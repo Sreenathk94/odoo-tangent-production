@@ -46,7 +46,7 @@
 			<form string="Analytic Entry">
                 <sheet string="Analytic Entry">
 					<div class="row">
-						<h1>Timesheet date <field name="date" nolabel="1" readonly="1"/></h1>
+						<h1>Timesheet date <field name="date" nolabel="1"/></h1>
 					</div>
 					<div class="row" invisible="message==False">
 						<h4 class="alert alert-danger" role="alert"><field name="message" nolabel="1" readonly="1"/></h4>
