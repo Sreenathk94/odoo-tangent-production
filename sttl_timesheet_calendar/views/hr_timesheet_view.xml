@@ -172,18 +172,18 @@
         <field name="email_from">{{ctx['email_from']}}</field>
         <field name="email_to">{{ctx['email_to']}}</field>
         <field name="email_cc">{{ctx['email_cc']}}</field>
-        <field name="subject">System Notification: First Timesheet Creation for Project - {{object.project_id.project_no} }</field>
+        <field name="subject">System Notification: First Timesheet Creation for Project - {{object.project_id.project_number} }</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
                     Dear Team,
                     <br></br>
                     <br></br>
-                    This is to inform you that the first timesheet for the project - <b> <t t-out="object.project_id.project_no"/> - <t t-out="object.project_id.name"/> has been successfully created in our system.</b>
+                    This is to inform you that the first timesheet for the project - <b> <t t-out="object.project_id.project_number"/> - <t t-out="object.project_id.name"/> has been successfully created in our system.</b>
                     <br/><br/>
                     <u><i>Find the below timehseet details for your reference</i></u>
                     <br></br>
-                    Project : <t t-out="object.project_id.project_no"/> - <t t-out="object.project_id.name"/><br/>
+                    Project : <t t-out="object.project_id.project_number"/> - <t t-out="object.project_id.name"/><br/>
                     Employee : <t t-out="object.employee_id.name"/><br/>
                     Start Time(HH:MM) : <t t-out="ctx['start_time']"/><br/>
                     End Time(HH:MM) : <t t-out="ctx['end_time']"/><br/>
