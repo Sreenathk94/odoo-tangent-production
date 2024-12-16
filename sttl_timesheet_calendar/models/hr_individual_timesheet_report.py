@@ -91,7 +91,7 @@ class IndividualTimesheet(models.TransientModel):
 			i = 1; m = 6
 			for rec in project_ids:
 				sheet.write(m, 0, i, style9)
-				# sheet.write(m, 1, rec.project_no, style7)
+				# sheet.write(m, 1, rec.project_number, style7)
 				sheet.write(m, 2, rec.name, style4)
 				startdate = self.from_date
 				j=1;h=3;p_tot = 0
@@ -133,7 +133,7 @@ class IndividualTimesheet(models.TransientModel):
 			sheet.row(0).height = 500
 			sheet.write_merge(0, 0, 0, 9, 'PROJECT TIMESHEET REPORT',style2)
 			sheet.write(1,0,"No",style1)
-			sheet.write(1,1,self.project_id.project_no,style4)
+			sheet.write(1,1,self.project_id.project_number,style4)
 			sheet.write(1,2,"Name",style1)
 			sheet.write(1,3,self.project_id.name,style4)
 			sheet.write(2,0,"From Date",style1)
@@ -178,7 +178,7 @@ class IndividualTimesheet(models.TransientModel):
 			timesheet_ids = self.env['account.analytic.line'].search([('project_id','=',self.project_id.id),
 					('date','>=',self.from_date),('date','<=',self.to_date)])
 			sheet.write(m,h,self.float_to_time(sum([x.unit_amount for x in timesheet_ids])),style10)
-			filename = ('%s-%s Timesheet Report (%s - %s)'%(self.project_id.project_no,self.project_id.name,self.from_date.strftime("%d-%m-%Y"),self.to_date.strftime("%d-%m-%Y"))+'.xls')
+			filename = ('%s-%s Timesheet Report (%s - %s)'%(self.project_id.project_number,self.project_id.name,self.from_date.strftime("%d-%m-%Y"),self.to_date.strftime("%d-%m-%Y"))+'.xls')
 		filename_tmp = '/tmp/' + filename
 		workbook.save(filename_tmp)
 		fp = open(filename_tmp, "rb")

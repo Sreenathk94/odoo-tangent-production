@@ -53,7 +53,7 @@ class AccountAnalyticLine(models.Model):
 
     # @api.onchange('project_id','unit_amount')
     # def _onchange_project_unit_amount(self):
-    #     self.name = str(self.project_id.project_no)+' - '+str(self.project_id.name)
+    #     self.name = str(self.project_id.project_number)+' - '+str(self.project_id.name)
 
 
     @api.constrains('start_time','end_time','start','end')
