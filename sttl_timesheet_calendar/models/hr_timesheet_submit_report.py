@@ -73,7 +73,7 @@ class HrTimesheetSubmitReport(models.TransientModel):
             j+=1   
         fp = BytesIO()
         workbook.save(fp)     
-        self.write({'excel_file': base64.encodestring(fp.getvalue())})
+        self.write({'excel_file': base64.b64encode(fp.getvalue())})
         return {
             'type': 'ir.actions.act_url',
             'url': 'web/content/?model=hr.timesheet.submit.report&field=excel_file&download=true&id=%s&filename=%s' % (self.id, 'Employee timesheet submission report.xls'),

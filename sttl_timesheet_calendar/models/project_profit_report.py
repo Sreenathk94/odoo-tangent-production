@@ -92,7 +92,7 @@ class ProjectProfitReport(models.TransientModel):
                 i=x+2
         fp = BytesIO()
         workbook.save(fp)     
-        self.write({'excel_file': base64.encodestring(fp.getvalue())})
+        self.write({'excel_file': base64.b64encode(fp.getvalue())})
         return {
             'type': 'ir.actions.act_url',
             'url': 'web/content/?model=project.profit.report&field=excel_file&download=true&id=%s&filename=%s' % (self.id, 'Project hours/profit report.xls'),
