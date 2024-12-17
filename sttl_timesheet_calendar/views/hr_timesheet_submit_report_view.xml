@@ -40,6 +40,7 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">hr.timesheet.submit.report</field>
             <field name="view_mode">form</field>
+            <field name="target">new</field>
         </record>
 
     	<menuitem name="Timesheet Submit Report" id="hr_timesheet_submit_report" parent="hr_timesheet.menu_timesheets_reports" 
