@@ -61,65 +61,76 @@ class IndividualTimesheet(models.TransientModel):
 		while current_date <= self.to_date:
 			date_list.append(current_date.strftime("%d/%m/%Y"))
 			current_date += timedelta(days=1)
-		if self.report_type == 'employee': 
-			timesheet = project_ids = []
-			sheet = workbook.add_sheet('%s - Timesheet Report'%(self.employee_id.name))
-			timesheet_ids = self.env['account.analytic.line'].search([('employee_id','=',self.employee_id.id),
-				('date','>=',self.from_date),('date','<=',self.to_date)])
-			if timesheet_ids:
-				project_ids = timesheet_ids.mapped('project_id')
-			else:
-				raise UserError("Warning!!, No record found!")
+		if self.report_type == 'employee':
+			employee_ids = self.env['hr.employee'].search([])
+			if not employee_ids:
+				raise UserError("Warning!! No employees found.")
 
+			sheet = workbook.add_sheet('All Employees - Timesheet Report')
 			sheet.row(0).height = 500
-			sheet.write_merge(0, 0, 0, 9, 'PROJECT TIMESHEET REPORT',style2)
-			sheet.write(1,0,"Name",style1)
-			sheet.write(1,1,self.employee_id.name,style4)
-			sheet.write(2,0,"From Date",style1)
-			sheet.write(2,1,self.from_date,style4)
-			sheet.write(3,0,"To Date",style1)
-			sheet.write(3,1,self.to_date,style4)
-			
-			sheet.write(5,0,"S.No",style1)
-			sheet.write(5,1,"Project No",style1)
-			sheet.write(5,2,"Project Name",style1)
-			n = 3
-			for day in date_list:
-				sheet.write(5,n,day,style1)
-				n += 1
-			sheet.write(5,n,'Total',style1)
-			i = 1; m = 6
-			for rec in project_ids:
-				sheet.write(m, 0, i, style9)
-				# sheet.write(m, 1, rec.project_number, style7)
-				sheet.write(m, 2, rec.name, style4)
+			sheet.write_merge(0, 0, 0, day_diff + 3, 'EMPLOYEE TIMESHEET REPORT', style0)
+
+			# Report Header
+			sheet.write(1, 0, "From Date", style1)
+			sheet.write(1, 1, self.from_date.strftime("%d/%m/%Y"), style4)
+			sheet.write(2, 0, "To Date", style1)
+			sheet.write(2, 1, self.to_date.strftime("%d/%m/%Y"), style4)
+
+			# Table Header
+			sheet.write(4, 0, "S.No", style1)
+			sheet.write(4, 1, "Employee Name", style1)
+			col_index = 2
+			for date in date_list:
+				sheet.write(4, col_index, date, style1)
+				col_index += 1
+			sheet.write(4, col_index, "Total", style1)
+
+			# Populate Employee Data
+			row_index = 5
+			daily_totals = [0] * day_diff  # To track totals for each day across all employees
+			overall_total = 0  # To track total hours for all employees
+
+			for idx, employee in enumerate(employee_ids, start=1):
+				sheet.write(row_index, 0, idx, style9)  # S.No
+				sheet.write(row_index, 1, employee.name, style4)  # Employee Name
+
 				startdate = self.from_date
-				j=1;h=3;p_tot = 0
-				while j <= day_diff:
-					timesheet_ids = self.env['account.analytic.line'].search([('employee_id','=',self.employee_id.id),
-						('date','>=',startdate),('date','<=',startdate),('project_id','=',rec.id)])
-					sheet.write(m, h, self.float_to_time(sum([x.unit_amount for x in timesheet_ids])), style7)
-					startdate = startdate + timedelta(days=1)
-					p_tot += sum([x.unit_amount for x in timesheet_ids])
-					j += 1
-					h += 1
-				sheet.write(m, h, self.float_to_time(p_tot), style8)
-				i += 1
-				m += 1
-			sheet.write_merge(m,m,0,2,"Total",style1)
-			j = 1;h=3
-			startdate = self.from_date
-			while j <= day_diff:
-				timesheet_ids = self.env['account.analytic.line'].search([('employee_id','=',self.employee_id.id),
-					('date','>=',startdate),('date','<=',startdate)])
-				sheet.write(m, h, self.float_to_time(sum([x.unit_amount for x in timesheet_ids])), style8)
-				startdate = startdate + timedelta(days=1)
-				j+=1
-				h+=1
-			timesheet_ids = self.env['account.analytic.line'].search([('employee_id','=',self.employee_id.id),
-					('date','>=',self.from_date),('date','<=',self.to_date)])
-			sheet.write(m,h,self.float_to_time(sum([x.unit_amount for x in timesheet_ids])),style10)
-			filename = ('%s Individual Timesheet Report (%s - %s)'%(self.employee_id.name,self.from_date.strftime("%d-%m-%Y"),self.to_date.strftime("%d-%m-%Y"))+'.xls')
+				employee_total = 0
+				col_index = 2
+
+				for day in range(day_diff):
+					timesheet_ids = self.env['account.analytic.line'].search([
+						('employee_id', '=', employee.id),
+						('date', '=', startdate),
+					])
+					daily_hours = sum([x.unit_amount for x in timesheet_ids])
+					employee_total += daily_hours
+					daily_totals[day] += daily_hours
+
+					# Daily Hours
+					sheet.write(row_index, col_index, self.float_to_time(daily_hours), style7)
+					startdate += timedelta(days=1)
+					col_index += 1
+
+				# Employee Total
+				sheet.write(row_index, col_index, self.float_to_time(employee_total), style8)
+				overall_total += employee_total
+				row_index += 1
+
+			# Total Row (Footer)
+			sheet.write(row_index, 0, "", style1)  # Leave S.No blank
+			sheet.write(row_index, 1, "Total", style1)  # Label
+			col_index = 2
+			for total in daily_totals:
+				sheet.write(row_index, col_index, self.float_to_time(total), style8)
+				col_index += 1
+			sheet.write(row_index, col_index, self.float_to_time(overall_total), style10)
+
+			# Save Filename for Employee Wise Report
+			filename = 'Employee_Wise_Timesheet_Report_%s_to_%s.xls' % (
+				self.from_date.strftime("%d-%m-%Y"),
+				self.to_date.strftime("%d-%m-%Y")
+			)
 		else:
 			timesheet = employee_ids = []
 			sheet = workbook.add_sheet('%s - Timesheet Report'%(self.project_id.name))

@@ -13,7 +13,7 @@
 					<group>
 						<field name="from_date" required='1'/>
 						<field name="project_id" required="report_type=='project'" invisible="report_type!='project'"  options="{'no_open':True,'no_create':True}"/>
-						<field name="employee_id" required="report_type=='employee'" invisible="report_type!='employee'" options="{'no_open':True,'no_create':True}"/>
+<!--						<field name="employee_id" required="report_type=='employee'" invisible="report_type!='employee'" options="{'no_open':True,'no_create':True}"/>-->
 					</group>
 					<group>
 						<field name="to_date" required='1'/>
