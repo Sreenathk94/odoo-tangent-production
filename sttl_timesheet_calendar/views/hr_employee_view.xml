@@ -17,7 +17,7 @@
 
         
 	<!-- daily timesheet alert Scheduler -->
-    <record id="tg_daily_timsheet_alert_scheduler" model="ir.cron">
+<!--     <record id="tg_daily_timsheet_alert_scheduler" model="ir.cron">
         <field name="name">Employee Timesheet Daily Alert Scheduler</field>
         <field name="model_id" ref="model_hr_employee"/>
         <field name="state">code</field>
@@ -27,7 +27,7 @@
         <field name="numbercall">-1</field>
         <field name="active">True</field>
         <field name="doall" eval="False"/>
-    </record>
+    </record> -->
 
     <!-- daily timsheet Alerts Mail -->
     <record id="email_template_daily_timesheet_alert" model="mail.template">
