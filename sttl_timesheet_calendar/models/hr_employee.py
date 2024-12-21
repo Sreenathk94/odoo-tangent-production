@@ -35,29 +35,29 @@ class HREmployee(models.Model):
 		minutes = int((float_value - hours) * 60)
 		return f"{hours:02d}:{minutes:02d}"
 
-	def _entry_employee_timesheet_daily_alert(self):
-		employee_ids = self.env["hr.employee"].search([('active','=',True),('not_required','=',False)])
-		sterday = datetime.now().date() - relativedelta(days=1)
-		for emp in employee_ids:
-			leave_day = emp.get_unusual_days_emp(emp.resource_calendar_id,sterday,sterday)
-			leave_id = self.env['hr.leave'].search([('request_date_from','<=',sterday),('request_date_to','>=',sterday),('employee_id','=',emp.id),('state','=','validate')])
-			if leave_day[sterday.strftime("%Y-%m-%d")] == False and not leave_id:
-				timesheet_ids = self.env['account.analytic.line'].search([('date','>=',sterday),('date','<=',sterday),
-					('employee_id','=',emp.id)])
-				if not timesheet_ids:
-					context = {
-						'email_to': emp.work_email,
-						'subject': "Sphere - System Notification: Timesheet Update Required for %s" % (
-							sterday.strftime("%d/%m/%Y")),
-					}
-					template_id = self.env.ref(
-						'sttl_timesheet_calendar.email_template_daily_timesheet_alert')
-					if template_id:
-						template_id.with_context(
-							sterday=sterday.strftime("%d/%m/%Y")).send_mail(
-							emp.id,
-							force_send=True,
-							email_values=context)
+	# def _entry_employee_timesheet_daily_alert(self):
+	# 	employee_ids = self.env["hr.employee"].search([('active','=',True),('not_required','=',False)])
+	# 	sterday = datetime.now().date() - relativedelta(days=1)
+	# 	for emp in employee_ids:
+	# 		leave_day = emp.get_unusual_days_emp(emp.resource_calendar_id,sterday,sterday)
+	# 		leave_id = self.env['hr.leave'].search([('request_date_from','<=',sterday),('request_date_to','>=',sterday),('employee_id','=',emp.id),('state','=','validate')])
+	# 		if leave_day[sterday.strftime("%Y-%m-%d")] == False and not leave_id:
+	# 			timesheet_ids = self.env['account.analytic.line'].search([('date','>=',sterday),('date','<=',sterday),
+	# 				('employee_id','=',emp.id)])
+	# 			if not timesheet_ids:
+	# 				context = {
+	# 					'email_to': emp.work_email,
+	# 					'subject': "Sphere - System Notification: Timesheet Update Required for %s" % (
+	# 						sterday.strftime("%d/%m/%Y")),
+	# 				}
+	# 				template_id = self.env.ref(
+	# 					'sttl_timesheet_calendar.email_template_daily_timesheet_alert')
+	# 				if template_id:
+	# 					template_id.with_context(
+	# 						sterday=sterday.strftime("%d/%m/%Y")).send_mail(
+	# 						emp.id,
+	# 						force_send=True,
+	# 						email_values=context)
 
 	@api.model
 	def get_unusual_days_emp(self, calendar_id, date_from, date_to=None):
