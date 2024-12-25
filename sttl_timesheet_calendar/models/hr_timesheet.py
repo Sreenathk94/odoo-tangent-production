@@ -15,8 +15,9 @@ class AccountAnalyticLine(models.Model):
         result = super(AccountAnalyticLine, self).default_get(field_list)
         result['unit_amount'] = 0.0
         if 'from_date' in result:
-            if not self.env['hr.timesheet.submit'].search([('from_date','<=',result.get('date')),('to_date','>=',result.get('date'))]):
-                raise UserError(_("You can not create timesheet for future date"))
+            # commented to remove validation for adding timesheet on older days.
+            # if not self.env['hr.timesheet.submit'].search([('from_date','<=',result.get('date')),('to_date','>=',result.get('date'))]):
+            #     raise UserError(_("You can not create timesheet for future date"))
             employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1).id
             if self.env['hr.timesheet.submit.line'].search([('employee_id','=',employee_id),('submit_id.from_date','<=',result.get('date')),('submit_id.to_date','>=',result.get('date')),('state','=','lock')]):
                 result['message'] = "You can not create/update timesheet for this date"
@@ -106,8 +107,9 @@ class AccountAnalyticLine(models.Model):
         for res in lines:
             if self.env['hr.timesheet.submit.line'].search([('employee_id','=',res.employee_id.id),('submit_id.from_date','<=',res.date),('submit_id.to_date','>=',res.date),('state','=','lock')]):
                 raise UserError(_("You can not create/update timesheet for this date"))
-            if res.unit_amount <= 0:
-                raise UserError(_("You can not update zero duration timesheet"))
+            # commented to fix, might be on odoo14 added feature
+            # if res.unit_amount <= 0:
+            #     raise UserError(_("You can not update zero duration timesheet"))
             # if res.start <= 13 < res.end or res.start < 14 <= res.end:
             #     raise UserError(_("Between lunch time (1 PM to 2 PM), timesheets cannot be created."))
             # if res.to_date < res.from_date:
@@ -121,8 +123,9 @@ class AccountAnalyticLine(models.Model):
             return rec
         if self.env['hr.timesheet.submit.line'].search([('employee_id','=',self.employee_id.id),('submit_id.from_date','<=',self.date),('submit_id.to_date','>=',self.date),('state','=','lock')]):
             raise UserError(_("You can not create/update timesheet for this date"))
-        if self.unit_amount <= 0:
-            raise UserError(_("You can not update zero duration timesheet"))
+        # commented to fix, might be on odoo14 added feature
+        # if self.unit_amount <= 0:
+        #     raise UserError(_("You can not update zero duration timesheet"))
         # if self.start <= 13 < self.end or self.start < 14 <= self.end:
         #     raise UserError(_("Between lunch time (1 PM to 2 PM), timesheets cannot be created."))
         # if self.to_date < self.from_date:
