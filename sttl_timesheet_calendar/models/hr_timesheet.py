@@ -36,7 +36,7 @@ class AccountAnalyticLine(models.Model):
     start = fields.Float("Start",compute='_get_railway_time')
     end = fields.Float("End",compute='_get_railway_time')
     from_date = fields.Datetime("Start Time")
-    to_date = fields.Datetime("End Time",compute='_onchange_unit_amount')
+    to_date = fields.Datetime("End Time")
     allowed_stage_ids = fields.Many2many(
         related='project_id.allowed_stage_ids')
     status_id = fields.Many2one(
@@ -56,8 +56,6 @@ class AccountAnalyticLine(models.Model):
     # def _onchange_project_unit_amount(self):
     #     self.name = str(self.project_id.project_number)+' - '+str(self.project_id.name)
 
-    def _onchange_unit_amount(self):
-        self.to_date = self.to_date if self.to_date else False
 
     @api.constrains('start_time','end_time','start','end')
     def timesheet_constrains(self):
