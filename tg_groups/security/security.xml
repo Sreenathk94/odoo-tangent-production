@@ -18,4 +18,10 @@
         <field name="category_id" ref="module_category_admin_super_admin"/>
         <field name="implied_ids" eval="[(4, ref('tg_groups.admin_user_group'))]"/>
     </record>
+
+    <record id="group_employee_hr_details_access" model="res.groups">
+            <field name="name">Employee HR Details Access</field>
+            <field name="category_id" ref="base.module_category_human_resources"/>
+            <field name="implied_ids" eval="[(4, ref('hr.group_hr_user'))]"/>
+        </record>
 </odoo>
