@@ -56,6 +56,8 @@ class AccountAnalyticLine(models.Model):
     # def _onchange_project_unit_amount(self):
     #     self.name = str(self.project_id.project_number)+' - '+str(self.project_id.name)
 
+    def _onchange_unit_amount(self):
+        self.to_date = self.to_date if self.to_date else False
 
     @api.constrains('start_time','end_time','start','end')
     def timesheet_constrains(self):
