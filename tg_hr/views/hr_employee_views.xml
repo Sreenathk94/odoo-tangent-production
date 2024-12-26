@@ -44,6 +44,12 @@
             <xpath expr="//field[@name='emergency_contact']" position="attributes">
                 <attribute name="string">Emergency Contact Name</attribute>
             </xpath>
+            <xpath expr="//notebook" position="before">
+                <field name="is_hr_access" invisible="1"/>
+            </xpath>
+            <xpath expr="//notebook" position="attributes">
+                    <attribute name="invisible">is_hr_access == False</attribute>
+            </xpath>
             <field name="emergency_phone" position="after">
                 <field name="emergency_mobile"/>
             </field>
