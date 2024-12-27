@@ -98,29 +98,29 @@ class TgAttendance(models.Model):
 		today = self.env.company.fetch_date
 		sterday = today - relativedelta(days=1)
 		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
-			workbook = xlwt.Workbook(encoding="UTF-8")
+			# workbook = xlwt.Workbook(encoding="UTF-8")
 			data_to_load_html_template = []
-			format1 = xlwt.easyxf('font:bold True,name Calibri;align: horiz left;')
-			format2 = xlwt.easyxf('font:name Calibri;align: horiz right;')
-			format3 = xlwt.easyxf('font:bold True,name Calibri;align: horiz right;')
-			format4 = xlwt.easyxf('font:bold True,name Calibri, color blue;align: horiz left;')
-			format5 = xlwt.easyxf('font:bold True,name Calibri, color red;align: horiz left;')
-			format6 = xlwt.easyxf('font:bold True,name Calibri, color red;align: horiz right;')
-			format7 = xlwt.easyxf('font:name Calibri, color green;align: horiz right;')
-			format8 = xlwt.easyxf('font:bold True,name Calibri, color green;align: horiz right;')
-			sheet = workbook.add_sheet('Employee attendance report')
-			sheet.col(0).width = int(50*260)
-			for r in range(1,5):
-				sheet.col(r).width = int(25*260)
+			# format1 = xlwt.easyxf('font:bold True,name Calibri;align: horiz left;')
+			# format2 = xlwt.easyxf('font:name Calibri;align: horiz right;')
+			# format3 = xlwt.easyxf('font:bold True,name Calibri;align: horiz right;')
+			# format4 = xlwt.easyxf('font:bold True,name Calibri, color blue;align: horiz left;')
+			# format5 = xlwt.easyxf('font:bold True,name Calibri, color red;align: horiz left;')
+			# format6 = xlwt.easyxf('font:bold True,name Calibri, color red;align: horiz right;')
+			# format7 = xlwt.easyxf('font:name Calibri, color green;align: horiz right;')
+			# format8 = xlwt.easyxf('font:bold True,name Calibri, color green;align: horiz right;')
+			# sheet = workbook.add_sheet('Employee attendance report')
+			# sheet.col(0).width = int(50*260)
+			# for r in range(1,5):
+				# sheet.col(r).width = int(25*260)
 			i=4;j=1;k=len(attendance.line_ids)
 			total_time_in_office = attendance.check_out - attendance.check_in
-			sheet.write(1, 0, 'First Check-in & Last Check-out', format1)
-			sheet.write(1, 1, (attendance.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
-			sheet.write(1, 2, (attendance.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
+			# sheet.write(1, 0, 'First Check-in & Last Check-out', format1)
+			# sheet.write(1, 1, (attendance.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
+			# sheet.write(1, 2, (attendance.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
 			total_seconds = total_time_in_office.total_seconds()
 			hours = int(total_seconds // 3600)  # Get the total hours
 			minutes = int((total_seconds % 3600) // 60)
-			sheet.write(1, 3, f"{hours:02d}:{minutes:02d}", format3)
+			# sheet.write(1, 3, f"{hours:02d}:{minutes:02d}", format3)
 
 			data_to_load_html_template.append([
 				'First Check-in & Last Check-out',
@@ -133,29 +133,29 @@ class TgAttendance(models.Model):
 				if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids):
 					pass
 				else:
-					sheet.write(2, 0, 'Less 1 hour for the lunch break', format1)
-					sheet.write(2, 3, self.float_to_time(-1), format3)
+					# sheet.write(2, 0, 'Less 1 hour for the lunch break', format1)
+					# sheet.write(2, 3, self.float_to_time(-1), format3)
 					data_to_load_html_template.append([
 						'Less 1 hour for the lunch break', ' ', ' ', self.float_to_time(-1)
 					])
 			row_3 = ['Total time excluding break', ' ', ' ' ]
-			sheet.write(3, 0, 'Total time excluding break', format1)
+			# sheet.write(3, 0, 'Total time excluding break', format1)
 			if attendance.employee_id.location_id.detect_lunch == True:
 				if (any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and
 						any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids)):
-					sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
+					# sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
 					row_3.append(self.float_to_time((attendance.worked_hours)))
 				else:
-					sheet.write(3, 3, self.float_to_time((attendance.worked_hours-1)), format3)
+					# sheet.write(3, 3, self.float_to_time((attendance.worked_hours-1)), format3)
 					row_3.append(self.float_to_time((attendance.worked_hours-1)))
 			else:
-				sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
+				# sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
 				row_3.append(self.float_to_time((attendance.worked_hours)))
 			row_3.append(' ')
 			data_to_load_html_template.append(row_3)
-			sheet.write(4, 0, 'Breaks', format4)
-			sheet.write(4, 3, 'Counted', format4)
-			sheet.write(4, 4, 'Non-Counted', format4)
+			# sheet.write(4, 0, 'Breaks', format4)
+			# sheet.write(4, 3, 'Counted', format4)
+			# sheet.write(4, 4, 'Non-Counted', format4)
 			data_to_load_html_template.append([
 				'Breaks', ' ', ' ', 'Counted', 'Non-Counted'
 			])
@@ -171,54 +171,54 @@ class TgAttendance(models.Model):
 			start_time_date = fields.Datetime.add(start_time_date, hours=5.5)
 
 			if attendance_checkin > start_time_date:
-				sheet.write(i, 0, 'Break 1', format1)
-				sheet.write(i , 1, start_time_date.strftime(
-								"%d-%m-%Y %H:%M:%S"), format2)
+				# sheet.write(i, 0, 'Break 1', format1)
+				# sheet.write(i , 1, start_time_date.strftime(
+								# "%d-%m-%Y %H:%M:%S"), format2)
 				row[0] = 'Break (Delay)'
 				row[1] = start_time_date.strftime("%d-%m-%Y %H:%M:%S")
-				sheet.write(i, 2,
-							attendance_checkin.strftime(
-								"%d-%m-%Y %H:%M:%S"), format2)
+				# sheet.write(i, 2,
+							# attendance_checkin.strftime(
+								# "%d-%m-%Y %H:%M:%S"), format2)
 				row[2] = attendance_checkin.strftime(
 					"%d-%m-%Y %H:%M:%S")
 				if attendance_checkin - start_time_date > 15:
-					sheet.write(i, 3, attendance_checkin - start_time_date, format2)
+					# sheet.write(i, 3, attendance_checkin - start_time_date, format2)
 					row[3] = attendance_checkin - start_time_date
 					row[5] = 'claim'
 				else:
-					sheet.write(i, 4, attendance_checkin - start_time_date,
-								format2)
+					# sheet.write(i, 4, attendance_checkin - start_time_date,
+								# format2)
 					row[4] = attendance_checkin - start_time_date
 				i+= 1
 
 			for line in attendance.line_ids:
 				if j!=1:
-					sheet.write(i, 2, (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
+					# sheet.write(i, 2, (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
 					row[2] = (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
 					dif = (line.check_in+timedelta(hours=5.5)) - check_out
 					hours = int(dif.seconds / 3600)
 					minutes = (dif.seconds % 3600) / 60
 					if hours == 0 and minutes <= 15:
-						sheet.write(i, 4, str(dif), format7)
+						# sheet.write(i, 4, str(dif), format7)
 						row[4] = str(dif)
 						non_count += dif
 					else:
-						sheet.write(i, 3, str(dif), format2)
+						# sheet.write(i, 3, str(dif), format2)
 						row[3] = str(dif)
 						count += dif
 					data_to_load_html_template.append(row)
 				if k!=j:
 					row = [' ', ' ', ' ', False, False, 'claim']
-					sheet.write(i+1, 0, 'Break '+str(j), format1)
-					sheet.write(i+1, 1, (line.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
+					# sheet.write(i+1, 0, 'Break '+str(j), format1)
+					# sheet.write(i+1, 1, (line.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
 					row[0] = 'Break '+str(j)
 					row[1] = (line.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
 					check_out = line.check_out+timedelta(hours=5.5)
 				i+=1;j+=1
-			sheet.write(i, 0, 'Total Breaks', format1)
-			sheet.write(i, 4, str(non_count), format8)
-			sheet.write(i, 3, str(count), format3)
-			sheet.write(i+2, 0, 'Net total time inside the office ('+str(self.float_to_time(attendance.worked_hours))+' - '+str(non_count)+')', format5)
+			# sheet.write(i, 0, 'Total Breaks', format1)
+			# sheet.write(i, 4, str(non_count), format8)
+			# sheet.write(i, 3, str(count), format3)
+			# sheet.write(i+2, 0, 'Net total time inside the office ('+str(self.float_to_time(attendance.worked_hours))+' - '+str(non_count)+')', format5)
 			data_to_load_html_template.append([
 				'Total Breaks', ' ', ' ', str(count), ' '
 			])
@@ -230,16 +230,16 @@ class TgAttendance(models.Model):
 					bk_hr=non_count+timedelta(hours=1)
 			else:
 				bk_hr=non_count
-			sheet.write(i+2, 3, str(wk_hr-bk_hr), format6)
+			# sheet.write(i+2, 3, str(wk_hr-bk_hr), format6)
 			data_to_load_html_template.append([
 				'Net total time inside the office (' + str(
 					self.float_to_time(attendance.worked_hours)) + ' - ' + str(
 					non_count) + ')', ' ', ' ', str(wk_hr-bk_hr), ' '
 			])
-			fp = BytesIO()
-			workbook.save(fp)
-			report_id = self.env['ir.attachment'].create({'name': sterday.strftime("%d/%b/%Y")+' - Employee attendance Report.xls','type': 'binary',
-                'datas': base64.b64encode(fp.getvalue()),'res_model': 'hr.attendance','res_id': self.id})
+			# fp = BytesIO()
+			# workbook.save(fp)
+			# report_id = self.env['ir.attachment'].create({'name': sterday.strftime("%d/%b/%Y")+' - Employee attendance Report.xls','type': 'binary',
+                # 'datas': base64.b64encode(fp.getvalue()),'res_model': 'hr.attendance','res_id': self.id})
 			base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 			context = {
 			    'email_to': attendance.employee_id.work_email,
@@ -250,7 +250,7 @@ class TgAttendance(models.Model):
 				'com_work_hrs':self.env.company.attend_work_hrs
 				}
 			template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
-			template.write({'attachment_ids': [(6,0,[report_id.id])]})
+			# template.write({'attachment_ids': [(6,0,[report_id.id])]})
 			template.with_context(context).send_mail(attendance.id, force_send=True)
 			report_id.unlink()
 
