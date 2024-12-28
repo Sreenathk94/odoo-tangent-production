@@ -252,7 +252,7 @@ class TgAttendance(models.Model):
 			template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
 			# template.write({'attachment_ids': [(6,0,[report_id.id])]})
 			template.with_context(context).send_mail(attendance.id, force_send=True)
-			report_id.unlink()
+			# report_id.unlink()
 
 class Employee(models.Model):
 	_inherit = "hr.employee"
