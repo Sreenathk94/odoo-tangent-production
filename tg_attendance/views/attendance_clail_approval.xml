@@ -21,7 +21,7 @@
                 <field name="manager_id"/>
                 <field name="date_from"/>
                 <field name="date_to"/>
-                <field name="request_hour"/>
+                <field name="request_hour" widget="timesheet_uom"/>
                 <field name="reason"/>
                 <field name="state" widget="badge"
                        decoration-danger="state == 'rejected'"
@@ -70,8 +70,8 @@
                         <group>
                             <field name="employee_id" readonly="1"/>
                             <field name="manager_id" readonly="1"/>
-                            <field name="request_hour" readonly="1"/>
-                            <field name="approved_hour"/>
+                            <field name="request_hour" readonly="1" widget="timesheet_uom"/>
+                            <field name="approved_hour" widget="timesheet_uom"/>
                         </group>
                     </group>
                     <notebook>
