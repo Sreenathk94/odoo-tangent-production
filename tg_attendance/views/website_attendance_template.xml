@@ -179,7 +179,7 @@
                                         </label>
                                         <div class="col-sm">
                                             <span id="maximum_difference_in_minutes" t-att-data-minuts="difference_in_minutes"/>
-                                            <input type="text" id="request_hour"
+                                            <input type="time" id="request_hour"
                                                    class="form-control s_website_form_input"
                                                    t-att-value="difference_in_minutes"
                                                    required="true"
@@ -232,7 +232,12 @@
         <template id="attendance_claim_view_from_confirm_view" name="Claim | Confirmation">
             <t t-call="website.layout">
                     <div class="alert alert-success" role="alert">
-                       The requested created with the reference of <t t-out="reference"/>
+                        <t t-if="reference">
+                            The requested created with the reference of <t t-out="reference"/>
+                        </t>
+                        <t t-else="">
+                            The Request Already Created
+                        </t>
                     </div>
             </t>
         </template>

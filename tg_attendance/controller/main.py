@@ -137,9 +137,10 @@ class AttendanceClaim(Controller):
             time_difference = date_to - date_from
             index = kwargs.get('index')
             # Convert the time difference to minutes
-            difference_in_minutes = time_difference.total_seconds()/60
-            total_hours = difference_in_minutes / 60
-
+            difference_in_minutes = time_difference.total_seconds()//60
+            hours = int(difference_in_minutes // 60)
+            minutes = int(difference_in_minutes % 60)
+            total_hours = f"{hours:02}:{minutes:02}"
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(kwargs.get('employee_id')))
             return request.render(
@@ -153,21 +154,32 @@ class AttendanceClaim(Controller):
 
     @route('/submit/claim/attendance',  auth='user', website=True)
     def create_attendance_request(self, **post):
-        print(post)
         if post.get('date_from') and post.get('date_to') and post.get('employee_id'):
             date_from = datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S')
             date_to = datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S')
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(post.get('employee_id')))
+
+            if request.env['attendance.claim.approval'].search([
+                ('employee_id', '=', employee_id.id),
+                ('date_from', '=', date_from),
+                ('date_to', '=', date_to)
+            ]).exists():
+                return request.render(
+                    "tg_attendance.attendance_claim_view_from_confirm_view",
+                    {'reference': False})
             index = int(post.get('index'))
+            time_str = post.get('request_hour')
+            hours, minutes = map(int, time_str.split(":"))
+            time_float = hours + (minutes / 60)
             approval_id = request.env['attendance.claim.approval'].create({
                 'employee_id': employee_id.id,
                 'manager_id': employee_id.parent_id.id,
                 'date_from': date_from,
                 'date_to': date_to,
                 'index': index,
-                'request_hour': post.get('request_hour'),
-                'approved_hour': post.get('request_hour'),
+                'request_hour': time_float,
+                'approved_hour': time_float,
                 'reason': post.get('reason')
             })
             template = request.env.ref(
