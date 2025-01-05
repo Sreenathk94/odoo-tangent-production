@@ -155,8 +155,8 @@ class AttendanceClaim(Controller):
     @route('/submit/claim/attendance',  auth='user', website=True)
     def create_attendance_request(self, **post):
         if post.get('date_from') and post.get('date_to') and post.get('employee_id'):
-            date_from = datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S')
-            date_to = datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S')
+            date_from = datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S') - timedelta(hours=5.5)
+            date_to = datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S') - timedelta(hours=5.5)
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(post.get('employee_id')))
 
