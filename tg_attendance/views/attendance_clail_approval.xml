@@ -23,6 +23,8 @@
                 <field name="date_to"/>
                 <field name="request_hour" widget="timesheet_uom"/>
                 <field name="reason"/>
+                <button name="action_accept" string="Accept" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                <button name="action_reject" string="Reject" type="object" invisible="state != 'draft'"/>
                 <field name="state" widget="badge"
                        decoration-danger="state == 'rejected'"
                        decoration-info="state == 'draft'"
