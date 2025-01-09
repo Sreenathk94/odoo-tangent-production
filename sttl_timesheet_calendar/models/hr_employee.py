@@ -12,13 +12,16 @@ class HREmployee(models.Model):
 	date_of_join = fields.Date("Date of Joining", required=True)
 	
 	@api.model_create_multi
-	def create(self, vals):
-		lines = super(HREmployee, self).create(vals)
-		if vals.get('not_required') == False:
-			submit_ids = self.env['hr.timesheet.submit'].search([('to_date','>=',date.today())])
-			for submit_id in submit_ids:
-				for line in lines:
-					self.env['hr.timesheet.submit.line'].sudo().create({'employee_id':line.id,'submit_id':submit_id.id})
+	def create(self, vals_list):
+		lines = super(HREmployee, self).create(vals_list)
+		for vals, line in zip(vals_list, lines):
+			if vals.get('not_required') == False:
+				submit_ids = self.env['hr.timesheet.submit'].search([('to_date', '>=', date.today())])
+				for submit_id in submit_ids:
+					self.env['hr.timesheet.submit.line'].sudo().create({
+						'employee_id': line.id,
+						'submit_id': submit_id.id
+					})
 		return lines
 	
 	def write(self, vals):
