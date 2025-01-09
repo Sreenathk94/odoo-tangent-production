@@ -27,8 +27,19 @@ class AccountAnalyticLine(models.Model):
         #     result['from_date'] = date.replace(hour=0, minute=0, second=0) - timedelta(hours=5.5)
         #     result['to_date'] = date.replace(hour=0, minute=0, second=0) - timedelta(hours=5.5)
         return result
+    @api.model
+    def _default_date(self):
+        from_date = self.env.context.get('default_from_date')
+        if from_date:
+            return fields.Date.to_date(from_date)
+        return fields.Date.context_today(self)
 
-
+    date = fields.Date(
+        'Date',
+        required=True,
+        index=True,
+        default=lambda self: self._default_date(),
+    )
     start_time = fields.Float("Start Time (HH:MM)")
     start_meridiem = fields.Selection([('AM','AM'),('PM','PM')],"Start Meridiem",default='AM')
     end_time = fields.Float("End Time (HH:MM)")
