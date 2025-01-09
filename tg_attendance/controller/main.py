@@ -147,6 +147,8 @@ class AttendanceClaim(Controller):
                 "tg_attendance.attendance_claim_view_from", {
                     'date_from': date_from,
                     'date_to': date_to,
+                    'hours': hours,
+                    'minutes': minutes,
                     'difference_in_minutes': total_hours,
                     'employee_id': employee_id.read(['id', 'name'])[0],
                     'index':index
@@ -169,8 +171,8 @@ class AttendanceClaim(Controller):
                     "tg_attendance.attendance_claim_view_from_confirm_view",
                     {'reference': False})
             index = int(post.get('index'))
-            time_str = post.get('request_hour')
-            hours, minutes = map(int, time_str.split(":"))
+            hours = int(post.get('request_hour', 0))
+            minutes = int(post.get('request_minutes', 0))
             time_float = hours + (minutes / 60)
             approval_id = request.env['attendance.claim.approval'].create({
                 'employee_id': employee_id.id,
