@@ -303,5 +303,7 @@
           </p>
         </field>
     </record>
-
+    <record id="analytic.view_account_analytic_line_form" model="ir.ui.view">
+         <field name="active">False</field>
+    </record>	
 </odoo>
