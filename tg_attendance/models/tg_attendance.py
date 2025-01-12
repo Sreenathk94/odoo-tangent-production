@@ -96,7 +96,7 @@ class TgAttendance(models.Model):
 	@api.model
 	def _employee_alert_daily_attendance(self):
 		today = self.env.company.fetch_date
-		sterday = today - relativedelta(days=1)
+		sterday = today - relativedelta(days=16)
 		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
 			# workbook = xlwt.Workbook(encoding="UTF-8")
 			data_to_load_html_template = []
@@ -160,7 +160,7 @@ class TgAttendance(models.Model):
 				'Breaks', ' ', ' ', 'Counted', 'Non-Counted'
 			])
 			check_out = False;non_count = timedelta(days=0);count = timedelta(days=0)
-			row = [' ', ' ', ' ', ' ', ' ']
+			row = [' ', ' ', ' ', ' ', ' ', ' ']
 			start_time = self.env.company.company_start_time
 			# Extract hour and minute from the float
 			hours = int(start_time)
@@ -181,7 +181,9 @@ class TgAttendance(models.Model):
 								# "%d-%m-%Y %H:%M:%S"), format2)
 				row[2] = attendance_checkin.strftime(
 					"%d-%m-%Y %H:%M:%S")
-				if attendance_checkin - start_time_date > 15:
+				start_time_difference = attendance_checkin - start_time_date
+				total_late_in_minutes = start_time_difference.total_seconds() // 60
+				if total_late_in_minutes > 15:
 					# sheet.write(i, 3, attendance_checkin - start_time_date, format2)
 					row[3] = attendance_checkin - start_time_date
 					row[5] = 'claim'
