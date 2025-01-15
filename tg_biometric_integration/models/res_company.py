@@ -52,12 +52,13 @@ class ResCompany(models.Model):
 
     def fetch_attendance_data(self):
         self = self.env['res.company'].search([('id', '=', 1)])
-        
+
         # Set Asia/Dubai timezone and UTC timezone
         dubai_tz = pytz.timezone('Asia/Dubai')
         utc_tz = pytz.utc
-        
+
         try:
+            # Connect to MySQL database
             con = mysql.connector.connect(
                 host=self.db_hostname,
                 database=self.db_name,
@@ -74,7 +75,7 @@ class ResCompany(models.Model):
 
             for employee in employee_ids:
                 result_set = [record for record in date_recordss if record[3] == employee.bio_code]
-                
+
                 if result_set:
                     lines = []
                     for result in result_set:
@@ -82,35 +83,43 @@ class ResCompany(models.Model):
                         if result[1].year == 1970 or result[2].year == 1970:
                             employee.missing_count += 1
                         else:
-                            # Convert check_in and check_out to Asia/Dubai timezone first
-                            check_in_dubai = dubai_tz.localize(result[1]) if result[1].tzinfo is None else result[1]
-                            check_out_dubai = dubai_tz.localize(result[2]) if result[2].tzinfo is None else result[2]
+                            # Ensure result[1] and result[2] are aware of the Dubai timezone
+                            check_in = result[1].replace(tzinfo=dubai_tz) if result[1].tzinfo is None else result[1]
+                            check_out = result[2].replace(tzinfo=dubai_tz) if result[2].tzinfo is None else result[2]
 
-                            # Convert check_in and check_out to UTC
-                            check_in_utc = check_in_dubai.astimezone(utc_tz)
-                            check_out_utc = check_out_dubai.astimezone(utc_tz)
+                            # Convert to UTC and make naive
+                            check_in_utc_naive = check_in.astimezone(utc_tz).replace(tzinfo=None)
+                            check_out_utc_naive = check_out.astimezone(utc_tz).replace(tzinfo=None)
 
                             # Append to lines
                             lines.append((0, 0, {
-                                'check_in': check_in_utc,
-                                'check_out': check_out_utc
+                                'check_in': check_in_utc_naive,
+                                'check_out': check_out_utc_naive
                             }))
 
+                    # Calculate first check-in and last check-out in UTC (naive)
                     first_check_in = min(result_set, key=lambda x: x[1])
                     last_check_out = max(result_set, key=lambda x: x[2])
-                    first_check_in_utc = dubai_tz.localize(first_check_in[1]).astimezone(utc_tz)
-                    last_check_out_utc = dubai_tz.localize(last_check_out[2]).astimezone(utc_tz) if last_check_out[2].year != 1970 else dubai_tz.localize(last_check_out[1]).astimezone(utc_tz)
+                    first_check_in_utc_naive = first_check_in[1].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(
+                        tzinfo=None)
+                    last_check_out_utc_naive = (
+                        last_check_out[2].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(tzinfo=None)
+                        if last_check_out[2].year != 1970
+                        else last_check_out[1].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(tzinfo=None)
+                    )
+
+                    # Create attendance record
                     self.env['hr.attendance'].create({
                         'fetch_date': self.fetch_date,
                         'employee_id': employee.id,
                         'line_ids': lines,
-                        'check_in': first_check_in_utc,
-                        'check_out': last_check_out_utc
+                        'check_in': first_check_in_utc_naive,
+                        'check_out': last_check_out_utc_naive
                     })
 
             # Increment the fetch date
             self.fetch_date = self.fetch_date + relativedelta(days=1)
-            
+
             con.close()
             cursor.close()
 
@@ -118,12 +127,6 @@ class ResCompany(models.Model):
             raise ValidationError(_(e))
 
         finally:
-            con = mysql.connector.connect(
-                host=self.db_hostname,
-                database=self.db_name,
-                user=self.db_username,
-                password=self.db_password,
-                auth_plugin='mysql_native_password'
-            )
+            # Ensure the connection is closed
             if con.is_connected():
                 con.close()
