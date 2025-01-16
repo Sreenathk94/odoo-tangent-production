@@ -1,10 +1,9 @@
+from datetime import timedelta
 from odoo import api, fields, models, _
 import mysql.connector
-from odoo import exceptions
 from odoo.exceptions import ValidationError
-from dateutil.relativedelta import relativedelta
-from datetime import timedelta
 import pytz
+from dateutil.relativedelta import relativedelta
 
 class ResCompany(models.Model):
     _inherit = "res.company"
@@ -17,38 +16,6 @@ class ResCompany(models.Model):
     db_test_query = fields.Text(string='Fetch Query', required=True, default='SELECT * FROM tmp_attendance;', tracking=True)
     db_query_result = fields.Text(string='Connection Result', readonly=True)
     fetch_date = fields.Date(string='Fetch Date', required=True, tracking=True)
-
-    def run_testquery(self):
-        try:
-            con = mysql.connector.connect(
-                host=self.db_hostname,
-                database=self.db_name,
-                user=self.db_username,
-                password=self.db_password,
-                auth_plugin='mysql_native_password'
-            )
-
-            cursor = con.cursor()
-            cursor.execute(self.db_test_query)
-            recordss = cursor.fetchall()
-            self.db_query_result = recordss
-            con.close()
-            cursor.close()
-
-        except Exception as e:
-            raise ValidationError(_('Error reading data from MySQL table'))
-            raise exceptions.Warning('Warning message', e)
-
-        finally:
-            con = mysql.connector.connect(
-                host=self.db_hostname,
-                database=self.db_name,
-                user=self.db_username,
-                password=self.db_password,
-                auth_plugin='mysql_native_password'
-            )
-            if con.is_connected():
-                con.close()
 
     def fetch_attendance_data(self):
         self = self.env['res.company'].search([('id', '=', 1)])
@@ -87,9 +54,9 @@ class ResCompany(models.Model):
                             check_in = result[1].replace(tzinfo=dubai_tz) if result[1].tzinfo is None else result[1]
                             check_out = result[2].replace(tzinfo=dubai_tz) if result[2].tzinfo is None else result[2]
 
-                            # Convert to UTC and make naive
-                            check_in_utc_naive = check_in.astimezone(utc_tz).replace(tzinfo=None)
-                            check_out_utc_naive = check_out.astimezone(utc_tz).replace(tzinfo=None)
+                            # Convert to UTC, make naive, and deduct 19 minutes
+                            check_in_utc_naive = check_in.astimezone(utc_tz).replace(tzinfo=None) - timedelta(minutes=19)
+                            check_out_utc_naive = check_out.astimezone(utc_tz).replace(tzinfo=None) - timedelta(minutes=19)
 
                             # Append to lines
                             lines.append((0, 0, {
@@ -97,15 +64,16 @@ class ResCompany(models.Model):
                                 'check_out': check_out_utc_naive
                             }))
 
-                    # Calculate first check-in and last check-out in UTC (naive)
+                    # Calculate first check-in and last check-out in UTC (naive) and deduct 19 minutes
                     first_check_in = min(result_set, key=lambda x: x[1])
                     last_check_out = max(result_set, key=lambda x: x[2])
-                    first_check_in_utc_naive = first_check_in[1].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(
-                        tzinfo=None)
+                    first_check_in_utc_naive = (
+                        first_check_in[1].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(tzinfo=None) - timedelta(minutes=19)
+                    )
                     last_check_out_utc_naive = (
-                        last_check_out[2].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(tzinfo=None)
+                        (last_check_out[2].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(tzinfo=None) - timedelta(minutes=19))
                         if last_check_out[2].year != 1970
-                        else last_check_out[1].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(tzinfo=None)
+                        else (last_check_out[1].replace(tzinfo=dubai_tz).astimezone(utc_tz).replace(tzinfo=None) - timedelta(minutes=19))
                     )
 
                     # Create attendance record
