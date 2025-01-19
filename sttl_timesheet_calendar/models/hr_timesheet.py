@@ -15,17 +15,9 @@ class AccountAnalyticLine(models.Model):
         result = super(AccountAnalyticLine, self).default_get(field_list)
         result['unit_amount'] = 0.0
         if 'from_date' in result:
-            # commented to remove validation for adding timesheet on older days.
-            # if not self.env['hr.timesheet.submit'].search([('from_date','<=',result.get('date')),('to_date','>=',result.get('date'))]):
-            #     raise UserError(_("You can not create timesheet for future date"))
             employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1).id
             if self.env['hr.timesheet.submit.line'].search([('employee_id','=',employee_id),('submit_id.from_date','<=',result.get('date')),('submit_id.to_date','>=',result.get('date')),('state','=','lock')]):
                 result['message'] = "You can not create/update timesheet for this date"
-        # date = result.get('date', False)
-        # if date:
-        #     date = datetime.combine(date, datetime.min.time())
-        #     result['from_date'] = date.replace(hour=0, minute=0, second=0) - timedelta(hours=5.5)
-        #     result['to_date'] = date.replace(hour=0, minute=0, second=0) - timedelta(hours=5.5)
         return result
 
     @api.model
@@ -128,6 +120,9 @@ class AccountAnalyticLine(models.Model):
             #     raise UserError(_("End Time should be greater than Start Time."))
             res.project_id.timesheet_status_id = res.status_id.id
         return lines
+
+    def create_and_reload(self):
+        return  {'type': 'ir.actions.client', 'tag': 'reload'}
 
     def write(self, vals):
         rec = super(AccountAnalyticLine, self).write(vals)

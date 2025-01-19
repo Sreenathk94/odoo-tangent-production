@@ -96,6 +96,10 @@
 						<field name="description"/>
 					</group>
                 </sheet>
+                <footer>
+                    <button string="Save and Close" type="object" name="create_and_reload" class="btn btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
             </form>
         </field>
     </record>
