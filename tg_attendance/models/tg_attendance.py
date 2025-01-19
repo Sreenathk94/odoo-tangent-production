@@ -4,6 +4,7 @@ from datetime import datetime,time,timedelta
 from pytz import timezone
 from odoo.addons.resource.models.utils import make_aware, Intervals
 from pytz import UTC
+import pytz
 from dateutil.rrule import rrule, DAILY
 import xlwt
 import base64
@@ -93,69 +94,55 @@ class TgAttendance(models.Model):
 		minutes = int(round((float_value - hours) * 60))
 		return f"{hours:02d}:{minutes:02d}"
 
+	def get_native_time(self, time_in_utc, employee_tz):
+		utc_tz = pytz.utc
+		return time_in_utc.replace(tzinfo=employee_tz).astimezone(utc_tz).replace(
+			tzinfo=None) + timedelta(minutes=19)
+
+
 	@api.model
 	def _employee_alert_daily_attendance(self):
 		today = self.env.company.fetch_date
 		sterday = today - relativedelta(days=1)
 		for attendance in self.env['hr.attendance'].search([('fetch_date','=',sterday)]).filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs):
-			# workbook = xlwt.Workbook(encoding="UTF-8")
+			# Set Asia/Dubai timezone and UTC timezone
+			employee_tz = pytz.timezone(attendance.employee_id.user_id.tz)
+			check_in_utc_naive = self.get_native_time(attendance.check_in, employee_tz)
+			check_out_utc_naive = self.get_native_time(attendance.check_out, employee_tz)
 			data_to_load_html_template = []
-			# format1 = xlwt.easyxf('font:bold True,name Calibri;align: horiz left;')
-			# format2 = xlwt.easyxf('font:name Calibri;align: horiz right;')
-			# format3 = xlwt.easyxf('font:bold True,name Calibri;align: horiz right;')
-			# format4 = xlwt.easyxf('font:bold True,name Calibri, color blue;align: horiz left;')
-			# format5 = xlwt.easyxf('font:bold True,name Calibri, color red;align: horiz left;')
-			# format6 = xlwt.easyxf('font:bold True,name Calibri, color red;align: horiz right;')
-			# format7 = xlwt.easyxf('font:name Calibri, color green;align: horiz right;')
-			# format8 = xlwt.easyxf('font:bold True,name Calibri, color green;align: horiz right;')
-			# sheet = workbook.add_sheet('Employee attendance report')
-			# sheet.col(0).width = int(50*260)
-			# for r in range(1,5):
-				# sheet.col(r).width = int(25*260)
+
 			i=4;j=1;k=len(attendance.line_ids)
-			total_time_in_office = attendance.check_out - attendance.check_in
-			# sheet.write(1, 0, 'First Check-in & Last Check-out', format1)
-			# sheet.write(1, 1, (attendance.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
-			# sheet.write(1, 2, (attendance.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format3)
+			total_time_in_office = check_out_utc_naive - check_in_utc_naive
+
 			total_seconds = total_time_in_office.total_seconds()
 			hours = int(total_seconds // 3600)  # Get the total hours
 			minutes = int((total_seconds % 3600) // 60)
-			# sheet.write(1, 3, f"{hours:02d}:{minutes:02d}", format3)
 
 			data_to_load_html_template.append([
 				'First Check-in & Last Check-out',
-				(attendance.check_in + timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
-				(attendance.check_out + timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"),
+				check_in_utc_naive.strftime("%d-%m-%Y %H:%M:%S"),
+				check_out_utc_naive.strftime("%d-%m-%Y %H:%M:%S"),
 				f"{hours:02d}:{minutes:02d}",
 				' ',
 			])
 			if attendance.employee_id.location_id.detect_lunch == True:
-				if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids):
+				if any(self.get_native_time(x.check_out, employee_tz).time() > time(13,0) and self.get_native_time(x.check_out, employee_tz).time() < time(14,0) for x in attendance.line_ids) and any(self.get_native_time(x.check_in, employee_tz).time() > time(13,0) and self.get_native_time(x.check_in, employee_tz).time() < time(14,0) for x in attendance.line_ids):
 					pass
 				else:
-					# sheet.write(2, 0, 'Less 1 hour for the lunch break', format1)
-					# sheet.write(2, 3, self.float_to_time(-1), format3)
 					data_to_load_html_template.append([
 						'Less 1 hour for the lunch break', ' ', ' ', self.float_to_time(-1)
 					])
 			row_3 = ['Total time excluding break', ' ', ' ' ]
-			# sheet.write(3, 0, 'Total time excluding break', format1)
 			if attendance.employee_id.location_id.detect_lunch == True:
-				if (any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and
-						any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids)):
-					# sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
+				if (any(self.get_native_time(x.check_out, employee_tz).time() > time(13,0) and self.get_native_time(x.check_out, employee_tz).time() < time(14,0) for x in attendance.line_ids) and
+						any(self.get_native_time(x.check_in, employee_tz).time() > time(13,0) and self.get_native_time(x.check_in, employee_tz).time() < time(14,0) for x in attendance.line_ids)):
 					row_3.append(self.float_to_time((attendance.worked_hours)))
 				else:
-					# sheet.write(3, 3, self.float_to_time((attendance.worked_hours-1)), format3)
 					row_3.append(self.float_to_time((attendance.worked_hours-1)))
 			else:
-				# sheet.write(3, 3, self.float_to_time((attendance.worked_hours)), format3)
 				row_3.append(self.float_to_time((attendance.worked_hours)))
 			row_3.append(' ')
 			data_to_load_html_template.append(row_3)
-			# sheet.write(4, 0, 'Breaks', format4)
-			# sheet.write(4, 3, 'Counted', format4)
-			# sheet.write(4, 4, 'Non-Counted', format4)
 			data_to_load_html_template.append([
 				'Breaks', ' ', ' ', 'Counted', 'Non-Counted'
 			])
@@ -165,83 +152,60 @@ class TgAttendance(models.Model):
 			# Extract hour and minute from the float
 			hours = int(start_time)
 			minutes = int((start_time - hours) * 100)
-			attendance_checkin = attendance.check_in + timedelta(hours=5.5)
+			attendance_checkin = check_in_utc_naive
 			# Create a datetime object with the extracted hour and minute
 			start_time_date = datetime(sterday.year, sterday.month, sterday.day, hours, minutes)
-			start_time_date = fields.Datetime.add(start_time_date, hours=5.5)
+			start_time_date = self.get_native_time(start_time_date, employee_tz)
 
 			if attendance_checkin > start_time_date:
-				# sheet.write(i, 0, 'Break 1', format1)
-				# sheet.write(i , 1, start_time_date.strftime(
-								# "%d-%m-%Y %H:%M:%S"), format2)
 				row[0] = 'Break (Delay)'
 				row[1] = start_time_date.strftime("%d-%m-%Y %H:%M:%S")
-				# sheet.write(i, 2,
-							# attendance_checkin.strftime(
-								# "%d-%m-%Y %H:%M:%S"), format2)
 				row[2] = attendance_checkin.strftime(
 					"%d-%m-%Y %H:%M:%S")
 				start_time_difference = attendance_checkin - start_time_date
 				total_late_in_minutes = start_time_difference.total_seconds() // 60
 				if total_late_in_minutes > 15:
-					# sheet.write(i, 3, attendance_checkin - start_time_date, format2)
 					row[3] = attendance_checkin - start_time_date
 					row[5] = 'claim'
 				else:
-					# sheet.write(i, 4, attendance_checkin - start_time_date,
-								# format2)
 					row[4] = attendance_checkin - start_time_date
 				i+= 1
 
 			for line in attendance.line_ids:
 				if j!=1:
-					# sheet.write(i, 2, (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
-					row[2] = (line.check_in+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
-					dif = (line.check_in+timedelta(hours=5.5)) - check_out
+					row[2] = self.get_native_time(line.check_in, employee_tz).strftime("%d-%m-%Y %H:%M:%S")
+					dif = self.get_native_time(line.check_in, employee_tz) - check_out
 					hours = int(dif.seconds / 3600)
 					minutes = (dif.seconds % 3600) / 60
 					if hours == 0 and minutes <= 15:
-						# sheet.write(i, 4, str(dif), format7)
 						row[4] = str(dif)
 						non_count += dif
 					else:
-						# sheet.write(i, 3, str(dif), format2)
 						row[3] = str(dif)
 						count += dif
 					data_to_load_html_template.append(row)
 				if k!=j:
 					row = [' ', ' ', ' ', False, False, 'claim']
-					# sheet.write(i+1, 0, 'Break '+str(j), format1)
-					# sheet.write(i+1, 1, (line.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S"), format2)
 					row[0] = 'Break '+str(j)
-					row[1] = (line.check_out+timedelta(hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
-					check_out = line.check_out+timedelta(hours=5.5)
+					row[1] = self.get_native_time(line.check_out, employee_tz).strftime("%d-%m-%Y %H:%M:%S")
+					check_out = self.get_native_time(line.check_out, employee_tz)
 				i+=1;j+=1
-			# sheet.write(i, 0, 'Total Breaks', format1)
-			# sheet.write(i, 4, str(non_count), format8)
-			# sheet.write(i, 3, str(count), format3)
-			# sheet.write(i+2, 0, 'Net total time inside the office ('+str(self.float_to_time(attendance.worked_hours))+' - '+str(non_count)+')', format5)
 			data_to_load_html_template.append([
 				'Total Breaks', ' ', ' ', str(count), ' '
 			])
 			wk_hr=timedelta(hours=attendance.worked_hours)
 			if attendance.employee_id.location_id.detect_lunch == True:
-				if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(14,0) for x in attendance.line_ids) and any(x.check_in.time() > time(13,0) and x.check_in.time() < time(14,0) for x in attendance.line_ids):
+				if any(self.get_native_time(x.check_out, employee_tz).time() > time(13,0) and self.get_native_time(x.check_out, employee_tz).time() < time(14,0) for x in attendance.line_ids) and any(self.get_native_time(x.check_in, employee_tz).time() > time(13,0) and self.get_native_time(x.check_in, employee_tz).time() < time(14,0) for x in attendance.line_ids):
 					bk_hr=non_count
 				else:
 					bk_hr=non_count+timedelta(hours=1)
 			else:
 				bk_hr=non_count
-			# sheet.write(i+2, 3, str(wk_hr-bk_hr), format6)
 			data_to_load_html_template.append([
 				'Net total time inside the office (' + str(
 					self.float_to_time(attendance.worked_hours)) + ' - ' + str(
 					non_count) + ')', ' ', ' ', str(wk_hr-bk_hr), ' '
 			])
-			# fp = BytesIO()
-			# workbook.save(fp)
-			# report_id = self.env['ir.attachment'].create({'name': sterday.strftime("%d/%b/%Y")+' - Employee attendance Report.xls','type': 'binary',
-                # 'datas': base64.b64encode(fp.getvalue()),'res_model': 'hr.attendance','res_id': self.id})
 			base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 			context = {
 			    'email_to': attendance.employee_id.work_email,
@@ -252,9 +216,7 @@ class TgAttendance(models.Model):
 				'com_work_hrs':self.env.company.attend_work_hrs
 				}
 			template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
-			# template.write({'attachment_ids': [(6,0,[report_id.id])]})
 			template.with_context(context).send_mail(attendance.id, force_send=True)
-			# report_id.unlink()
 
 class Employee(models.Model):
 	_inherit = "hr.employee"

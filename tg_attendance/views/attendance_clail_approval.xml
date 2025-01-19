@@ -85,6 +85,10 @@
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                        <field name="message_follower_ids" options="{'post_refresh': 'recipients'}"/>
+                        <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -137,4 +141,40 @@
         </field>
         <field name="auto_delete" eval="True"/>
     </record>
+
+    <record id="email_template_employee_daily_attendance_status_alert"
+            model="mail.template">
+        <field name="name">Alert For Attendance Claim Status</field>
+        <field name="model_id"
+               ref="tg_attendance.model_attendance_claim_approval"/>
+        <field name="email_to">{{object.employee_id.work_email}}</field>
+        <field name="subject">System Notification: Attendance Claim Request</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear
+                    <b>
+                        <t t-out="object.employee_id.name">Employee Name</t>
+                    </b>
+                    ,
+                    <br/>
+                    <br/>
+                    This is to inform you that an attendance claim request has
+                    been <strong><t t-out="object.state">
+                    [Status]</t>.</strong> by <t t-out="object.manager_id.name">Manger Name</t>
+                    Please let us know if you need any further details or
+                    assistance.
+                    <t t-if="object.state=='rejected'">
+                    You can also reclaim the time - <a t-att-href="object.reclaim_url"
+                                                   style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">re-claim</a>
+
+                    </t>
+
+                    Thank you for your attention to this matter.
+                </p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
 </odoo>

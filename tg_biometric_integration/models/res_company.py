@@ -17,6 +17,34 @@ class ResCompany(models.Model):
     db_query_result = fields.Text(string='Connection Result', readonly=True)
     fetch_date = fields.Date(string='Fetch Date', required=True, tracking=True)
 
+    def run_testquery(self):
+        try:
+            con=mysql.connector.connect(host=self.db_hostname,
+                                        database=self.db_name,
+                                        user=self.db_username,
+                                        password=self.db_password,
+                                        auth_plugin='mysql_native_password')
+
+            cursor=con.cursor()
+            cursor.execute(self.db_test_query)
+            recordss=cursor.fetchall()
+            self.db_query_result=recordss
+            con.close()
+            cursor.close()
+
+        except Exception as e:
+            raise ValidationError(_('Error reading data from MySQL table'))
+            raise exceptions.Warning('Warning message',e)
+
+        finally:
+            con = mysql.connector.connect(host=self.db_hostname,
+                                          database=self.db_name,
+                                          user=self.db_username,
+                                          password=self.db_password,
+                                          auth_plugin='mysql_native_password')
+            if (con.is_connected()):
+                con.close()
+
     def fetch_attendance_data(self):
         self = self.env['res.company'].search([('id', '=', 1)])
 

@@ -175,7 +175,7 @@
                                                class="col-form-label col-sm-auto s_website_form_label"
                                                style="width: 200px">
                                             <span class="s_website_form_label_content">
-                                                Requested(in Minutes)
+                                                Requested
                                             </span>
                                         </label>
                                         <div class="col-sm">
@@ -196,6 +196,14 @@
                                                        t-att-value="minutes"
                                                        required="true"
                                                        name="request_minutes"
+                                                       style="width: 5%;"/>
+                                                 :
+                                                <input type="text"
+                                                       id="request_seconds"
+                                                       class="form-control s_website_form_input"
+                                                       t-att-value="seconds"
+                                                       required="true"
+                                                       name="request_seconds"
                                                        style="width: 5%;"/>
                                             </div>
 
@@ -247,16 +255,159 @@
     <template id="attendance_claim_view_from_confirm_view"
               name="Claim | Confirmation">
         <t t-call="website.layout">
-            <div class="alert alert-success" role="alert">
-                <t t-if="reference">
-                    The requested created with the reference of
-                    <t t-out="reference"/>
-                </t>
-                <t t-else="">
-                    The Request Already Created
-                </t>
+            <div class="alert alert-success" t-if="show_form" role="alert">
+                The requested created with the reference of
+                <t t-out="reference.name"/>
+            </div>
+            <div class="alert alert-info" t-else="" role="alert">
+                    The Request Already Created Reference <t t-out="reference.name"/>
+                    <t t-if="show_reclaim">
+                       -  <a class="link-primary" t-attf-href="/attendance/reclaim/form?request_id={{reference.id}}">Re-claim</a>
+                    </t>
             </div>
             <a class="btn btn-primary" style="margin-left: 50%;" href="/web">Home</a>
         </t>
     </template>
+
+    <template id="attendance_reclaim_not_found"
+              name="Re Claim | Not found">
+        <t t-call="website.layout">
+
+            <div class="alert alert-danger" role="alert">
+                the request ID not Valid
+            </div>
+            <a class="btn btn-primary" style="margin-left: 50%;" href="/web">Home</a>
+        </t>
+    </template>
+
+
+    <template id="attendance_reclaim_form" name="Re Claim | Request Form">
+        <t t-call="website.layout">
+            <div class="oe_structure oe_empty">
+                <div>
+                    <div class="container s_allow_columns case_register_form">
+                        <div class="container">
+                            <br/>
+                            <h3 class="text-center">Re Claim Attendance</h3>
+                            <br/>
+                        </div>
+                        <div class="container mt-4 mb-5">
+                            <form role="form" action="/attendance/reclaim/form/submit"
+                                  id="attendance_reclaim_form"
+                                  method="POST">
+                                <input type="hidden" name="csrf_token"
+                                       t-att-value="request.csrf_token()"/>
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="request_name"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Request Reference
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <span id="maximum_difference_in_minutes"/>
+                                            <div style="display: flex; gap: 10px; align-items: center;">
+                                                <input type="text"
+                                                       id="request_name"
+                                                       class="form-control s_website_form_input"
+                                                       t-att-value="request_id.name"
+                                                       readonly="true"
+                                                       name="request_name"/>
+                                                <input type="hidden"
+                                                       id="request_id"
+                                                       class="form-control s_website_form_input"
+                                                       t-att-value="request_id.id"
+                                                       readonly="true"
+                                                       name="request_id"/>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="request_hour"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Requested
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <span id="maximum_difference_in_minutes"
+                                                  t-att-data-minuts="difference_in_minutes"/>
+                                            <div style="display: flex; gap: 10px; align-items: center;">
+                                                <input type="text"
+                                                       id="request_hour"
+                                                       class="form-control s_website_form_input"
+                                                       t-att-value="hours"
+                                                       required="true"
+                                                       name="request_hour"
+                                                       style="width: 5%;"/>
+                                                :
+                                                <input type="text"
+                                                       id="request_minutes"
+                                                       class="form-control s_website_form_input"
+                                                       t-att-value="minutes"
+                                                       required="true"
+                                                       name="request_minutes"
+                                                       style="width: 5%;"/>
+                                                 :
+                                                <input type="text"
+                                                       id="request_seconds"
+                                                       class="form-control s_website_form_input"
+                                                       t-att-value="seconds"
+                                                       required="true"
+                                                       name="request_seconds"
+                                                       style="width: 5%;"/>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                <!-- Contact No Field -->
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="row s_col_no_resize s_col_no_bgcolor">
+                                        <label for="contact"
+                                               class="col-form-label col-sm-auto s_website_form_label"
+                                               style="width: 200px">
+                                            <span class="s_website_form_label_content">
+                                                Reason
+                                            </span>
+                                        </label>
+                                        <div class="col-sm">
+                                            <textarea id="reason"
+                                                      class="form-control s_website_form_input"
+                                                      name="reason"
+                                                      required="true"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="mb-0 py-2 col-12 s_website_form_field s_website_form_custom s_website_form_required">
+                                    <div class="form-group col-12 s_website_form_submit"
+                                         data-name="Submit Button">
+                                        <div style="width: 200px;"
+                                             class="s_website_form_label"></div>
+                                        <button type="submit" id="upload"
+                                                class="btn btn-primary btn-block upload">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
 </odoo>

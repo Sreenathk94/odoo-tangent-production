@@ -27,6 +27,7 @@ class AccountAnalyticLine(models.Model):
         #     result['from_date'] = date.replace(hour=0, minute=0, second=0) - timedelta(hours=5.5)
         #     result['to_date'] = date.replace(hour=0, minute=0, second=0) - timedelta(hours=5.5)
         return result
+
     @api.model
     def _default_date(self):
         from_date = self.env.context.get('default_from_date')

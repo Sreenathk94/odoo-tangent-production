@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError
 
 class AttendanceClaimApproval(models.Model):
     _name = 'attendance.claim.approval'
+    _inherit = 'mail.thread'
     _description = 'Attendance Claim Approval'
     _order = 'name desc'
 
@@ -18,11 +19,13 @@ class AttendanceClaimApproval(models.Model):
     reason = fields.Text(required=True)
     note = fields.Text()
     claim_url = fields.Char('URL')
+    reclaim_url = fields.Char('Reclaim URL')
     state = fields.Selection([
         ('draft', 'Draft'),
         ('accepted', 'Accepted'),
         ('rejected', 'Rejected')
-    ], default='draft')
+    ], default='draft', tracking=True)
+    show_reclaim = fields.Boolean(default=False)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -35,6 +38,8 @@ class AttendanceClaimApproval(models.Model):
         for rec in res:
             rec.name = f'CLM00{rec.id}'
             rec.claim_url = f"{base_url}/web#id={rec.id}&cids={cid}&menu_id={menu_id}&action={action_id}&model=attendance.claim.approval&view_type=form"
+            rec.reclaim_url = f"{base_url}/attendance/reclaim/form?request_id={rec.id}"
+            print(rec.reclaim_url )
         return res
 
     def action_accept(self):
@@ -46,9 +51,16 @@ class AttendanceClaimApproval(models.Model):
 
         header_id.claimed_hours = self.approved_hour
         self.state = 'accepted'
+        template = self.env.ref(
+            'tg_attendance.email_template_employee_daily_attendance_status_alert')
+        template.send_mail(self.id, force_send=True)
 
     def action_reject(self):
         self.state = 'rejected'
+        self.show_reclaim = True
+        template = self.env.ref(
+            'tg_attendance.email_template_employee_daily_attendance_status_alert')
+        template.send_mail(self.id, force_send=True)
 
     @api.model
     def claim_approval_email(self):

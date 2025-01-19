@@ -117,7 +117,6 @@ class AttendanceClaim(Controller):
                                 attendance.worked_hours)) + ' - ' + str(
                             count) + ')', ' ', ' ', str(wk_hr - bk_hr), ' '
                     ])
-                    print(data_to_load_html_template)
                     return request.render(
                         "tg_attendance.attendance_claim_view", {
                             'datas': data_to_load_html_template,
@@ -137,10 +136,12 @@ class AttendanceClaim(Controller):
             time_difference = date_to - date_from
             index = kwargs.get('index')
             # Convert the time difference to minutes
-            difference_in_minutes = time_difference.total_seconds()//60
-            hours = int(difference_in_minutes // 60)
-            minutes = int(difference_in_minutes % 60)
-            total_hours = f"{hours:02}:{minutes:02}"
+            difference_in_seconds = time_difference.total_seconds()
+            # Extract hours, minutes, and seconds
+            hours = int(difference_in_seconds // 3600)
+            minutes = int((difference_in_seconds % 3600) // 60)
+            seconds = int(difference_in_seconds % 60)
+            total_hours = f"{hours:02}:{minutes:02}:{seconds:02}"
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(kwargs.get('employee_id')))
             return request.render(
@@ -149,12 +150,13 @@ class AttendanceClaim(Controller):
                     'date_to': date_to,
                     'hours': hours,
                     'minutes': minutes,
+                    'seconds': seconds,
                     'difference_in_minutes': total_hours,
                     'employee_id': employee_id.read(['id', 'name'])[0],
                     'index':index
                 })
 
-    @route('/submit/claim/attendance',  auth='user', website=True)
+    @route('/submit/claim/attendance', auth='user', website=True)
     def create_attendance_request(self, **post):
         if post.get('date_from') and post.get('date_to') and post.get('employee_id'):
             date_from = datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S') - timedelta(hours=5.5)
@@ -162,14 +164,15 @@ class AttendanceClaim(Controller):
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(post.get('employee_id')))
 
-            if request.env['attendance.claim.approval'].search([
+            approval_id = request.env['attendance.claim.approval'].search([
                 ('employee_id', '=', employee_id.id),
                 ('date_from', '=', date_from),
                 ('date_to', '=', date_to)
-            ]).exists():
+            ])
+            if approval_id:
                 return request.render(
                     "tg_attendance.attendance_claim_view_from_confirm_view",
-                    {'reference': False})
+                    {'reference': approval_id, 'show_reclaim': approval_id.show_reclaim, 'show_form': False})
             index = int(post.get('index'))
             hours = int(post.get('request_hour', 0))
             minutes = int(post.get('request_minutes', 0))
@@ -188,5 +191,49 @@ class AttendanceClaim(Controller):
                 'tg_attendance.email_template_employee_daily_attendance_claim_alert')
             template.send_mail(approval_id.id, force_send=True)
             return request.render(
-                "tg_attendance.attendance_claim_view_from_confirm_view", {'reference': approval_id.name})
+                "tg_attendance.attendance_claim_view_from_confirm_view", {'show_form': True, 'reference': approval_id, 'show_reclaim': approval_id.show_reclaim})
     
+
+    @route('/attendance/reclaim/form', auth='user', website=True)
+    def reclaim_attendance(self, **kwargs):
+        if kwargs.get('request_id'):
+            request_id = request.env['attendance.claim.approval'].search([('id', '=', int(kwargs.get('request_id')))])
+            if request_id:
+                float_hours = request_id.request_hour
+
+                # Extract hours, minutes, and seconds
+                hours = int(float_hours)  # Get the integer part for hours
+                remaining_minutes = (float_hours - hours) * 60  # Get the fractional part and convert to minutes
+                minutes = int(remaining_minutes)  # Get the integer part for minutes
+                seconds = int((remaining_minutes - minutes) * 60)  # Get the remaining fractional part and convert to seconds
+
+                return request.render('tg_attendance.attendance_reclaim_form', {
+                    'request_id': request_id,
+                    'hours': hours,
+                    'minutes': minutes,
+                    'seconds': seconds
+                })
+        return request.render('tg_attendance.attendance_reclaim_not_found')
+
+    @route('/attendance/reclaim/form/submit', auth='user', website=True)
+    def reclaim_attendance_submit(self, **post):
+        if post.get('request_id') and post.get('reason'):
+            request_id = request.env['attendance.claim.approval'].search(
+                [('id', '=', int(post.get('request_id')))])
+            if request_id:
+                hours = int(post.get('request_hour', 0))
+                minutes = int(post.get('request_minutes', 0))
+                time_float = hours + (minutes / 60)
+                request_id.write({
+                    'request_hour': time_float,
+                    'approved_hour': time_float,
+                    'reason': post.get('reason'),
+                    'state': 'draft',
+                    'show_reclaim': False
+                })
+                return request.render(
+                    "tg_attendance.attendance_claim_view_from_confirm_view",
+                    {'reference': request_id,
+                     'show_reclaim': request_id.show_reclaim,
+                     'show_form': False})
+        return request.render('tg_attendance.attendance_reclaim_not_found')
