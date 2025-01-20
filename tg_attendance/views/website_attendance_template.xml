@@ -188,7 +188,7 @@
                                                        t-att-value="hours"
                                                        required="true"
                                                        name="request_hour"
-                                                       style="width: 5%;"/>
+                                                       style="width: 5%;min-width: 50px;"/>
                                                 :
                                                 <input type="text"
                                                        id="request_minutes"
@@ -196,7 +196,7 @@
                                                        t-att-value="minutes"
                                                        required="true"
                                                        name="request_minutes"
-                                                       style="width: 5%;"/>
+                                                       style="width: 5%;min-width: 50px;"/>
                                                  :
                                                 <input type="text"
                                                        id="request_seconds"
@@ -204,7 +204,7 @@
                                                        t-att-value="seconds"
                                                        required="true"
                                                        name="request_seconds"
-                                                       style="width: 5%;"/>
+                                                       style="width: 5%;min-width: 50px;"/>
                                             </div>
 
                                         </div>
