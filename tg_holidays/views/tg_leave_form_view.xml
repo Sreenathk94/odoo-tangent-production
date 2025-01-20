@@ -294,9 +294,9 @@
             </field>
         </record>
 
-        <menuitem id="menu_open_department_leave_approve_state" name="Approve Leave" sequence="2"
-                  parent="hr_holidays.hr_holidays_menu_manager_approve_allocations"
-                  action="hr_leave_action_action_approve_department_approve"/>
+<!--        <menuitem id="menu_open_department_leave_approve_state" name="Approve Leave" sequence="2"-->
+<!--                  parent="hr_holidays.hr_holidays_menu_manager_approve_allocations"-->
+<!--                  action="hr_leave_action_action_approve_department_approve"/>-->
 
         <!-- Absent alert scheduler -->
         <record id="tg_absent_alert_scheduler" model="ir.cron">
