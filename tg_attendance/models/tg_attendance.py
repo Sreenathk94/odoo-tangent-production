@@ -3,11 +3,12 @@ from odoo.tools import format_datetime
 from datetime import datetime, time, timedelta
 from pytz import timezone
 from odoo.addons.resource.models.utils import make_aware, Intervals
-from pytz import UTC
+from pytz import timezone, UTC 
 from dateutil.rrule import rrule, DAILY
 from dateutil.relativedelta import relativedelta
 import calendar
 from odoo.tools import date_utils
+dubai_tz = timezone('Asia/Dubai')
 
 
 class LocationMaster(models.Model):
@@ -166,8 +167,11 @@ class TgAttendance(models.Model):
             minutes = int((start_time - hours) * 100)
 
             # Convert start time to Asia/Dubai timezone
-            start_time_date = datetime(sterday.year, sterday.month, sterday.day, hours, minutes,
-                                       tzinfo=pytz.UTC).astimezone(dubai_tz)
+            start_time_date = datetime(
+                sterday.year, sterday.month, sterday.day, hours, minutes,
+                tzinfo=UTC
+            ).astimezone(dubai_tz)
+
             attendance_checkin = attendance.check_in.astimezone(dubai_tz)
 
             if attendance_checkin > start_time_date:
