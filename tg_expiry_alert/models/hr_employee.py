@@ -62,10 +62,10 @@ class HrEmployee(models.Model):
                                                    force_send=True)
 
             # Passport expiry notification
-            if rec.passport_expire_date:
-                passport_reminder_date = rec.passport_expire_date - timedelta(
+            if rec.passport_expire:
+                passport_reminder = rec.passport_expire - timedelta(
                     days=expiry_date_reminder)
-                if passport_reminder_date == today:
+                if passport_reminder == today:
                     passport_expiry_employees.append(rec.name)
                     passport_template = self.env.ref(
                         "tg_expiry_alert.passport_expiry_template")
