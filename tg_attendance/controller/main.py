@@ -1,6 +1,7 @@
 from odoo.http import Controller, route, request
 from datetime import datetime, timedelta, time
 from odoo import fields
+from pytz import timezone, utc
 
 
 class AttendanceClaim(Controller):
@@ -128,33 +129,50 @@ class AttendanceClaim(Controller):
                         })
         return request.redirect('/web')
 
-    @route('/attendance/claim/form',  auth='user', website=True)
-    def attendance_claim_from(self, **kwargs):
-        if kwargs.get('from') and kwargs.get('to') and kwargs.get('employee_id'):
-            date_from = datetime.strptime(kwargs.get('from'), '%d-%m-%Y %H:%M:%S')
-            date_to = datetime.strptime(kwargs.get('to'), '%d-%m-%Y %H:%M:%S')
-            time_difference = date_to - date_from
-            index = kwargs.get('index')
-            # Convert the time difference to minutes
-            difference_in_seconds = time_difference.total_seconds()
-            # Extract hours, minutes, and seconds
-            hours = int(difference_in_seconds // 3600)
-            minutes = int((difference_in_seconds % 3600) // 60)
-            seconds = int(difference_in_seconds % 60)
-            total_hours = f"{hours:02}:{minutes:02}:{seconds:02}"
+    @route('/submit/claim/attendance', auth='user', website=True)
+    def create_attendance_request(self, **post):
+        if post.get('date_from') and post.get('date_to') and post.get('employee_id'):
+            # Define Dubai timezone
+            dubai_tz = timezone('Asia/Dubai')
+
+            # Parse the input datetime and convert to UTC
+            date_from = dubai_tz.localize(
+                datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S')).astimezone(utc)
+            date_to = dubai_tz.localize(
+                datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S')).astimezone(utc)
+
             employee_id = request.env['hr.employee'].sudo().browse(
-                int(kwargs.get('employee_id')))
+                int(post.get('employee_id')))
+
+            approval_id = request.env['attendance.claim.approval'].search([
+                ('employee_id', '=', employee_id.id),
+                ('date_from', '=', date_from),
+                ('date_to', '=', date_to)
+            ])
+            if approval_id:
+                return request.render(
+                    "tg_attendance.attendance_claim_view_from_confirm_view",
+                    {'reference': approval_id, 'show_reclaim': approval_id.show_reclaim, 'show_form': False})
+            index = int(post.get('index'))
+            hours = int(post.get('request_hour', 0))
+            minutes = int(post.get('request_minutes', 0))
+            time_float = hours + (minutes / 60)
+            approval_id = request.env['attendance.claim.approval'].create({
+                'employee_id': employee_id.id,
+                'manager_id': employee_id.parent_id.id,
+                'date_from': date_from,
+                'date_to': date_to,
+                'index': index,
+                'request_hour': time_float,
+                'approved_hour': time_float,
+                'reason': post.get('reason')
+            })
+            template = request.env.ref(
+                'tg_attendance.email_template_employee_daily_attendance_claim_alert')
+            template.send_mail(approval_id.id, force_send=True)
             return request.render(
-                "tg_attendance.attendance_claim_view_from", {
-                    'date_from': date_from,
-                    'date_to': date_to,
-                    'hours': hours,
-                    'minutes': minutes,
-                    'seconds': seconds,
-                    'difference_in_minutes': total_hours,
-                    'employee_id': employee_id.read(['id', 'name'])[0],
-                    'index':index
-                })
+                "tg_attendance.attendance_claim_view_from_confirm_view",
+                {'show_form': True, 'reference': approval_id, 'show_reclaim': approval_id.show_reclaim})
 
     @route('/submit/claim/attendance', auth='user', website=True)
     def create_attendance_request(self, **post):
