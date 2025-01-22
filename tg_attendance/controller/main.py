@@ -4,7 +4,7 @@ from odoo import fields
 
 
 class AttendanceClaim(Controller):
-    def float_to_time(self,float_value):
+    def float_to_time(self, float_value):
         hours = int(float_value)
         minutes = int(round((float_value - hours) * 60))
         return f"{hours:02d}:{minutes:02d}"
@@ -15,7 +15,7 @@ class AttendanceClaim(Controller):
             data_to_load_html_template = []
             employee_id = request.env['hr.employee'].sudo().browse(int(kwargs.get('employee_id')))
             if 1 == 1:
-            # if employee_id.user_id.id == request.env.user.id:
+                # if employee_id.user_id.id == request.env.user.id:
                 sterday = datetime.strptime(kwargs.get('date'), '%d-%b-%Y')
                 for attendance in request.env['hr.attendance'].search([
                     ('fetch_date', '=', sterday),
@@ -28,9 +28,9 @@ class AttendanceClaim(Controller):
                     k = len(attendance.line_ids)
                     data_to_load_html_template.append([
                         'First Check-in & Last Check-out',
-                        (attendance.check_in ).strftime(
+                        (attendance.check_in).strftime(
                             "%d-%m-%Y %H:%M:%S"),
-                        (attendance.check_out ).strftime(
+                        (attendance.check_out).strftime(
                             "%d-%m-%Y %H:%M:%S"),
                         self.float_to_time(attendance.worked_hours),
                         ' ',
@@ -38,10 +38,10 @@ class AttendanceClaim(Controller):
                     if attendance.employee_id.location_id.detect_lunch == True:
                         if any(x.check_out.time() > time(13,
                                                          0) and x.check_out.time() < time(
-                                14, 0) for x in attendance.line_ids) and any(
-                                x.check_in.time() > time(13,
-                                                         0) and x.check_in.time() < time(
-                                        14, 0) for x in attendance.line_ids):
+                            14, 0) for x in attendance.line_ids) and any(
+                            x.check_in.time() > time(13,
+                                                     0) and x.check_in.time() < time(
+                                14, 0) for x in attendance.line_ids):
                             pass
                         else:
                             data_to_load_html_template.append([
@@ -50,11 +50,11 @@ class AttendanceClaim(Controller):
                             ])
                     row_3 = ['Total time excluding break', ' ', ' ']
                     if attendance.employee_id.location_id.detect_lunch == True:
-                        if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(
+                        if any(x.check_out.time() > time(13, 0) and x.check_out.time() < time(
                                 14, 0) for x in attendance.line_ids) and any(
-                                x.check_in.time() > time(13,
-                                                         0) and x.check_in.time() < time(
-                                        14, 0) for x in attendance.line_ids):
+                            x.check_in.time() > time(13,
+                                                     0) and x.check_in.time() < time(
+                                14, 0) for x in attendance.line_ids):
                             row_3.append(
                                 self.float_to_time((attendance.worked_hours)))
                         else:
@@ -88,8 +88,8 @@ class AttendanceClaim(Controller):
                         if k != j:
                             row = [' ', ' ', ' ', ' ', ' ', 'claim']
                             row[0] = 'Break ' + str(j)
-                            row[1] = (line.check_out ).strftime("%d-%m-%Y %H:%M:%S")
-                            check_out = line.check_out
+                            row[1] = (line.check_out).strftime("%d-%m-%Y %H:%M:%S")
+                            check_out = line.check_out 
                         i += 1
                         j += 1
                     data_to_load_html_template.append([
@@ -99,10 +99,10 @@ class AttendanceClaim(Controller):
                     if attendance.employee_id.location_id.detect_lunch == True:
                         if any(x.check_out.time() > time(13,
                                                          0) and x.check_out.time() < time(
-                                14, 0) for x in attendance.line_ids) and any(
-                                x.check_in.time() > time(13,
-                                                         0) and x.check_in.time() < time(
-                                        14, 0) for x in attendance.line_ids):
+                            14, 0) for x in attendance.line_ids) and any(
+                            x.check_in.time() > time(13,
+                                                     0) and x.check_in.time() < time(
+                                14, 0) for x in attendance.line_ids):
                             bk_hr = count
                         else:
                             bk_hr = count + timedelta(hours=1)
@@ -117,7 +117,7 @@ class AttendanceClaim(Controller):
                     return request.render(
                         "tg_attendance.attendance_claim_view", {
                             'datas': data_to_load_html_template,
-                            'attend_work_hrs':request.env.company.attend_work_hrs,
+                            'attend_work_hrs': request.env.company.attend_work_hrs,
                             'sterday': sterday,
                             'name': employee_id.name,
                             'id': employee_id.id,
@@ -125,6 +125,33 @@ class AttendanceClaim(Controller):
                         })
         return request.redirect('/web')
 
+    @route('/attendance/claim/form', auth='user', website=True)
+    def attendance_claim_from(self, **kwargs):
+        if kwargs.get('from') and kwargs.get('to') and kwargs.get('employee_id'):
+            date_from = datetime.strptime(kwargs.get('from'), '%d-%m-%Y %H:%M:%S')
+            date_to = datetime.strptime(kwargs.get('to'), '%d-%m-%Y %H:%M:%S')
+            time_difference = date_to - date_from
+            index = kwargs.get('index')
+            # Convert the time difference to minutes
+            difference_in_seconds = time_difference.total_seconds()
+            # Extract hours, minutes, and seconds
+            hours = int(difference_in_seconds // 3600)
+            minutes = int((difference_in_seconds % 3600) // 60)
+            seconds = int(difference_in_seconds % 60)
+            total_hours = f"{hours:02}:{minutes:02}:{seconds:02}"
+            employee_id = request.env['hr.employee'].sudo().browse(
+                int(kwargs.get('employee_id')))
+            return request.render(
+                "tg_attendance.attendance_claim_view_from", {
+                    'date_from': date_from,
+                    'date_to': date_to,
+                    'hours': hours,
+                    'minutes': minutes,
+                    'seconds': seconds,
+                    'difference_in_minutes': total_hours,
+                    'employee_id': employee_id.read(['id', 'name'])[0],
+                    'index': index
+                })
 
     @route('/submit/claim/attendance', auth='user', website=True)
     def create_attendance_request(self, **post):
@@ -161,8 +188,8 @@ class AttendanceClaim(Controller):
                 'tg_attendance.email_template_employee_daily_attendance_claim_alert')
             template.send_mail(approval_id.id, force_send=True)
             return request.render(
-                "tg_attendance.attendance_claim_view_from_confirm_view", {'show_form': True, 'reference': approval_id, 'show_reclaim': approval_id.show_reclaim})
-    
+                "tg_attendance.attendance_claim_view_from_confirm_view",
+                {'show_form': True, 'reference': approval_id, 'show_reclaim': approval_id.show_reclaim})
 
     @route('/attendance/reclaim/form', auth='user', website=True)
     def reclaim_attendance(self, **kwargs):
@@ -175,7 +202,8 @@ class AttendanceClaim(Controller):
                 hours = int(float_hours)  # Get the integer part for hours
                 remaining_minutes = (float_hours - hours) * 60  # Get the fractional part and convert to minutes
                 minutes = int(remaining_minutes)  # Get the integer part for minutes
-                seconds = int((remaining_minutes - minutes) * 60)  # Get the remaining fractional part and convert to seconds
+                seconds = int(
+                    (remaining_minutes - minutes) * 60)  # Get the remaining fractional part and convert to seconds
 
                 return request.render('tg_attendance.attendance_reclaim_form', {
                     'request_id': request_id,
