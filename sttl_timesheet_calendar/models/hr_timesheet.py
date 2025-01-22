@@ -175,6 +175,7 @@ class AccountAnalyticLine(models.Model):
                     'float_time':self.float_to_time(timesheet_id.unit_amount),
                 }
                 timesheet_id.project_id.is_project_start_mail_sent = True
-                template = self.env['ir.model.data'].get_object('sttl_timesheet_calendar', 'email_template_project_start_alerts')
+                template = self.env.ref('sttl_timesheet_calendar.email_template_project_start_alerts')
+                template.with_context(context).send_mail(timesheet_id.id, force_send=True)
                 self.env['mail.template'].browse(template.id).with_context(context).send_mail(timesheet_id.id,force_send=True)
 

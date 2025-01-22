@@ -71,8 +71,8 @@ class TgLeave(models.Model):
                         'subject': "System Notification: Request to apply Leave on %s" % (
                             leave.from_date.strftime("%d/%m/%Y")),
                     }
-                    template = self.env['ir.model.data'].get_object('tg_holidays', 'email_template_absent_alert')
-                    self.env['mail.template'].browse(template.id).with_context(context).send_mail(leave.id,force_send=True)
+                    template = self.env.ref('tg_holidays.email_template_absent_alert')
+                    template.with_context(context).send_mail(leave.id, force_send=True)
 
     def set_draft(self):
         self.write({'state': 'draft'})
@@ -232,8 +232,8 @@ class HrLeave(models.Model):
                 'email_from': rec.env.company.erp_email,
                 'subject': "System Notification: Request to approve Leave",
             }
-            template = self.env['ir.model.data'].get_object('tg_holidays', 'email_template_approve_alert')
-            self.env['mail.template'].browse(template.id).with_context(context).send_mail(rec.id, force_send=True)
+            template = self.env.ref('tg_holidays.email_template_approve_alert')
+            template.with_context(context).send_mail(rec.id, force_send=True)
         return rec
 
     def write(self, vals):
@@ -250,8 +250,8 @@ class HrLeave(models.Model):
                 'email_from': self.env.company.erp_email,
                 'subject': "System Notification: Request to approve Leave",
             }
-            template = self.env['ir.model.data'].get_object('tg_holidays', 'email_template_approve_alert')
-            self.env['mail.template'].browse(template.id).with_context(context).send_mail(self.id, force_send=True)
+            template = self.env.ref('tg_holidays.email_template_approve_alert')
+            template.with_context(context).send_mail(self.id, force_send=True)
         return res
 
     def remainder_notification(self):
@@ -261,8 +261,8 @@ class HrLeave(models.Model):
                 'email_from': self.env.company.erp_email,
                 'subject': "System Notification: Request to approve Leave",
             }
-            template = self.env['ir.model.data'].get_object('tg_holidays', 'email_template_approve_alert')
-            self.env['mail.template'].browse(template.id).with_context(context).send_mail(self.id, force_send=True)
+            template = self.env.ref('tg_holidays.email_template_approve_alert')
+            template.with_context(context).send_mail(self.id, force_send=True)
 
     def view_calendar(self):
         return {
