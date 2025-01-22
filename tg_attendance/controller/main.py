@@ -1,7 +1,6 @@
 from odoo.http import Controller, route, request
 from datetime import datetime, timedelta, time
 from odoo import fields
-from pytz import timezone, utc
 
 
 class AttendanceClaim(Controller):
@@ -29,9 +28,9 @@ class AttendanceClaim(Controller):
                     k = len(attendance.line_ids)
                     data_to_load_html_template.append([
                         'First Check-in & Last Check-out',
-                        (attendance.check_in + timedelta(hours=5.5)).strftime(
+                        (attendance.check_in ).strftime(
                             "%d-%m-%Y %H:%M:%S"),
-                        (attendance.check_out + timedelta(hours=5.5)).strftime(
+                        (attendance.check_out ).strftime(
                             "%d-%m-%Y %H:%M:%S"),
                         self.float_to_time(attendance.worked_hours),
                         ' ',
@@ -75,10 +74,8 @@ class AttendanceClaim(Controller):
                     row = [' ', ' ', ' ', ' ', ' ']
                     for line in attendance.line_ids:
                         if j != 1:
-                            row[2] = (line.check_in + timedelta(
-                                hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
-                            dif = (line.check_in + timedelta(
-                                hours=5.5)) - check_out
+                            row[2] = (line.check_in ).strftime("%d-%m-%Y %H:%M:%S")
+                            dif = (line.check_in ) - check_out
                             hours = int(dif.seconds / 3600)
                             minutes = (dif.seconds % 3600) / 60
                             if hours == 0 and minutes <= 15:
@@ -91,9 +88,8 @@ class AttendanceClaim(Controller):
                         if k != j:
                             row = [' ', ' ', ' ', ' ', ' ', 'claim']
                             row[0] = 'Break ' + str(j)
-                            row[1] = (line.check_out + timedelta(
-                                hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
-                            check_out = line.check_out + timedelta(hours=5.5)
+                            row[1] = (line.check_out ).strftime("%d-%m-%Y %H:%M:%S")
+                            check_out = line.check_out
                         i += 1
                         j += 1
                     data_to_load_html_template.append([
@@ -129,56 +125,12 @@ class AttendanceClaim(Controller):
                         })
         return request.redirect('/web')
 
-    @route('/submit/claim/attendance', auth='user', website=True)
-    def create_attendance_request(self, **post):
-        if post.get('date_from') and post.get('date_to') and post.get('employee_id'):
-            # Define Dubai timezone
-            dubai_tz = timezone('Asia/Dubai')
-
-            # Parse the input datetime and convert to UTC
-            date_from = dubai_tz.localize(
-                datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S')).astimezone(utc)
-            date_to = dubai_tz.localize(
-                datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S')).astimezone(utc)
-
-            employee_id = request.env['hr.employee'].sudo().browse(
-                int(post.get('employee_id')))
-
-            approval_id = request.env['attendance.claim.approval'].search([
-                ('employee_id', '=', employee_id.id),
-                ('date_from', '=', date_from),
-                ('date_to', '=', date_to)
-            ])
-            if approval_id:
-                return request.render(
-                    "tg_attendance.attendance_claim_view_from_confirm_view",
-                    {'reference': approval_id, 'show_reclaim': approval_id.show_reclaim, 'show_form': False})
-            index = int(post.get('index'))
-            hours = int(post.get('request_hour', 0))
-            minutes = int(post.get('request_minutes', 0))
-            time_float = hours + (minutes / 60)
-            approval_id = request.env['attendance.claim.approval'].create({
-                'employee_id': employee_id.id,
-                'manager_id': employee_id.parent_id.id,
-                'date_from': date_from,
-                'date_to': date_to,
-                'index': index,
-                'request_hour': time_float,
-                'approved_hour': time_float,
-                'reason': post.get('reason')
-            })
-            template = request.env.ref(
-                'tg_attendance.email_template_employee_daily_attendance_claim_alert')
-            template.send_mail(approval_id.id, force_send=True)
-            return request.render(
-                "tg_attendance.attendance_claim_view_from_confirm_view",
-                {'show_form': True, 'reference': approval_id, 'show_reclaim': approval_id.show_reclaim})
 
     @route('/submit/claim/attendance', auth='user', website=True)
     def create_attendance_request(self, **post):
         if post.get('date_from') and post.get('date_to') and post.get('employee_id'):
-            date_from = datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S') - timedelta(hours=5.5)
-            date_to = datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S') - timedelta(hours=5.5)
+            date_from = datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S')
+            date_to = datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S')
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(post.get('employee_id')))
 
