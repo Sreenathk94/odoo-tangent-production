@@ -89,7 +89,7 @@ class AttendanceClaim(Controller):
                             row = [' ', ' ', ' ', ' ', ' ', 'claim']
                             row[0] = 'Break ' + str(j)
                             row[1] = (line.check_out).strftime("%d-%m-%Y %H:%M:%S")
-                            check_out = line.check_out 
+                            check_out = line.check_out
                         i += 1
                         j += 1
                     data_to_load_html_template.append([
@@ -156,8 +156,14 @@ class AttendanceClaim(Controller):
     @route('/submit/claim/attendance', auth='user', website=True)
     def create_attendance_request(self, **post):
         if post.get('date_from') and post.get('date_to') and post.get('employee_id'):
+            # Parse the input dates
             date_from = datetime.strptime(post.get('date_from'), '%Y-%m-%d %H:%M:%S')
             date_to = datetime.strptime(post.get('date_to'), '%Y-%m-%d %H:%M:%S')
+
+            # Deduct 4 hours
+            date_from = date_from - timedelta(hours=4)
+            date_to = date_to - timedelta(hours=4)
+
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(post.get('employee_id')))
 
