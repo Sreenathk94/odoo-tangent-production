@@ -11,6 +11,7 @@
                 ],
     'data': [
         'security/ir.model.access.csv',
+        'data/ir_rules.xml',
         'views/tg_employee_views.xml',
         'views/tg_leave_form_view.xml',
         'views/tg_leave_report.xml',
