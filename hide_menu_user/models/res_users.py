@@ -35,6 +35,8 @@ class ResUsers(models.Model):
            """
         res = super(ResUsers, self).write(vals)
         for record in self:
+            if not record.hide_menu_ids:
+                record.hide_menu_ids = self.env.ref('base.default_user').hide_menu_ids
             for menu in record.hide_menu_ids:
                 menu.sudo().write({
                     'restrict_user_ids': [fields.Command.link(record.id)]
