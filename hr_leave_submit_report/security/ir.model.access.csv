@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_tg_leave_register,tg.leave.register,model_tg_leave_register,base.group_erp_manager,1,1,1,1
 hr_leave_refuse_wizard,hr.leave.refuse.wizard,model_hr_leave_refuse_wizard,base.group_erp_manager,1,1,1,1
+hr_leave_refuse_wizard_team_lead,hr.leave.refuse.wizard,model_hr_leave_refuse_wizard,hr_holidays.group_hr_holidays_responsible,1,1,1,1
