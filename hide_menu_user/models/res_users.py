@@ -35,7 +35,7 @@ class ResUsers(models.Model):
            """
         res = super(ResUsers, self).write(vals)
         for record in self:
-            if not record.hide_menu_ids:
+            if not record.sudo().hide_menu_ids and self.env.user.has_group("base.group_erp_manager"):
                 record.hide_menu_ids = self.env.ref('base.default_user').hide_menu_ids
             for menu in record.hide_menu_ids:
                 menu.sudo().write({
