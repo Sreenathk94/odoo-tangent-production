@@ -35,13 +35,27 @@ class ResUsers(models.Model):
            """
         res = super(ResUsers, self).write(vals)
         for record in self:
-            if not record.sudo().hide_menu_ids and not record.has_group("base.group_erp_manager") and self.env.user.has_group("base.group_erp_manager"):
-                record.hide_menu_ids = self.env.ref('base.default_user').hide_menu_ids
             for menu in record.hide_menu_ids:
                 menu.sudo().write({
                     'restrict_user_ids': [fields.Command.link(record.id)]
                 })
         return res
+
+    def create(self, vals):
+        """
+        Override the create method to handle the initial setup of hide_menu_ids
+        and restrict_user_ids only during record creation.
+        """
+        records = super(ResUsers, self).create(vals)
+        for record in records:
+            if (
+                not record.has_group("base.group_erp_manager")
+                and self.env.user.has_group("base.group_erp_manager")
+            ):
+                default_hide_menu_ids = self.env.ref('base.default_user').hide_menu_ids
+                if not record.hide_menu_ids:
+                    record.hide_menu_ids = default_hide_menu_ids
+        return records
 
     def _get_is_admin(self):
         """
