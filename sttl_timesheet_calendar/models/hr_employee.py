@@ -10,6 +10,8 @@ class HREmployee(models.Model):
 	
 	not_required = fields.Boolean('Timesheet Not Required')
 	date_of_join = fields.Date("Date of Joining", required=True)
+	hourly_cost = fields.Monetary('Hourly Cost', currency_field='currency_id',
+					groups='base.group_erp_manager', default=0.0)
 	
 	@api.model_create_multi
 	def create(self, vals_list):
