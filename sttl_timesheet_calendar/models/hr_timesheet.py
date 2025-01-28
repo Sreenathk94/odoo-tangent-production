@@ -44,7 +44,7 @@ class AccountAnalyticLine(models.Model):
     allowed_stage_ids = fields.Many2many(
         related='project_id.allowed_stage_ids')
     status_id = fields.Many2one(
-        "hr.timesheet.status",'Status',order='sequence asc',
+        "hr.timesheet.status",'Stage',order='sequence asc',
         domain="[('id', 'in', allowed_stage_ids)]", required=True
     )
     project_task_id = fields.Many2one(
