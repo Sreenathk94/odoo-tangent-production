@@ -73,6 +73,7 @@
 					<group> 
 						<group>
 							<field name="employee_id" readonly="1"/>
+							<field name="submit_line_ids" invisible="1"/>
 							<field name="submit_id" options="{'no_create': True}" required="1"/>
 							<field name="total_hrs" widget="float_time" readonly="1"/>
 						</group>
