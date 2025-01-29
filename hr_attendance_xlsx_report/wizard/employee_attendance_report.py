@@ -24,7 +24,7 @@ import json
 from datetime import datetime, date
 from dateutil.rrule import rrule, DAILY
 
-from odoo import fields, models, _
+from odoo import fields, models, _ , api
 from odoo.exceptions import ValidationError
 from odoo.tools import date_utils
 
