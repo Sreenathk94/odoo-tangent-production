@@ -160,22 +160,3 @@ class AccountAnalyticLine(models.Model):
         hours = int(float_value)
         minutes = int((float_value - hours) * 60)
         return f"{hours:02d}:{minutes:02d}"
-
-    def _entry_send_project_start_alert(self):
-        timesheet_ids = self.env['account.analytic.line'].search([('project_id','!=',False),('project_id.timesheet_count','>=',1),
-            ('project_id.is_project_start_mail_sent','=',False)])
-        if timesheet_ids:
-            for timesheet_id in timesheet_ids:
-                context = {
-                    'email_to':timesheet_id.project_id.user_id.email,
-                    'email_cc':'',
-                    'email_from':self.env.company.erp_email,
-                    'start_time':str(self.float_to_time(timesheet_id.start_time)+' '+timesheet_id.start_meridiem),
-                    'end_time':str(self.float_to_time(timesheet_id.end_time)+' '+timesheet_id.end_meridiem),
-                    'float_time':self.float_to_time(timesheet_id.unit_amount),
-                }
-                timesheet_id.project_id.is_project_start_mail_sent = True
-                template = self.env.ref('sttl_timesheet_calendar.email_template_project_start_alerts')
-                template.with_context(context).send_mail(timesheet_id.id, force_send=True)
-                self.env['mail.template'].browse(template.id).with_context(context).send_mail(timesheet_id.id,force_send=True)
-
