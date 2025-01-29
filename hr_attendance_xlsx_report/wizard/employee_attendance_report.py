@@ -43,6 +43,13 @@ class EmployeeAttendanceReport(models.TransientModel):
     to_date = fields.Date('To Date', help="Ending date for report")
     employee_ids = fields.Many2many('hr.employee', string='Employee',
                                     help='Name of Employee')
+    department_ids = fields.Many2one('hr.department',string="Department")
+
+
+    @api.onchange('department_ids')
+    def _compute_employees(self):
+        self.department_ids = self.env['hr.employee'].search([('department_id', 'in', self.department_ids.ids)]).ids
+
 
     def action_print_xlsx(self):
         """
