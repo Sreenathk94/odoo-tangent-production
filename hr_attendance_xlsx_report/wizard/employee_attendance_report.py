@@ -48,10 +48,12 @@ class EmployeeAttendanceReport(models.TransientModel):
 
     @api.onchange('department_ids')
     def _compute_employees(self):
-        self.department_ids = self.env['hr.employee'].search([('department_id', 'in', self.department_ids.ids)]).ids
+        records = self.env['hr.employee'].search([('department_id', 'in', self.department_ids.ids)])
+        self.employee_ids = records.ids if records else False
 
 
-    def action_print_xlsx(self):
+
+    def action_print_xlsx(self)
         """
         Returns report action for the XLSX Attendance report
         Raises: ValidationError: if From Date > To Date
