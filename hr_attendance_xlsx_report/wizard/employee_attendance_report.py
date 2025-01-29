@@ -52,8 +52,7 @@ class EmployeeAttendanceReport(models.TransientModel):
         self.employee_ids = records.ids if records else False
 
 
-
-    def action_print_xlsx(self)
+    def action_print_xlsx(self):
         """
         Returns report action for the XLSX Attendance report
         Raises: ValidationError: if From Date > To Date
