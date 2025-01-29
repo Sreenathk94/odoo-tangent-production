@@ -43,7 +43,7 @@ class EmployeeAttendanceReport(models.TransientModel):
     to_date = fields.Date('To Date', help="Ending date for report")
     employee_ids = fields.Many2many('hr.employee', string='Employee',
                                     help='Name of Employee')
-    department_ids = fields.Many2one('hr.department',string="Department")
+    department_ids = fields.Many2many('hr.department',string="Department")
 
 
     @api.onchange('department_ids')
