@@ -46,10 +46,10 @@ class EmployeeAttendanceReport(models.TransientModel):
     department_ids = fields.Many2one('hr.department',string="Department")
 
 
-    @api.onchange('department_ids')
-    def _compute_employees(self):
-        records = self.env['hr.employee'].search([('department_id', 'in', self.department_ids.ids)])
-        self.employee_ids = records.ids if records else False
+    # @api.onchange('department_ids')
+    # def _compute_employees(self):
+    #     records = self.env['hr.employee'].search([('department_id', 'in', self.department_ids.ids)])
+    #     self.employee_ids = records.ids if records else False
 
 
     def action_print_xlsx(self):
