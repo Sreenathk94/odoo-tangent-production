@@ -11,7 +11,10 @@ class HrEmployee(models.Model):
     @api.model
     def send_birthday_notification(self):
         today = fields.Date.context_today(self)
-        for employee in self.env['hr.employee'].search([('birthday', '!=', False), ('work_email', '!=', False)]):
-            if employee.company_id.send_employee_birthday_notification and today == employee.birthday:
-                template_id = self.env.ref('birthday_notification_knk.employee_birthday_notification_template')
-                template_id.send_mail(employee.id, force_send=True)
+        today_month_day = (today.month, today.day)
+        for employee in self.env['hr.employee'].search([('birthday', '!=', False),('work_email', '!=', False)]):
+            if employee.birthday:
+                employee_month_day = (employee.birthday.month, employee.birthday.day)
+                if employee.company_id.send_employee_birthday_notification and today_month_day == employee_month_day:
+                    template_id = self.env.ref('birthday_notification_knk.employee_birthday_notification_template')
+                    template_id.send_mail(employee.id, force_send=True)
