@@ -11,6 +11,7 @@ class AttendanceClaim(Controller):
 
     @route('/attendance', auth='user', website=True)
     def attendance(self, **kwargs):
+        pass
         # if kwargs.get('employee_id') and kwargs.get('date'):
         #     data_to_load_html_template = []
         #     employee_id = request.env['hr.employee'].sudo().browse(int(kwargs.get('employee_id')))
