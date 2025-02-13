@@ -11,128 +11,128 @@ class AttendanceClaim(Controller):
 
     @route('/attendance', auth='user', website=True)
     def attendance(self, **kwargs):
-        if kwargs.get('employee_id') and kwargs.get('date'):
-            data_to_load_html_template = []
-            employee_id = request.env['hr.employee'].sudo().browse(int(kwargs.get('employee_id')))
-            if 1 == 1:
-            # if employee_id.user_id.id == request.env.user.id:
-                sterday = datetime.strptime(kwargs.get('date'), '%d-%b-%Y')
-                for attendance in request.env['hr.attendance'].search([
-                    ('fetch_date', '=', sterday),
-                    ('employee_id', '=', employee_id.id)
-                ]).filtered(
-                    lambda a: a.actual_hours < request.env.company.attend_work_hrs)[
-                    0]:
-                    i = 4
-                    j = 1
-                    k = len(attendance.line_ids)
-                    data_to_load_html_template.append([
-                        'First Check-in & Last Check-out',
-                        (attendance.check_in + timedelta(hours=5.5)).strftime(
-                        (attendance.check_in ).strftime(
-                            "%d-%m-%Y %H:%M:%S"),
-                        (attendance.check_out + timedelta(hours=5.5)).strftime(
-                        (attendance.check_out ).strftime(
-                            "%d-%m-%Y %H:%M:%S"),
-                        self.float_to_time(attendance.worked_hours),
-                        ' ',
-                    ])
-                    if attendance.employee_id.location_id.detect_lunch == True:
-                        if any(x.check_out.time() > time(13,
-                                                         0) and x.check_out.time() < time(
-                                14, 0) for x in attendance.line_ids) and any(
-                                x.check_in.time() > time(13,
-                                                         0) and x.check_in.time() < time(
-                                        14, 0) for x in attendance.line_ids):
-                            pass
-                        else:
-                            data_to_load_html_template.append([
-                                'Less 1 hour for the lunch break', ' ', ' ',
-                                self.float_to_time(-1)
-                            ])
-                    row_3 = ['Total time excluding break', ' ', ' ']
-                    if attendance.employee_id.location_id.detect_lunch == True:
-                        if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(
-                                14, 0) for x in attendance.line_ids) and any(
-                                x.check_in.time() > time(13,
-                                                         0) and x.check_in.time() < time(
-                                        14, 0) for x in attendance.line_ids):
-                            row_3.append(
-                                self.float_to_time((attendance.worked_hours)))
-                        else:
-                            row_3.append(self.float_to_time(
-                                (attendance.worked_hours - 1)))
-                    else:
-                        row_3.append(
-                            self.float_to_time((attendance.worked_hours)))
-                    row_3.append(' ')
-                    data_to_load_html_template.append(row_3)
-                    data_to_load_html_template.append([
-                        'Breaks', ' ', ' ', 'Counted', 'Non-Counted'
-                    ])
-                    check_out = False;
-                    non_count = timedelta(days=0);
-                    count = timedelta(days=0)
-                    row = [' ', ' ', ' ', ' ', ' ']
-                    for line in attendance.line_ids:
-                        if j != 1:
-                            row[2] = (line.check_in + timedelta(
-                                hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
-                            dif = (line.check_in + timedelta(
-                                hours=5.5)) - check_out
-                            row[2] = (line.check_in ).strftime("%d-%m-%Y %H:%M:%S")
-                            dif = (line.check_in ) - check_out
-                            hours = int(dif.seconds / 3600)
-                            minutes = (dif.seconds % 3600) / 60
-                            if hours == 0 and minutes <= 15:
-                                row[4] = str(dif)
-                                non_count += dif
-                            else:
-                                row[3] = str(dif)
-                                count += dif
-                            data_to_load_html_template.append(row)
-                        if k != j:
-                            row = [' ', ' ', ' ', ' ', ' ', 'claim']
-                            row[0] = 'Break ' + str(j)
-                            row[1] = (line.check_out + timedelta(
-                                hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
-                            check_out = line.check_out + timedelta(hours=5.5)
-                            row[1] = (line.check_out ).strftime("%d-%m-%Y %H:%M:%S")
-                            check_out = line.check_out
-                        i += 1
-                        j += 1
-                    data_to_load_html_template.append([
-                        'Total Breaks', ' ', ' ', str(count), ' '
-                    ])
-                    wk_hr = timedelta(hours=attendance.worked_hours)
-                    if attendance.employee_id.location_id.detect_lunch == True:
-                        if any(x.check_out.time() > time(13,
-                                                         0) and x.check_out.time() < time(
-                                14, 0) for x in attendance.line_ids) and any(
-                                x.check_in.time() > time(13,
-                                                         0) and x.check_in.time() < time(
-                                        14, 0) for x in attendance.line_ids):
-                            bk_hr = count
-                        else:
-                            bk_hr = count + timedelta(hours=1)
-                    else:
-                        bk_hr = count
-                    data_to_load_html_template.append([
-                        'Net total time inside the office (' + str(
-                            self.float_to_time(
-                                attendance.worked_hours)) + ' - ' + str(
-                            count) + ')', ' ', ' ', str(wk_hr - bk_hr), ' '
-                    ])
-                    return request.render(
-                        "tg_attendance.attendance_claim_view", {
-                            'datas': data_to_load_html_template,
-                            'attend_work_hrs':request.env.company.attend_work_hrs,
-                            'sterday': sterday,
-                            'name': employee_id.name,
-                            'id': employee_id.id,
-                            'base_url': '/attendance/claim/form'
-                        })
-        return request.redirect('/web')
+        # if kwargs.get('employee_id') and kwargs.get('date'):
+        #     data_to_load_html_template = []
+        #     employee_id = request.env['hr.employee'].sudo().browse(int(kwargs.get('employee_id')))
+        #     if 1 == 1:
+        #     # if employee_id.user_id.id == request.env.user.id:
+        #         sterday = datetime.strptime(kwargs.get('date'), '%d-%b-%Y')
+        #         for attendance in request.env['hr.attendance'].search([
+        #             ('fetch_date', '=', sterday),
+        #             ('employee_id', '=', employee_id.id)
+        #         ]).filtered(
+        #             lambda a: a.actual_hours < request.env.company.attend_work_hrs)[
+        #             0]:
+        #             i = 4
+        #             j = 1
+        #             k = len(attendance.line_ids)
+        #             data_to_load_html_template.append([
+        #                 'First Check-in & Last Check-out',
+        #                 (attendance.check_in + timedelta(hours=5.5)).strftime(
+        #                 (attendance.check_in ).strftime(
+        #                     "%d-%m-%Y %H:%M:%S"),
+        #                 (attendance.check_out + timedelta(hours=5.5)).strftime(
+        #                 (attendance.check_out ).strftime(
+        #                     "%d-%m-%Y %H:%M:%S"),
+        #                 self.float_to_time(attendance.worked_hours),
+        #                 ' ',
+        #             ])
+        #             if attendance.employee_id.location_id.detect_lunch == True:
+        #                 if any(x.check_out.time() > time(13,
+        #                                                  0) and x.check_out.time() < time(
+        #                         14, 0) for x in attendance.line_ids) and any(
+        #                         x.check_in.time() > time(13,
+        #                                                  0) and x.check_in.time() < time(
+        #                                 14, 0) for x in attendance.line_ids):
+        #                     pass
+        #                 else:
+        #                     data_to_load_html_template.append([
+        #                         'Less 1 hour for the lunch break', ' ', ' ',
+        #                         self.float_to_time(-1)
+        #                     ])
+        #             row_3 = ['Total time excluding break', ' ', ' ']
+        #             if attendance.employee_id.location_id.detect_lunch == True:
+        #                 if any(x.check_out.time() > time(13,0) and x.check_out.time() < time(
+        #                         14, 0) for x in attendance.line_ids) and any(
+        #                         x.check_in.time() > time(13,
+        #                                                  0) and x.check_in.time() < time(
+        #                                 14, 0) for x in attendance.line_ids):
+        #                     row_3.append(
+        #                         self.float_to_time((attendance.worked_hours)))
+        #                 else:
+        #                     row_3.append(self.float_to_time(
+        #                         (attendance.worked_hours - 1)))
+        #             else:
+        #                 row_3.append(
+        #                     self.float_to_time((attendance.worked_hours)))
+        #             row_3.append(' ')
+        #             data_to_load_html_template.append(row_3)
+        #             data_to_load_html_template.append([
+        #                 'Breaks', ' ', ' ', 'Counted', 'Non-Counted'
+        #             ])
+        #             check_out = False;
+        #             non_count = timedelta(days=0);
+        #             count = timedelta(days=0)
+        #             row = [' ', ' ', ' ', ' ', ' ']
+        #             for line in attendance.line_ids:
+        #                 if j != 1:
+        #                     row[2] = (line.check_in + timedelta(
+        #                         hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
+        #                     dif = (line.check_in + timedelta(
+        #                         hours=5.5)) - check_out
+        #                     row[2] = (line.check_in ).strftime("%d-%m-%Y %H:%M:%S")
+        #                     dif = (line.check_in ) - check_out
+        #                     hours = int(dif.seconds / 3600)
+        #                     minutes = (dif.seconds % 3600) / 60
+        #                     if hours == 0 and minutes <= 15:
+        #                         row[4] = str(dif)
+        #                         non_count += dif
+        #                     else:
+        #                         row[3] = str(dif)
+        #                         count += dif
+        #                     data_to_load_html_template.append(row)
+        #                 if k != j:
+        #                     row = [' ', ' ', ' ', ' ', ' ', 'claim']
+        #                     row[0] = 'Break ' + str(j)
+        #                     row[1] = (line.check_out + timedelta(
+        #                         hours=5.5)).strftime("%d-%m-%Y %H:%M:%S")
+        #                     check_out = line.check_out + timedelta(hours=5.5)
+        #                     row[1] = (line.check_out ).strftime("%d-%m-%Y %H:%M:%S")
+        #                     check_out = line.check_out
+        #                 i += 1
+        #                 j += 1
+        #             data_to_load_html_template.append([
+        #                 'Total Breaks', ' ', ' ', str(count), ' '
+        #             ])
+        #             wk_hr = timedelta(hours=attendance.worked_hours)
+        #             if attendance.employee_id.location_id.detect_lunch == True:
+        #                 if any(x.check_out.time() > time(13,
+        #                                                  0) and x.check_out.time() < time(
+        #                         14, 0) for x in attendance.line_ids) and any(
+        #                         x.check_in.time() > time(13,
+        #                                                  0) and x.check_in.time() < time(
+        #                                 14, 0) for x in attendance.line_ids):
+        #                     bk_hr = count
+        #                 else:
+        #                     bk_hr = count + timedelta(hours=1)
+        #             else:
+        #                 bk_hr = count
+        #             data_to_load_html_template.append([
+        #                 'Net total time inside the office (' + str(
+        #                     self.float_to_time(
+        #                         attendance.worked_hours)) + ' - ' + str(
+        #                     count) + ')', ' ', ' ', str(wk_hr - bk_hr), ' '
+        #             ])
+        #             return request.render(
+        #                 "tg_attendance.attendance_claim_view", {
+        #                     'datas': data_to_load_html_template,
+        #                     'attend_work_hrs':request.env.company.attend_work_hrs,
+        #                     'sterday': sterday,
+        #                     'name': employee_id.name,
+        #                     'id': employee_id.id,
+        #                     'base_url': '/attendance/claim/form'
+        #                 })
+        # return request.redirect('/web')
     
     @route('/attendance/claim/form', auth='user', website=True)
     def attendance_claim_from(self, **kwargs):
