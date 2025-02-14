@@ -122,6 +122,7 @@ class TgAttendance(models.Model):
                 'First Check-in & Last Check-out',
                 check_in_dubai.strftime("%d-%m-%Y %H:%M:%S"),
                 check_out_dubai.strftime("%d-%m-%Y %H:%M:%S"),
+                "Lunch Break",
                 f"{hours:02d}:{minutes:02d}",
                 ' ',
             ])
@@ -137,7 +138,7 @@ class TgAttendance(models.Model):
                         'Less 1 hour for the lunch break', ' ', ' ', self.float_to_time(-1)
                     ])
 
-            row_3 = ['Total time excluding break', ' ', ' ']
+            row_3 = ['Total time excluding break',' ', ' ', ' ']
             if attendance.employee_id.location_id.detect_lunch:
                 if any(x.check_out.time() > time(13, 0) and x.check_out.time() < time(14, 0) for x in
                        attendance.line_ids) and \
@@ -152,13 +153,13 @@ class TgAttendance(models.Model):
             data_to_load_html_template.append(row_3)
 
             data_to_load_html_template.append([
-                'Breaks', ' ', ' ', 'Counted', 'Non-Counted'
+                'Breaks', ' ', ' ',' ', 'Long Break', 'Short Break',
             ])
 
             check_out = False
             non_count = timedelta(days=0)
             count = timedelta(days=0)
-            row = [' ', ' ', ' ', ' ', ' ', ' ']
+            row = [' ', ' ', ' ', ' ', ' ',' ' ,' ']
 
             start_time = self.env.company.company_start_time
             hours = int(start_time)
@@ -189,22 +190,22 @@ class TgAttendance(models.Model):
                     hours = int(dif.seconds / 3600)
                     minutes = (dif.seconds % 3600) / 60
                     if hours == 0 and minutes <= 15:
-                        row[4] = str(dif)
+                        row[5] = str(dif)
                         non_count += dif
                     else:
-                        row[3] = str(dif)
+                        row[4] = str(dif)
                         count += dif
                     data_to_load_html_template.append(row)
                 if k != j:
-                    row = [' ', ' ', ' ', False, False, 'claim']
-                    row[0] = 'Break ' + str(j)
+                    row = [' ', ' ', ' ',' ', False, False, 'claim']
+                    row[0] = 'Breaks ' + str(j)
                     row[1] = (line.check_out.astimezone(dubai_tz)).strftime("%d-%m-%Y %H:%M:%S")
                     check_out = line.check_out.astimezone(dubai_tz)
                 i += 1
                 j += 1
 
             data_to_load_html_template.append([
-                'Total Breaks', ' ', ' ', str(count), ' '
+                'Total Breaks', ' ', ' ', ' ',str(count), ' '
             ])
             wk_hr = timedelta(hours=attendance.worked_hours)
             if attendance.employee_id.location_id.detect_lunch:
