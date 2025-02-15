@@ -99,136 +99,119 @@ class TgAttendance(models.Model):
     @api.model
     def _employee_alert_daily_attendance(self):
         today = self.env.company.fetch_date
-        sterday = today - relativedelta(days=1)
-       
-        for attendance in self.env['hr.attendance'].search([('fetch_date', '=', sterday)]).filtered(
-                lambda a: a.actual_hours < self.env.company.attend_work_hrs):
-            data_to_load_html_template = []
+        yesterday = today - relativedelta(days=1)
+        attendance_ids = self.env['hr.attendance'].search([('fetch_date', '=', yesterday)])
+        notification_need = attendance_ids.filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)
 
-            i = 4
-            j = 1
-            k = len(attendance.line_ids)
-            total_time_in_office = attendance.check_out - attendance.check_in
+        for attendance in notification_need:
+            data_to_load_html_template = []
 
             # Convert check-in and check-out times to Asia/Dubai timezone
             check_in_dubai = attendance.check_in.astimezone(dubai_tz)
             check_out_dubai = attendance.check_out.astimezone(dubai_tz)
 
-            total_seconds = total_time_in_office.total_seconds()
-            hours = int(total_seconds // 3600)  # Get the total hours
-            minutes = int((total_seconds % 3600) // 60)
-
             data_to_load_html_template.append([
                 'First Check-in & Last Check-out',
                 check_in_dubai.strftime("%d-%m-%Y %H:%M:%S"),
                 check_out_dubai.strftime("%d-%m-%Y %H:%M:%S"),
-                f"{hours:02d}:{minutes:02d}",
+                "Lunch Break",
+                self.float_to_time(attendance.worked_hours),
                 ' ',
             ])
 
-            if attendance.employee_id.location_id.detect_lunch:
-                if any(x.check_out.time() > time(13, 0) and x.check_out.time() < time(14, 0) for x in
-                       attendance.line_ids) and \
-                        any(x.check_in.time() > time(13, 0) and x.check_in.time() < time(14, 0) for x in
-                            attendance.line_ids):
-                    pass
-                else:
-                    data_to_load_html_template.append([
-                        'Less 1 hour for the lunch break', ' ', ' ', self.float_to_time(-1)
-                    ])
-
-            row_3 = ['Total time excluding break', ' ', ' ']
-            if attendance.employee_id.location_id.detect_lunch:
-                if any(x.check_out.time() > time(13, 0) and x.check_out.time() < time(14, 0) for x in
-                       attendance.line_ids) and \
-                        any(x.check_in.time() > time(13, 0) and x.check_in.time() < time(14, 0) for x in
-                            attendance.line_ids):
-                    row_3.append(self.float_to_time((attendance.worked_hours)))
-                else:
-                    row_3.append(self.float_to_time((attendance.worked_hours - 1)))
-            else:
-                row_3.append(self.float_to_time((attendance.worked_hours)))
-            row_3.append(' ')
-            data_to_load_html_template.append(row_3)
+            data_to_load_html_template.append(['Total time excluding break', ' ', ' ', ' ', self.float_to_time(attendance.actual_hours), ' '])
 
             data_to_load_html_template.append([
-                'Breaks', ' ', ' ', 'Counted', 'Non-Counted'
+                'Breaks', ' ', ' ', ' ', 'Long Break', 'Short Break',
             ])
-
-            check_out = False
-            non_count = timedelta(days=0)
-            count = timedelta(days=0)
-            row = [' ', ' ', ' ', ' ', ' ', ' ']
 
             start_time = self.env.company.company_start_time
             hours = int(start_time)
             minutes = int((start_time - hours) * 100)
-
+            
             # Convert start time to Asia/Dubai timezone
-            start_time_date = datetime(sterday.year, sterday.month, sterday.day, hours, minutes,
+            start_time_date = datetime(yesterday.year, yesterday.month, yesterday.day, hours, minutes,
                                        tzinfo=UTC).astimezone(dubai_tz)
-            attendance_checkin = attendance.check_in.astimezone(dubai_tz)
 
-            if attendance_checkin > start_time_date:
-                row[0] = 'Break (Delay)'
-                row[1] = start_time_date.strftime("%d-%m-%Y %H:%M:%S")
-                row[2] = attendance_checkin.strftime("%d-%m-%Y %H:%M:%S")
-                start_time_difference = attendance_checkin - start_time_date
+            if check_in_dubai > start_time_date:
+                start_time_difference = check_in_dubai - start_time_date
                 total_late_in_minutes = start_time_difference.total_seconds() // 60
+                row = [
+                    'Break (Delay)',
+                    start_time_date.strftime("%d-%m-%Y %H:%M:%S"),
+                    check_in_dubai.strftime("%d-%m-%Y %H:%M:%S"),
+                    ' ', ' ', ' ', False
+                ]
                 if total_late_in_minutes > 15:
-                    row[3] = attendance_checkin - start_time_date
-                    row[5] = 'claim'
+                    row[3] = start_time_difference
+                    row[6] = 'claim'
                 else:
-                    row[4] = attendance_checkin - start_time_date
-                i += 1
+                    row[4] = start_time_difference
+                data_to_load_html_template.append(row)
 
+            line_count = 1
+            is_first_row = False
+            attendance_lines = []
+            non_counted = timedelta(days=0)
+            counted = timedelta(days=0)
+            lunch_break = timedelta(days=0)
+            lunch_break_none_counted = timedelta(days=0)
             for line in attendance.line_ids:
-                if j != 1:
-                    row[2] = (line.check_in.astimezone(dubai_tz)).strftime("%d-%m-%Y %H:%M:%S")
-                    dif = (line.check_in.astimezone(dubai_tz)) - check_out
-                    hours = int(dif.seconds / 3600)
-                    minutes = (dif.seconds % 3600) / 60
-                    if hours == 0 and minutes <= 15:
-                        row[4] = str(dif)
-                        non_count += dif
+                if is_first_row:
+                    last_line = attendance_lines[-1]
+                    check_in = line.check_in.astimezone(dubai_tz)
+                    check_out = last_line[1]
+                    if check_out.time() > time(12, 45) and check_out.time() < time(14, 15):
+                        dif = check_in - check_out
+                        lunch_break += dif
+                        hours = int(dif.seconds / 3600)
+                        minutes = (dif.seconds % 3600) / 60
+                        if hours == 0 and minutes <= 59:
+                            last_line[3] = str(dif)
+                        else:
+                            last_line[3] = str(dif)
+                            last_line[6] = 'claim'
+                            lunch_break_none_counted = dif - timedelta(hours=1)
                     else:
-                        row[3] = str(dif)
-                        count += dif
-                    data_to_load_html_template.append(row)
-                if k != j:
-                    row = [' ', ' ', ' ', False, False, 'claim']
-                    row[0] = 'Break ' + str(j)
-                    row[1] = (line.check_out.astimezone(dubai_tz)).strftime("%d-%m-%Y %H:%M:%S")
-                    check_out = line.check_out.astimezone(dubai_tz)
-                i += 1
-                j += 1
+                        dif = check_in - check_out
+                        hours = int(dif.seconds / 3600)
+                        minutes = (dif.seconds % 3600) / 60
+                        if hours == 0 and minutes <= 15:
+                            last_line[5] = str(dif)
+                            non_counted += dif
+                        else:
+                            last_line[4] = str(dif)
+                            last_line[6] = 'claim'
+                            counted += dif
+                    last_line[1] = last_line[1].strftime("%d-%m-%Y %H:%M:%S")
+                    last_line[2] = check_in.strftime("%d-%m-%Y %H:%M:%S")
+                if line.check_out.astimezone(dubai_tz) != check_out_dubai:
+                    attendance_lines.append([
+                        f"Break {line_count}",
+                        line.check_out.astimezone(dubai_tz),
+                        ' ', ' ', ' ', ' ', False
+                    ])
+                    is_first_row = True
+                    line_count += 1
+            data_to_load_html_template += attendance_lines
 
             data_to_load_html_template.append([
-                'Total Breaks', ' ', ' ', str(count), ' '
-            ])
-            wk_hr = timedelta(hours=attendance.worked_hours)
-            if attendance.employee_id.location_id.detect_lunch:
-                if any(x.check_out.time() > time(13, 0) and x.check_out.time() < time(14, 0) for x in
-                       attendance.line_ids) and \
-                        any(x.check_in.time() > time(13, 0) and x.check_in.time() < time(14, 0) for x in
-                            attendance.line_ids):
-                    bk_hr = non_count
-                else:
-                    bk_hr = non_count + timedelta(hours=1)
-            else:
-                bk_hr = non_count
+                        'Total Breaks', ' ', ' ', str(lunch_break), str(counted), str(non_counted)
+                    ])
+            to_reduce = non_counted + lunch_break_none_counted
+            print(to_reduce)
+            worked_hours_td = timedelta(hours=int(attendance.worked_hours),
+                                        minutes=(attendance.worked_hours % 1) * 60)
 
             data_to_load_html_template.append([
-                'Net total time inside the office (' + str(self.float_to_time(attendance.worked_hours)) + ' - ' + str(
-                    non_count) + ')', ' ', ' ', str(wk_hr - bk_hr), ' '
+                f'Net total time inside the office ({self.float_to_time(attendance.worked_hours)} - { to_reduce }) {worked_hours_td - to_reduce}', ' ', ' ',' ', ' '
             ])
-
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             context = {
-                'email_to': attendance.employee_id.work_email,
+                'email_to': 'abhilash.sudhakaran@tangentlandscape.com',
                 'email_from': self.env.company.erp_email,
-                'sterday': sterday,
-                'base_url': f"{base_url}/attendance/claim/form?date={sterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
+                'sterday': yesterday,
+                'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
                 'datas': data_to_load_html_template,
                 'com_work_hrs': self.env.company.attend_work_hrs
             }
