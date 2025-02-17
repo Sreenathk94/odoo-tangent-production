@@ -163,8 +163,8 @@ class TgAttendance(models.Model):
                     if check_out.time() > time(12, 45) and check_out.time() < time(14, 15):
                         dif = check_in - check_out
                         lunch_break += dif
-                        if dif > timedelta(hours=1):
-                            last_line[3] = str(dif)
+                        if dif < timedelta(hours=1):
+                            last_line[5] = str(dif)
                         else:
                             last_line[3] = str(dif)
                             last_line[6] = 'lunch_claim'
@@ -198,7 +198,7 @@ class TgAttendance(models.Model):
             to_reduce = non_counted + lunch_break
             worked_hours_td = timedelta(hours=int(attendance.worked_hours),
                                         minutes=(attendance.worked_hours % 1) * 60)
-
+            print(to_reduce, non_counted, lunch_break, worked_hours_td, attendance.employee_id.name)
             data_to_load_html_template.append([
                 f'Net total time inside the office ({self.float_to_time(attendance.worked_hours)} - { to_reduce }) {worked_hours_td - to_reduce}', ' ', ' ',' ', ' ', ' ', ' '
             ])
