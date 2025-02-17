@@ -195,7 +195,7 @@ class TgAttendance(models.Model):
             data_to_load_html_template.append([
                         'Total Breaks', ' ', ' ', str(lunch_break), str(counted), str(non_counted), ' '
                     ])
-            to_reduce = non_counted + lunch_break
+            to_reduce = non_counted + lunch_break + counted
             worked_hours_td = timedelta(hours=int(attendance.worked_hours),
                                         minutes=(attendance.worked_hours % 1) * 60)
             data_to_load_html_template.append([
