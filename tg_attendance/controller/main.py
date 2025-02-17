@@ -132,12 +132,17 @@ class AttendanceClaim(Controller):
             date_to = datetime.strptime(kwargs.get('to'), '%d-%m-%Y %H:%M:%S')
             time_difference = date_to - date_from
             index = kwargs.get('index')
+            if kwargs.get('lunch'):
+                one_hour = timedelta(hours=1)
+                if time_difference > one_hour:
+                    time_difference = time_difference - one_hour
             # Convert the time difference to minutes
             difference_in_seconds = time_difference.total_seconds()
             # Extract hours, minutes, and seconds
             hours = int(difference_in_seconds // 3600)
             minutes = int((difference_in_seconds % 3600) // 60)
             seconds = int(difference_in_seconds % 60)
+
             total_hours = f"{hours:02}:{minutes:02}:{seconds:02}"
             employee_id = request.env['hr.employee'].sudo().browse(
                 int(kwargs.get('employee_id')))

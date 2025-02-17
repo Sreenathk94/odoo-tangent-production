@@ -115,13 +115,13 @@ class TgAttendance(models.Model):
                 check_out_dubai.strftime("%d-%m-%Y %H:%M:%S"),
                 "Lunch Break",
                 self.float_to_time(attendance.worked_hours),
-                ' ',
+                ' ', ' '
             ])
 
-            data_to_load_html_template.append(['Total time excluding break', ' ', ' ', ' ', self.float_to_time(attendance.actual_hours), ' '])
+            # data_to_load_html_template.append(['Total time excluding break', ' ', ' ', ' ', self.float_to_time(attendance.actual_hours), ' '])
 
             data_to_load_html_template.append([
-                'Breaks', ' ', ' ', ' ', 'Long Break', 'Short Break',
+                'Breaks', ' ', ' ', ' ', 'Long Break', 'Short Break', ' '
             ])
 
             start_time = self.env.company.company_start_time
@@ -163,13 +163,11 @@ class TgAttendance(models.Model):
                     if check_out.time() > time(12, 45) and check_out.time() < time(14, 15):
                         dif = check_in - check_out
                         lunch_break += dif
-                        hours = int(dif.seconds / 3600)
-                        minutes = (dif.seconds % 3600) / 60
-                        if hours == 0 and minutes <= 59:
+                        if dif > timedelta(hours=1):
                             last_line[3] = str(dif)
                         else:
                             last_line[3] = str(dif)
-                            last_line[6] = 'claim'
+                            last_line[6] = 'lunch_claim'
                             lunch_break_none_counted = dif - timedelta(hours=1)
                     else:
                         dif = check_in - check_out
@@ -195,15 +193,14 @@ class TgAttendance(models.Model):
             data_to_load_html_template += attendance_lines
 
             data_to_load_html_template.append([
-                        'Total Breaks', ' ', ' ', str(lunch_break), str(counted), str(non_counted)
+                        'Total Breaks', ' ', ' ', str(lunch_break), str(counted), str(non_counted), ' '
                     ])
-            to_reduce = non_counted + lunch_break_none_counted
-            print(to_reduce)
+            to_reduce = non_counted + lunch_break
             worked_hours_td = timedelta(hours=int(attendance.worked_hours),
                                         minutes=(attendance.worked_hours % 1) * 60)
 
             data_to_load_html_template.append([
-                f'Net total time inside the office ({self.float_to_time(attendance.worked_hours)} - { to_reduce }) {worked_hours_td - to_reduce}', ' ', ' ',' ', ' '
+                f'Net total time inside the office ({self.float_to_time(attendance.worked_hours)} - { to_reduce }) {worked_hours_td - to_reduce}', ' ', ' ',' ', ' ', ' ', ' '
             ])
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             context = {
