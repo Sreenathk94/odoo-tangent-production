@@ -198,7 +198,6 @@ class TgAttendance(models.Model):
             to_reduce = non_counted + lunch_break
             worked_hours_td = timedelta(hours=int(attendance.worked_hours),
                                         minutes=(attendance.worked_hours % 1) * 60)
-            print(to_reduce, non_counted, lunch_break, worked_hours_td, attendance.employee_id.name)
             data_to_load_html_template.append([
                 f'Net total time inside the office ({self.float_to_time(attendance.worked_hours)} - { to_reduce }) {worked_hours_td - to_reduce}', ' ', ' ',' ', ' ', ' ', ' '
             ])
