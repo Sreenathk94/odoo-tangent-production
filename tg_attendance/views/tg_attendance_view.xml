@@ -303,63 +303,63 @@
             <field name="doall" eval="False"/>
         </record>
 
-        <record id="email_template_employee_daily_attendance_alert" model="mail.template">
-            <field name="name">Employee Attendance Daily Average time report</field>
-            <field name="model_id" ref="hr_attendance.model_hr_attendance"/>
-            <field name="email_from">{{ctx['email_from']}}</field>
-            <field name="email_to">{{ctx['email_to']}}</field>
-            <field name="subject">System Notification: Attendance Daily Average time report</field>
-            <field name="body_html" type="html">
-                <div style="margin: 0px; padding: 0px;">
-                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                        Dear <b><t t-out="object.employee_id.name">Employee Name</t></b>,
-                        <br/>
-                        <br/>
-                        Kindly note that your daily average time inside office on (<b>
-                        <t t-out="ctx['sterday'].strftime('%d/%b/%Y')"></t></b>) is less than required hours (<b>
-                        <t t-out="ctx['com_work_hrs']">Work Hours</t>
-                    </b> hrs).
-                        <br/>
-                        Please make sure you manage this lose hours in the coming days so that you maintain a monthly
-                        average of <b><t t-out="ctx['com_work_hrs']"/></b> hrs per day.
-                        <br/>
-                        For your information we have attached your daily log for the (<b>
-                        <t t-out="ctx['sterday'].strftime('%d/%b/%Y')"/></b>)
-                        <br/>
+            <record id="email_template_employee_daily_attendance_alert" model="mail.template">
+                <field name="name">Employee Attendance Daily Average time report</field>
+                <field name="model_id" ref="hr_attendance.model_hr_attendance"/>
+                <field name="email_from">{{ctx['email_from']}}</field>
+                <field name="email_to">{{ctx['email_to']}}</field>
+                <field name="subject">System Notification: Attendance Daily Work Hours Report</field>
+                <field name="body_html" type="html">
+                    <div style="margin: 0px; padding: 0px;">
+                        <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                            Dear <b><t t-out="object.employee_id.name">Employee Name</t></b>,
+                            <br/>
+                            <br/>
+                            Kindly note that your daily time inside office on (<b>
+                            <t t-out="ctx['sterday'].strftime('%d/%b/%Y')"></t></b>) is less than required hours (<b>
+                            <t t-out="ctx['com_work_hrs']"></t>
+                        </b> hrs).
+                            <br/>
+                            Please make sure you manage these lost hours in the coming days so that you maintain a monthly
+                            average of <b><t t-out="ctx['com_work_hrs']"/></b> hrs per day.
+                            <br/>
+                            For your information we have attached your daily log for the (<b>
+                            <t t-out="ctx['sterday'].strftime('%d/%b/%Y')"/></b>)
+                            <br/>
 
-                        <table class="table" style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;" width="100" t-if="ctx['datas']">
-                            <tbody>
-                                <t t-set="index" t-value="-4"/>
-                                <tr t-foreach="ctx['datas']" t-as="data" style="background-color: #f9f9f9;">
-                                    <t t-set="index" t-value="index + 1"/>
-                                    <td t-foreach="data" t-as="line" style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-if="line == 'claim'">
-                                            <t t-set="from" t-value="data[1]"/>
-                                            <t t-set="to" t-value="data[2]"/>
-                                            <a t-if="data[3]" t-attf-href="{{ctx['base_url']}}&amp;from={{from}}&amp;to={{to}}&amp;index={{index}}" style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim</a>
-                                       </t>
-                                        <t t-elif="line == 'lunch_claim'">
-                                            <t t-set="from" t-value="data[1]"/>
-                                            <t t-set="to" t-value="data[2]"/>
-                                            <a t-if="data[3]" t-attf-href="{{ctx['base_url']}}&amp;from={{from}}&amp;to={{to}}&amp;index={{index}}&amp;lunch=1" style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim</a>
-                                       </t>
-                                        <t t-else="">
-                                             <t t-out="line"/>
-                                        </t>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <br/>
-                        We look forward for your support in this regards,
-                        <br/>
-                        <br/>
-                        If you need any further information please do not hesitate to contact company HR.
-                    </p>
-                </div>
-            </field>
-            <field name="auto_delete" eval="True"/>
-        </record>
+                            <table class="table" style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;" width="100" t-if="ctx['datas']">
+                                <tbody>
+                                    <t t-set="index" t-value="-4"/>
+                                    <tr t-foreach="ctx['datas']" t-as="data" style="background-color: #f9f9f9;">
+                                        <t t-set="index" t-value="index + 1"/>
+                                        <td t-foreach="data" t-as="line" style="border: 1px solid #ddd; padding: 8px;">
+                                            <t t-if="line == 'claim'">
+                                                <t t-set="from" t-value="data[1]"/>
+                                                <t t-set="to" t-value="data[2]"/>
+                                                <a t-if="data[3]" t-attf-href="{{ctx['base_url']}}&amp;from={{from}}&amp;to={{to}}&amp;index={{index}}" style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim</a>
+                                           </t>
+                                            <t t-elif="line == 'lunch_claim'">
+                                                <t t-set="from" t-value="data[1]"/>
+                                                <t t-set="to" t-value="data[2]"/>
+                                                <a t-if="data[3]" t-attf-href="{{ctx['base_url']}}&amp;from={{from}}&amp;to={{to}}&amp;index={{index}}&amp;lunch=1" style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim</a>
+                                           </t>
+                                            <t t-else="">
+                                                 <t t-out="line"/>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <br/>
+                            We look forward for your support in this regard,
+                            <br/>
+                            <br/>
+                            If you need any further information please do not hesitate to contact company HR.
+                        </p>
+                    </div>
+                </field>
+                <field name="auto_delete" eval="True"/>
+            </record>
 
 
         <!-- Employee Attendance Weekly Average time -->

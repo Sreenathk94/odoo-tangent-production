@@ -203,7 +203,7 @@ class TgAttendance(models.Model):
             ])
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             context = {
-                'email_to': 'abhilash.sudhakaran@tangentlandscape.com',
+                'email_to': attendance.employee_id.work_email,
                 'email_from': self.env.company.erp_email,
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
