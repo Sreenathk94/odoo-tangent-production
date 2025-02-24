@@ -13,10 +13,15 @@ class HrEmployee(models.Model):
     def send_birthday_notification(self):
         today = fields.Date.context_today(self)
         today_month_day = (today.month, today.day)
-        for employee in self.env['hr.employee'].search([('birthday', '!=', False),('work_email', '!=', False)]):
+        employees = self.env['hr.employee'].search([('birthday', '!=', False), ('work_email', '!=', False)])
+        all_work_emails = employees.mapped('work_email')
+        for employee in employees:
             if employee.birthday:
                 employee_month_day = (employee.birthday.month, employee.birthday.day)
                 if employee.company_id.send_employee_birthday_notification and today_month_day == employee_month_day:
-                    _logger.info('Birthday email sent to: %s', employee.work_email)
+                    # _logger.info('Birthday email sent to: %sent', employee.work_email)
                     template_id = self.env.ref('birthday_notification_knk.employee_birthday_notification_template')
-                    template_id.send_mail(employee.id, force_send=True)
+                    email_values = {
+                        'email_cc': ",".join(all_work_emails)
+                    }
+                    template_id.send_mail(employee.id, force_send=True, email_values=email_values)
