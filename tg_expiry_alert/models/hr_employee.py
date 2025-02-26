@@ -12,7 +12,7 @@ class HrEmployee(models.Model):
 
     _inherit = 'hr.employee'
 
-    passport_expire_date = fields.Date(string='Passport Expire Date')
+    # passport_expire_date = fields.Date(string='Passport Expire Date')
 
     def action_expiry_alert(self):
         """
