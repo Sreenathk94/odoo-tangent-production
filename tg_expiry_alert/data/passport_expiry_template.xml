@@ -17,7 +17,7 @@
                         <div>
                             <h3>
                                 This email is to remind you that your passport will
-                                expire on <t t-out="object.passport_expire_date" />,
+                                expire on <t t-out="object.passport_expire" />,
                                 Please take the necessary steps to renew it
                                 before the expiration date.
                             </h3>
