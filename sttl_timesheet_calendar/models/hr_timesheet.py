@@ -60,15 +60,14 @@ class AccountAnalyticLine(models.Model):
     # def _onchange_project_unit_amount(self):
     #     self.name = str(self.project_id.project_number)+' - '+str(self.project_id.name)
 
-
-    @api.constrains('start_time','end_time','start','end')
-    def timesheet_constrains(self):
-        if self.start_time > 12 or self.end_time > 12:
-            raise UserError("Start Time and End Time should be less than or equal to 12.")
-        if self.start_time <= 0:
-            raise UserError(_("Start Time should be greater than 0."))
-        if self.end_time <= 0:
-            raise UserError(_("End Time should be greater than 0."))
+    # @api.constrains('start_time','end_time','start','end')
+    # def timesheet_constrains(self):
+    #     if self.start_time > 12 or self.end_time > 12:
+    #         raise UserError("Start Time and End Time should be less than or equal to 12.")
+    #     if self.start_time <= 0:
+    #         raise UserError(_("Start Time should be greater than 0."))
+    #     if self.end_time <= 0:
+    #         raise UserError(_("End Time should be greater than 0."))
 
     @api.onchange("start","end")
     def update_unit_time(self):

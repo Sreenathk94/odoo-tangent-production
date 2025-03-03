@@ -220,7 +220,7 @@ class HrLeave(models.Model):
             if parser.parse(vals.get('request_date_from')).date() > date.today() or parser.parse(
                     vals.get('request_date_to')).date() > date.today():
                 raise UserError(_("You can't apply leave for future date"))
-        if type_id.code == 'SL' and not vals.get('dr_certificate'):
+        if type_id.code == 'SL' and not vals.get('supported_attachment_ids') or vals.get('dr_certificate'):
             days = parser.parse(vals.get('request_date_to')).date() - parser.parse(vals.get('request_date_from')).date()
             if days.days > 0 or parser.parse(vals.get('request_date_from')).strftime('%A') in (
             'Monday', 'Friday') or parser.parse(vals.get('request_date_to')).strftime('%A') in ('Monday', 'Friday'):
