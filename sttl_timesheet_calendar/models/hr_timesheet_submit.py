@@ -76,7 +76,7 @@ class HrTimesheetSubmitLine(models.Model):
     _description = "Submit Timesheet"
     _order = "employee_id asc,submit_id desc"
     
-    employee_id = fields.Many2one('hr.employee', "Employee")
+    employee_id = fields.Many2one('hr.employee', "Employee",ondelete='cascade')
     submit_id = fields.Many2one('hr.timesheet.submit',string='Submission Duration')
     total_hrs = fields.Float('Worked Hours (HH:MM)', compute='_compute_total_hours')
     state = fields.Selection([('unlock','Open'),('lock','Close')],'Timesheet Open/Close',default='unlock')
