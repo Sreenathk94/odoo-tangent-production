@@ -97,10 +97,15 @@ class TgAttendance(models.Model):
 
     @api.model
     def _employee_alert_daily_attendance(self):
-        today = self.env.company.fetch_date
+        company = self.env.company
+        today = company.fetch_date
         yesterday = today - relativedelta(days=1)
         attendance_ids = self.env['hr.attendance'].search([('fetch_date', '=', yesterday)])
-        notification_need = attendance_ids.filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)
+
+        if today > company.ramadan_start_date and today < company.ramadan_end_date:
+            notification_need = attendance_ids.filtered(lambda a: a.actual_hours < company.ramadan_total_work_time)
+        else:
+            notification_need = attendance_ids.filtered(lambda a: a.actual_hours < company.attend_work_hrs)
 
         for attendance in notification_need:
             data_to_load_html_template = []
@@ -127,7 +132,7 @@ class TgAttendance(models.Model):
             start_time = self.env.company.company_start_time
             hours = int(start_time)
             minutes = int((start_time - hours) * 100)
-            
+
             # Convert start time to Asia/Dubai timezone
             start_time_date = datetime(yesterday.year, yesterday.month, yesterday.day, hours, minutes,
                                        tzinfo=UTC).astimezone(dubai_tz)
@@ -163,8 +168,8 @@ class TgAttendance(models.Model):
                     if check_out.time() > time(12, 45) and check_out.time() < time(14, 15):
                         dif = check_in - check_out
                         lunch_break += dif
-                        if dif < timedelta(hours=1):
-                            last_line[5] = str(dif)
+                        if dif > timedelta(hours=1):
+                            last_line[3] = str(dif)
                         else:
                             last_line[3] = str(dif)
                             last_line[6] = 'lunch_claim'
@@ -195,15 +200,16 @@ class TgAttendance(models.Model):
             data_to_load_html_template.append([
                         'Total Breaks', ' ', ' ', str(lunch_break), str(counted), str(non_counted), ' '
                     ])
-            to_reduce = non_counted + lunch_break + counted
+            to_reduce = non_counted + lunch_break
             worked_hours_td = timedelta(hours=int(attendance.worked_hours),
                                         minutes=(attendance.worked_hours % 1) * 60)
+
             data_to_load_html_template.append([
                 f'Net total time inside the office ({self.float_to_time(attendance.worked_hours)} - { to_reduce }) {worked_hours_td - to_reduce}', ' ', ' ',' ', ' ', ' ', ' '
             ])
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             context = {
-                'email_to': attendance.employee_id.work_email,
+                'email_to': 'abhilash.sudhakaran@tangentlandscape.com',
                 'email_from': self.env.company.erp_email,
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
@@ -212,7 +218,6 @@ class TgAttendance(models.Model):
             }
             template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
             template.with_context(context).send_mail(attendance.id, force_send=True)
-
 
 class Employee(models.Model):
     _inherit = "hr.employee"
