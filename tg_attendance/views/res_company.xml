@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- User Form view -->
+    <record id="view_company_form" model="ir.ui.view">
+        <field name="name">Companies</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="tg_base.view_company_form"/>
+        <field name="arch" type="xml">
+            <page name="Alerts_settings" position="inside">
+                <group>
+                    <group string="Ramadan Attendance">
+                        <field name="ramadan_start_date" string="Start Date"/>
+                        <field name="ramadan_end_date" string="End Date"/>
+                        <field name="ramadan_total_work_time" string="Work Hours"/>
+                    </group>
+                </group>
+            </page>
+        </field>
+    </record>
+</odoo>
