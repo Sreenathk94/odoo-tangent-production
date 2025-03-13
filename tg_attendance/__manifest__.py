@@ -1,6 +1,6 @@
 {
     'name': 'Tangent Attendance Timesheet',
-    'version': '0.1',
+    'version': '17.0.1.0.6',
     'Summary': 'Attendance Timesheet',
     'author': 'Fouvty',
     'description': 'Attendance Timesheet',
