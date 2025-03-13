@@ -8,6 +8,7 @@
     'category': 'hr_attendance',
     'data': [
         'security/ir.model.access.csv',
+        'views/res_company.xml',
         'views/tg_attendance_view.xml',
         'views/tg_employee_view.xml',
         'views/tg_attendance_permission.xml',
