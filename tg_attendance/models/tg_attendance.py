@@ -104,8 +104,10 @@ class TgAttendance(models.Model):
 
         if today > company.ramadan_start_date and today < company.ramadan_end_date:
             notification_need = attendance_ids.filtered(lambda a: a.actual_hours < company.ramadan_total_work_time)
+            com_work_hrs = self.env.company.ramadan_total_work_time
         else:
             notification_need = attendance_ids.filtered(lambda a: a.actual_hours < company.attend_work_hrs)
+            com_work_hrs = self.env.company.attend_work_hrs
 
         for attendance in notification_need:
             data_to_load_html_template = []
@@ -214,7 +216,7 @@ class TgAttendance(models.Model):
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
                 'datas': data_to_load_html_template,
-                'com_work_hrs': self.env.company.attend_work_hrs
+                'com_work_hrs': com_work_hrs
             }
             template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
             template.with_context(context).send_mail(attendance.id, force_send=True)
