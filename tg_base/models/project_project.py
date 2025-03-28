@@ -4,6 +4,11 @@ from odoo import api, fields, models
 class Project(models.Model):
     _inherit = 'project.project'
 
+    _sql_constraints = [
+        ('project_number', 'unique(project_number)', 'Project Number must be unique!'),
+        ('name', 'unique(name)', 'Project Name must be unique!')
+    ]
+
     project_number = fields.Char(string='Project Number')
 
     @api.model

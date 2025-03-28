@@ -12,19 +12,19 @@
     'price': 00,
     'currency': 'EUR',
     'depends': [
-        'base','resource','hr_timesheet','tg_base','web'
+        'base','resource','hr_timesheet','tg_base','web','tg_groups','hr_holidays'
     ],
     'data': [
         'data/timesheet_submission_scheduler.xml',
-        'security/ir.model.access.csv',
         'security/security.xml',
+        'security/ir.model.access.csv',
         'views/hr_timesheet_view.xml',
-        'views/hr_timesheet_submit_view.xml',
-        'views/project_project_view.xml',
-        'views/hr_timesheet_submit_report_view.xml',
-        # 'views/project_profit_report_view.xml',
-        'views/hr_individual_timesheet_report.xml',
-        'views/hr_employee_view.xml',
+        # 'views/hr_timesheet_submit_view.xml',
+        # 'views/project_project_view.xml',
+        # 'views/hr_timesheet_submit_report_view.xml',
+        # # 'views/project_profit_report_view.xml',
+        # 'views/hr_individual_timesheet_report.xml',
+        # 'views/hr_employee_view.xml',
     ],
     'assets': {
         'web.assets_backend': [

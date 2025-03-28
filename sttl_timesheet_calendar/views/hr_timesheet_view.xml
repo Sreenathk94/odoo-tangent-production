@@ -104,54 +104,51 @@
         </field>
     </record>
 
+<record id="hr_timesheet.act_hr_timesheet_line" model="ir.actions.act_window">
+    <field name="name">My Timesheets</field>
+    <field name="res_model">account.analytic.line</field>
+    <field name="view_mode">calendar,tree,form,pivot,kanban</field>
+    <field name="domain">[('project_id', '!=', False), ('user_id', '=', uid)]</field>
+    <field name="context">{
+        "search_default_week": 1
+    }</field>
 
-    <record id="hr_timesheet.act_hr_timesheet_line" model="ir.actions.act_window">
-        <field name="name">My Timesheets</field>
-        <field name="res_model">account.analytic.line</field>
-        <field name="view_mode">tree,calendar,form,kanban</field>
-        <field name="domain">[('project_id', '!=', False), ('user_id', '=', uid)]</field>
-        <field name="context">{
-            "search_default_week":1,
-        }</field>
-        <field name="view_ids" eval="[(5, 0, 0),
-              (0, 0, {'view_mode': 'calendar', 'view_id': ref('sttl_timesheet_calendar.view_account_analytic_line_calendar')}),
-              (0, 0, {'view_mode': 'tree', 'view_id': ref('hr_timesheet.hr_timesheet_line_tree')}),
-              (0, 0, {'view_mode': 'form', 'view_id': ref('hr_timesheet.hr_timesheet_line_form')}),
-              (0, 0, {'view_mode': 'kanban', 'view_id': ref('hr_timesheet.view_kanban_account_analytic_line')})]"/>
-        <field name="search_view_id" ref="hr_timesheet.hr_timesheet_line_my_timesheet_search"/>
-        <field name="help" type="html">
-          <p class="o_view_nocontent_smiling_face">
+    <field name="search_view_id" ref="hr_timesheet.hr_timesheet_line_my_timesheet_search"/>
+    <field name="help" type="html">
+        <p class="o_view_nocontent_smiling_face">
             No activities found. Let's start a new one!
-          </p>
-          <p>
+        </p>
+        <p>
             Track your working hours by projects every day and invoice this time to your customers.
-          </p>
-        </field>
-    </record>
+        </p>
+    </field>
+</record>
 
-    <record id="hr_timesheet.timesheet_action_all" model="ir.actions.act_window">
-        <field name="name">All Timesheets</field>
-        <field name="res_model">account.analytic.line</field>
-        <field name="view_mode">tree,calendar,form,pivot,kanban</field>
-        <field name="search_view_id" ref="hr_timesheet.hr_timesheet_line_search"/>
-        <field name="domain">[('project_id', '!=', False)]</field>
-                <field name="view_ids" eval="[(5, 0, 0),
-              (0, 0, {'view_mode': 'calendar', 'view_id': ref('sttl_timesheet_calendar.view_account_analytic_line_calendar')}),
-              (0, 0, {'view_mode': 'tree', 'view_id': ref('hr_timesheet.hr_timesheet_line_tree')}),
-              (0, 0, {'view_mode': 'form', 'view_id': ref('hr_timesheet.hr_timesheet_line_form')}),
-              (0, 0, {'view_mode': 'kanban', 'view_id': ref('hr_timesheet.view_kanban_account_analytic_line')})]"/>
-        <field name="context">{
-            'search_default_week':1,
-        }</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                No activities found. Let's start a new one!
-          </p>
-          <p>
+
+<record id="hr_timesheet.timesheet_action_all" model="ir.actions.act_window">
+    <field name="name">All Timesheets</field>
+    <field name="res_model">account.analytic.line</field>
+    <field name="view_mode">calendar,tree,form,pivot,kanban</field>
+    <field name="search_view_id" ref="hr_timesheet.hr_timesheet_line_search"/>
+    <field name="domain">[('project_id', '!=', False)]</field>
+    <field name="context">{"search_default_week": 1}</field>
+
+    <field name="help" type="html">
+        <p class="o_view_nocontent_smiling_face">
+            No activities found. Let's start a new one!
+        </p>
+        <p>
             Track your working hours by projects every day and invoice this time to your customers.
-          </p>
-        </field>
-    </record>
+        </p>
+    </field>
+</record>
+
+<!--&lt;!&ndash; Define View Modes Separately &ndash;&gt;-->
+<!--<record id="hr_timesheet.timesheet_action_all_calendar" model="ir.actions.act_window.view">-->
+<!--    <field name="view_mode">calendar</field>-->
+<!--    <field name="view_id" ref="sttl_timesheet_calendar.view_account_analytic_line_calendar"/>-->
+<!--    <field name="act_window_id" ref="hr_timesheet.timesheet_action_all"/>-->
+<!--</record>-->
 
     <menuitem id="hr_holidays_resource" action="resource.action_resource_calendar_form"
         name="Working Times" parent="hr_holidays.menu_hr_holidays_configuration" groups="tg_groups.admin_user_group"/>
