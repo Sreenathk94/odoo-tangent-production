@@ -55,4 +55,15 @@
             </field>
         </field>
     </record>
+    <record id="view_employee_filter" model="ir.ui.view">
+        <field name="name">view.employee.tree.inherit.tg_hr</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='group_department']" position="after">
+                <separator/>
+                 <filter name="group_by_work_location" string="Work Location" domain="[]" context="{'group_by': 'work_location_id'}"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

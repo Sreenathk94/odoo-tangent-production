@@ -180,6 +180,10 @@
                                 string="View Calendar" type="object" icon="fa-calendar"/>
                     </div>
                 </xpath>
+                <xpath expr="//field[@name='holiday_type']" position="after">
+                    <field name="is_leave_of_team_lead" invisible="1"/>
+
+                </xpath>
             </field>
         </record>
 
