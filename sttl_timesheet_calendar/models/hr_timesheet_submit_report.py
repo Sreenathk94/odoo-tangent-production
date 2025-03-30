@@ -34,49 +34,82 @@ class HrTimesheetSubmitReport(models.TransientModel):
             if submit_ids:
                 submit_line_ids = self.env['hr.timesheet.submit.line'].search([('submit_id','in',submit_ids),('submit_status','=',self.submit_status)])
                 self.line_ids = submit_line_ids.ids
-    
+
     def action_xls_report(self):
         workbook = xlwt.Workbook(encoding="UTF-8")
-        format3 = xlwt.easyxf('font:name Calibri;align: horiz center;borders: left thin, right thin, top thin, bottom thin;')
-        format4 = xlwt.easyxf('font:name Calibri;align: horiz left;borders: left thin, right thin, top thin, bottom thin;')
-        format5 = xlwt.easyxf('font:bold True,name Calibri, height 120;align: horiz left;borders: left thin, right thin, top thin, bottom thin;')
-        format6 = xlwt.easyxf('font:bold True,name Calibri;align: horiz center;borders: left thin, right thin, top thin, bottom thin;')
-        format7 = xlwt.easyxf('pattern: pattern solid,fore-colour green;borders: left thin, right thin, top thin, bottom thin;')
-        format8 = xlwt.easyxf('pattern: pattern solid,fore-colour light_yellow;borders: left thin, right thin, top thin, bottom thin;')
-        
-        sheet = workbook.add_sheet('Employee timesheet submission report')
+        format3 = xlwt.easyxf(
+            'font:name Calibri;align: horiz center;borders: left thin, right thin, top thin, bottom thin;')
+        format4 = xlwt.easyxf(
+            'font:name Calibri;align: horiz left;borders: left thin, right thin, top thin, bottom thin;')
+        format5 = xlwt.easyxf(
+            'font:bold True,name Calibri, height 120;align: horiz left;borders: left thin, right thin, top thin, bottom thin;')
+        format6 = xlwt.easyxf(
+            'font:bold True,name Calibri;align: horiz center;borders: left thin, right thin, top thin, bottom thin;')
+        format7 = xlwt.easyxf(
+            'pattern: pattern solid,fore-colour green;borders: left thin, right thin, top thin, bottom thin;')
+        format8 = xlwt.easyxf(
+            'pattern: pattern solid,fore-colour light_yellow;borders: left thin, right thin, top thin, bottom thin;')
+        format9 = xlwt.easyxf(
+            'pattern: pattern solid,fore-colour grey25;borders: left thin, right thin, top thin, bottom thin;')
+
+        sheet = workbook.add_sheet('Employee Timesheet Submission Report')
         sheet.write(1, 0, 'S NO', format6)
         sheet.write(1, 1, 'Employee Name', format6)
-        sheet.col(1).width = int(45*260)
-        i=2;j=2;submit_list = []
-        submit_list = self.env['hr.timesheet.submit'].search([]).filtered(lambda a: a.from_date >= self.from_date and a.to_date <= self.to_date).ids
-        submit_list.append(self.env['hr.timesheet.submit'].search([('from_date','<=',self.from_date),('to_date','>=',self.from_date)],limit=1).id)
-        submit_list.append(self.env['hr.timesheet.submit'].search([('from_date','<=',self.to_date),('to_date','>=',self.to_date)],limit=1).id)
-        submit_ids = self.env['hr.timesheet.submit'].search([('id','in',submit_list)],order='id asc')
+        sheet.col(1).width = int(45 * 260)
+
+        i = 2  # Start from column 2 for timesheet submissions
+        j = 2
+        submit_list = []
+
+        submit_list = self.env['hr.timesheet.submit'].search([]).filtered(
+            lambda a: a.from_date >= self.from_date and a.to_date <= self.to_date).ids
+        submit_list.append(self.env['hr.timesheet.submit'].search(
+            [('from_date', '<=', self.from_date), ('to_date', '>=', self.from_date)], limit=1).id)
+        submit_list.append(
+            self.env['hr.timesheet.submit'].search([('from_date', '<=', self.to_date), ('to_date', '>=', self.to_date)],
+                                                   limit=1).id)
+
+        submit_ids = self.env['hr.timesheet.submit'].search([('id', 'in', submit_list)], order='id asc')
+
         for sub in submit_ids:
             sheet.write(1, i, sub.name, format5)
-            sheet.col(i).width = int(18*260)
-            i+=1
-        sheet.write_merge(0, 0, 0, i-1, 'Employee Timesheet Submission Report'+' - Week of('+str(self.from_date.strftime('%d-%m-%Y'))+' to '+str(self.to_date.strftime('%d-%m-%Y'))+')', format6)
-        employee_ids = self.env['hr.timesheet.submit.line'].search([('submit_id','in',submit_ids.ids)]).mapped('employee_id')
+            sheet.col(i).width = int(18 * 260)
+            i += 1
+
+        sheet.write_merge(0, 0, 0, i - 1, 'Employee Timesheet Submission Report - Week of(' + str(
+            self.from_date.strftime('%d-%m-%Y')) + ' to ' + str(self.to_date.strftime('%d-%m-%Y')) + ')', format6)
+
+        employee_ids = self.env['hr.timesheet.submit.line'].search([('submit_id', 'in', submit_ids.ids)]).mapped(
+            'employee_id')
+
         for employee in employee_ids:
-            sheet.write(j, 0, j-1, format3)
+            sheet.write(j, 0, j - 1, format3)
             sheet.write(j, 1, employee.name, format4)
-            i=2
+
+            i = 2
             for sub in submit_ids:
-                line_id = self.env['hr.timesheet.submit.line'].search([('employee_id','=',employee.id),('submit_id','=',sub.id)])
-                if line_id.submit_status == 'submit':
-                    sheet.write(j, i, '', format7)
-                else:
-                    sheet.write(j, i, '', format8)
-                i+=1
-            j+=1   
+                line_id = self.env['hr.timesheet.submit.line'].search(
+                    [('employee_id', '=', employee.id), ('submit_id', '=', sub.id)], limit=1)
+
+                leave_taken = self.env['hr.leave'].search([
+                    ('employee_id', '=', employee.id),
+                    ('request_date_from', '<=', sub.to_date),
+                    ('request_date_to', '>=', sub.from_date),
+                    ('state', '=', 'validate')
+                ])
+
+                cell_format = format9 if leave_taken else (format7 if line_id.submit_status == 'submit' else format8)
+                sheet.write(j, i, '', cell_format)
+                i += 1
+            j += 1
+
         fp = BytesIO()
-        workbook.save(fp)     
+        workbook.save(fp)
         self.write({'excel_file': base64.b64encode(fp.getvalue())})
         return {
             'type': 'ir.actions.act_url',
-            'url': 'web/content/?model=hr.timesheet.submit.report&field=excel_file&download=true&id=%s&filename=%s' % (self.id, 'Employee timesheet submission report.xls'),
+            'url': 'web/content/?model=hr.timesheet.submit.report&field=excel_file&download=true&id=%s&filename=%s' % (
+                self.id, 'Employee_Timesheet_Submission_Report.xls'),
             'target': 'new',
         }
             
