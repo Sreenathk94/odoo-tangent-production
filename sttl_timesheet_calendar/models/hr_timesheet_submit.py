@@ -140,7 +140,7 @@ class HrTimesheetSubmitWizard(models.TransientModel):
         
     submit_line_ids = fields.Many2many('hr.timesheet.submit.line', compute='_compute_submit_line_ids')
     employee_id = fields.Many2one('hr.employee', "Employee", domain=_domain_employee_id)
-    submit_id = fields.Many2one('hr.timesheet.submit', string='Submission Duration', domain="[('id', 'in', submit_line_ids)]")
+    submit_id = fields.Many2one('hr.timesheet.submit', string='Submission Duration')
     total_hrs = fields.Float('Worked Hours (HH:MM)', compute='_compute_total_hours')
     
     @api.depends('employee_id','submit_id')
@@ -159,7 +159,7 @@ class HrTimesheetSubmitWizard(models.TransientModel):
                 ('employee_id','=',self.employee_id.id),
                 ('submit_status','!=','submit')
             ]).submit_id.ids
-            
+
     def lock(self):
         submit_id = self.env['hr.timesheet.submit.line'].search([('employee_id','=',self.employee_id.id),('submit_id','=',self.submit_id.id),('submit_status','=','not_submit')])
         if not submit_id:
