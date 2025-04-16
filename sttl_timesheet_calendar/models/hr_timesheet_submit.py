@@ -140,7 +140,7 @@ class HrTimesheetSubmitWizard(models.TransientModel):
         
     submit_line_ids = fields.Many2many('hr.timesheet.submit.line', compute='_compute_submit_line_ids')
     employee_id = fields.Many2one('hr.employee', "Employee", domain=_domain_employee_id)
-    submit_id = fields.Many2one('hr.timesheet.submit', string='Submission Duration')
+    submit_id = fields.Many2one('hr.timesheet.submit', string='Submission Duration', domain="[('id', 'in', submit_line_ids)]") #BUG: Had issue in listing retained the domain
     total_hrs = fields.Float('Worked Hours (HH:MM)', compute='_compute_total_hours')
     
     @api.depends('employee_id','submit_id')
