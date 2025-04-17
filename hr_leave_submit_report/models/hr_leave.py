@@ -1,4 +1,4 @@
-from odoo import api, models, fields
+from odoo import api, models, fields, _
 from datetime import datetime, time
 
 from odoo.exceptions import ValidationError, AccessDenied
@@ -75,3 +75,17 @@ class HrLeave(models.Model):
                 'target': 'new',
                 'context': {'active_id': self.id},
             }
+
+    @api.depends('number_of_hours_display', 'number_of_days_display', 'request_unit_half', 'leave_type_request_unit')
+    def _compute_duration_display(self):
+        """
+        Compute the human-readable duration string for a leave request.
+
+        If the leave is based on hours or days, display the rounded value with appropriate units.
+        If the leave is a half-day request (request_unit_half is True and leave_type_request_unit is 'half_day'),
+        override the display to show '0.5 days' regardless of the actual computed number of days.
+        """
+        super()._compute_duration_display()
+        for leave in self:
+            if leave.leave_type_request_unit == 'half_day' and leave.request_unit_half:
+                leave.duration_display = '0.5 %s' % _('days')
