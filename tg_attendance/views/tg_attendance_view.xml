@@ -341,7 +341,7 @@
                                             <t t-elif="line == 'lunch_claim'">
                                                 <t t-set="from" t-value="data[1]"/>
                                                 <t t-set="to" t-value="data[2]"/>
-                                                <a t-if="data[3]" t-attf-href="{{ctx['base_url']}}&amp;from={{from}}&amp;to={{to}}&amp;index={{index}}&amp;lunch=1" style="display: inline-block; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim</a>
+                                                <a t-if="data[3]" t-attf-href="{{ctx['base_url']}}&amp;from={{from}}&amp;to={{to}}&amp;index={{index}}&amp;lunch=1" style="visibility: hidden; padding: 10px 20px; color: #007bff; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Claim</a>
                                            </t>
                                             <t t-else="">
                                                  <t t-out="line"/>
