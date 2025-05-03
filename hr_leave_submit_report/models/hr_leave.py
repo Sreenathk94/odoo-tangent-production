@@ -89,3 +89,16 @@ class HrLeave(models.Model):
         for leave in self:
             if leave.leave_type_request_unit == 'half_day' and leave.request_unit_half:
                 leave.duration_display = '0.5 %s' % _('days')
+
+    def _get_leaves_on_public_holiday(self):
+        """
+        Return leaves on public holidays where the number of hours is zero.
+
+        This method overrides the parent implementation to further filter
+        the leaves returned by the superclass method, excluding those with
+        any hours logged (i.e., keeps only leaves with 0 hours).
+
+        Returns:
+            recordset: Filtered leave records with zero `number_of_hours`.
+        """
+        return super()._get_leaves_on_public_holiday().filtered(lambda l: not l.number_of_hours)
