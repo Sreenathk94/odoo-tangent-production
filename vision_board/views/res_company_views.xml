@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Privacy Policy Section -->
+        <record id="view_res_company_form_inherit_privacy" model="ir.ui.view">
+            <field name="name">res.company.form.inherit.privacy.policy</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='branches']" position="after">
+                    <page string="Privacy Policy" name="privacy_policy">
+                        <group>
+                            <group string="Privacy Policy Document">
+                                <field name="privacy_policy_pdf" filename="privacy_policy_filename"/>
+                                <field name="privacy_policy_filename" invisible="1"/>
+                                <field name="privacy_policy_last_updated" readonly="1"/>
+                            </group>
+                            <group string="Privacy Policy Content">
+                                <field name="privacy_policy_content" widget="html"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

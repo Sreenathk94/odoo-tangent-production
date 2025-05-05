@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="EmployeeDashboard">
+        <div class="o_employee_dashboard">
+            <t t-if="state.loading">
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading employee data...</p>
+                </div>
+            </t>
+            <t t-elif="state.error">
+                <div class="alert alert-danger" role="alert">
+                    <t t-esc="state.error"/>
+                </div>
+            </t>
+            <t t-elif="!state.data || !state.data.employee_info">
+                <div class="alert alert-warning" role="alert">
+                    No employee data available.
+                </div>
+            </t>
+            <t t-else="">
+                <!-- Employee Greeting Section -->
+                <div class="o_employee_greeting mb-4 bg-white p-4 rounded shadow-sm">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center">
+                                <div class="me-4">
+                                    <t t-if="state.data.employee_info.image_1920">
+                                        <img t-att-src="'data:image/png;base64,' + state.data.employee_info.image_1920"
+                                             class="rounded-circle border border-primary"
+                                             style="width: 100px; height: 100px; object-fit: cover;"/>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="rounded-circle bg-primary border border-primary" 
+                                             style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                                            <span class="text-white" style="font-size: 2.5rem;">
+                                                <t t-esc="state.data.employee_info.name ? state.data.employee_info.name.charAt(0) : '?'"/>
+                                            </span>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div>
+                                    <h2 class="mb-2 text-primary">Hello, <t t-esc="state.data.employee_info.name || 'Employee'"/></h2>
+                                    <p class="text-muted mb-1 fs-5">
+                                        <i class="fa fa-briefcase me-2"/> <t t-esc="state.data.employee_info.job_title || 'Employee'"/>
+                                    </p>
+                                    <p class="text-muted mb-1">
+                                        <i class="fa fa-building me-2"/> <t t-esc="state.data.employee_info.department?.name || 'Not Assigned'"/>
+                                    </p>
+                                    <p class="text-muted">
+                                        <i class="fa fa-calendar me-2"/> Joined 
+                                        <t t-esc="state.data.employee_info.time_since_joining?.years || 0"/> years and 
+                                        <t t-esc="state.data.employee_info.time_since_joining?.months || 0"/> months ago
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                                        <i class="fa fa-envelope text-primary me-2"/>
+                                        <div class="small">
+                                            <div class="text-muted">Email</div>
+                                            <div class="text-truncate" style="max-width: 150px;">
+                                                <t t-esc="state.data.employee_info.work_email || 'Not Available'"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                                        <i class="fa fa-phone text-primary me-2"/>
+                                        <div class="small">
+                                            <div class="text-muted">Phone</div>
+                                            <div class="text-truncate" style="max-width: 150px;">
+                                                <t t-esc="state.data.employee_info.mobile_phone || 'Not Available'"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                                        <i class="fa fa-map-marker text-primary me-2"/>
+                                        <div class="small">
+                                            <div class="text-muted">Location</div>
+                                            <div class="text-truncate" style="max-width: 150px;">
+                                                <t t-esc="state.data.employee_info.work_location || 'Not Available'"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                                        <i class="fa fa-user text-primary me-2"/>
+                                        <div class="small">
+                                            <div class="text-muted">Manager</div>
+                                            <div class="text-truncate" style="max-width: 150px;">
+                                                <t t-esc="state.data.employee_info.parent_id || 'Not Assigned'"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs Section -->
+                <div class="bg-white rounded shadow-sm">
+                    <ul class="nav nav-tabs px-4 pt-3" role="tablist">
+                        <li class="nav-item">
+                            <a t-att-class="'nav-link ' + (state.activeTab === 'attendance' ? 'active' : '')"
+                               t-on-click="() => this.switchTab('attendance')"
+                               href="#" role="tab">
+                               <i class="fa fa-clock-o me-2"/> Attendance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a t-att-class="'nav-link ' + (state.activeTab === 'leave' ? 'active' : '')"
+                               t-on-click="() => this.switchTab('leave')"
+                               href="#" role="tab">
+                               <i class="fa fa-calendar-check-o me-2"/> Leave
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a t-att-class="'nav-link ' + (state.activeTab === 'project' ? 'active' : '')"
+                               t-on-click="() => this.switchTab('project')"
+                               href="#" role="tab">
+                               <i class="fa fa-tasks me-2"/> Projects
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content p-4">
+                        <t t-if="state.activeTab === 'attendance'">
+                            <div class="o_attendance_tab">
+                                <div class="row g-4">
+                                    <div class="col-md-4">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-primary">
+                                                    <i class="fa fa-sign-in me-2"/> Today's Check In
+                                                </h5>
+                                                <p class="card-text fs-4" t-esc="state.data.attendance?.check_in || 'Not checked in'"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-primary">
+                                                    <i class="fa fa-sign-out me-2"/> Today's Check Out
+                                                </h5>
+                                                <p class="card-text fs-4" t-esc="state.data.attendance?.check_out || 'Not checked out'"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-primary">
+                                                    <i class="fa fa-clock-o me-2"/> Total Worked Hours
+                                                </h5>
+                                                <p class="card-text fs-4" t-esc="state.data.attendance?.worked_hours || '0'"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                        <t t-elif="state.activeTab === 'leave'">
+                            <div class="o_leave_tab">
+                                <div class="row g-4">
+                                    <div class="col-md-8">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                                    <h5 class="card-title text-primary mb-0">
+                                                        <i class="fa fa-list me-2"/> Leave Summary
+                                                    </h5>
+                                                    <div class="text-muted">
+                                                        <i class="fa fa-calendar me-2"/>
+                                                        <t t-esc="getMonthOptions().find(m => m.value === state.selectedMonth)?.label || ''"/>
+                                                        <t t-esc="state.selectedYear"/>
+                                                    </div>
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Leave Type</th>
+                                                                <th>Available</th>
+                                                                <th>Taken</th>
+                                                                <th>Remaining</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <t t-foreach="state.data.leave?.leaves || []" t-as="leave" t-key="leave.name">
+                                                                <tr>
+                                                                    <td><t t-esc="leave.name"/></td>
+                                                                    <td><t t-esc="leave.available"/></td>
+                                                                    <td><t t-esc="leave.taken"/></td>
+                                                                    <td><t t-esc="leave.remaining"/></td>
+                                                                </tr>
+                                                            </t>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="row g-4">
+                                            <div class="col-12">
+                                                <div class="card border-0 bg-light">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title text-primary">
+                                                            <i class="fa fa-check-circle me-2"/> Approved Leaves
+                                                        </h5>
+                                                        <p class="card-text fs-4" t-esc="state.data.leave?.approved_count || 0"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="card border-0 bg-light">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title text-primary">
+                                                            <i class="fa fa-hourglass-half me-2"/> Leaves to Approve
+                                                        </h5>
+                                                        <p class="card-text fs-4" t-esc="state.data.leave?.to_approve_count || 0"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                        <t t-elif="state.activeTab === 'project'">
+                            <div class="o_project_tab">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Project</th>
+                                                        <th>Time Spent</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="state.data.projects || []" t-as="project" t-key="project.id">
+                                                        <tr>
+                                                            <td><t t-esc="project.name"/></td>
+                                                            <td><t t-esc="project.time_spent"/></td>
+                                                            <td><t t-esc="project.status"/></td>
+                                                            <td>
+                                                                <button t-on-click="() => this.viewProject(project.id)"
+                                                                        class="btn btn-primary btn-sm">
+                                                                    <i class="fa fa-eye me-1"/> View
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="AttendanceTab">
+        <div class="o_attendance_tab">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Today's Check In</h5>
+                            <p class="card-text" t-esc="check_in || 'Not checked in'"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Today's Check Out</h5>
+                            <p class="card-text" t-esc="check_out || 'Not checked out'"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Worked Hours</h5>
+                            <p class="card-text" t-esc="worked_hours || '0'"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="LeaveTab">
+        <div class="o_leave_tab">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Leave Summary</h5>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Leave Type</th>
+                                            <th>Available</th>
+                                            <th>Taken</th>
+                                            <th>Remaining</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="leaves" t-as="leave">
+                                            <tr>
+                                                <td><t t-esc="leave.name"/></td>
+                                                <td><t t-esc="leave.available"/></td>
+                                                <td><t t-esc="leave.taken"/></td>
+                                                <td><t t-esc="leave.remaining"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Approved Leaves</h5>
+                                    <p class="card-text" t-esc="approved_count"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Leaves to Approve</h5>
+                                    <p class="card-text" t-esc="to_approve_count"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ProjectTab">
+        <div class="o_project_tab">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Time Spent</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="projects" t-as="project">
+                            <tr>
+                                <td><t t-esc="project.name"/></td>
+                                <td><t t-esc="project.time_spent"/></td>
+                                <td><t t-esc="project.status"/></td>
+                                <td>
+                                    <a t-att-href="'/web#id=' + project.id + '&amp;model=project.project&amp;view_type=form'" 
+                                       class="btn btn-primary btn-sm">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+</templates>

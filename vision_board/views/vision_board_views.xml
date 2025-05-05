@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Action for Employee Dashboard -->
+    <record id="action_employee_dashboard" model="ir.actions.client">
+        <field name="name">Employee Dashboard</field>
+        <field name="tag">vision_board.employee_dashboard</field>
+    </record>
+
+    <!-- Action for Privacy Policy Dashboard -->
+    <record id="action_privacy_policy_dashboard" model="ir.actions.client">
+        <field name="name">Privacy Policy</field>
+        <field name="tag">vision_board.privacy_policy_dashboard</field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_vision_board_root"
+              name="Vision Board"
+              sequence="10"/>
+
+    <menuitem id="menu_employee_dashboard"
+              name="Employee Dashboard"
+              parent="menu_vision_board_root"
+              action="action_employee_dashboard"
+              sequence="10"/>
+
+    <menuitem id="menu_privacy_policy_dashboard"
+              name="Privacy Policy"
+              parent="menu_vision_board_root"
+              action="action_privacy_policy_dashboard"
+              sequence="20"/>
+</odoo>
