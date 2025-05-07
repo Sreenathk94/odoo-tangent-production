@@ -24,5 +24,23 @@
             </field>
         </record>
 
+        <record id="view_company_form_inherit" model="ir.ui.view">
+            <field name="name">res.company.form.inherit</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Dashboard Settings" name="dashboard_settings">
+                        <group>
+                            <group string="Work Hours">
+                                <field name="daily_work_hour_dashboard"/>
+                                <field name="monthly_working_days"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
     </data>
 </odoo>

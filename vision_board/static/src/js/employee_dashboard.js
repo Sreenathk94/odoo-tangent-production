@@ -2,7 +2,8 @@
 
 import { registry } from '@web/core/registry';
 import { useService } from '@web/core/utils/hooks';
-import { Component, onMounted, useState } from '@odoo/owl';
+import { Component, onMounted, useState,onWillStart } from '@odoo/owl';
+import {loadJS} from "@web/core/assets";
 
 class EmployeeDashboard extends Component {
     setup() {
@@ -51,6 +52,11 @@ class EmployeeDashboard extends Component {
         this.rpc = useService('rpc');
         this.orm = useService('orm');
         this.action = useService('action');
+        this.leaveChart = null;
+
+        onWillStart(async () => {
+            await loadJS('https://cdn.jsdelivr.net/npm/chart.js');
+        });
 
         onMounted(() => {
             this.loadEmployeeData();
@@ -71,6 +77,8 @@ class EmployeeDashboard extends Component {
                 // Update state with current date
                 this.state.selectedMonth = currentDate.getMonth() + 1;
                 this.state.selectedYear = currentDate.getFullYear();
+                // Initialize leave chart after data is loaded
+                this.initializeLeaveChart();
             }
         } catch (error) {
             this.state.error = "Failed to load employee data.";
@@ -82,6 +90,12 @@ class EmployeeDashboard extends Component {
 
     switchTab(tab) {
         this.state.activeTab = tab;
+        if (tab === 'leave' && this.state.data.leave) {
+            // Initialize chart when switching to leave tab
+            setTimeout(() => {
+                this.initializeLeaveChart();
+            }, 100);
+        }
     }
 
     async viewProject(projectId) {
@@ -145,6 +159,107 @@ class EmployeeDashboard extends Component {
         } finally {
             this.state.loading = false;
         }
+    }
+
+    initializeLeaveChart() {
+        console.log("initializeLeaveChart");
+        const ctx = document.getElementById('leaveChart');
+        if (!ctx) {
+            console.log("Canvas element not found");
+            return;
+        }
+
+        if (this.leaveChart) {
+            this.leaveChart.destroy();
+        }
+
+        // Prepare chart data from leaves
+        const leaves = this.state.data.leave.leaves;
+        if (!leaves || leaves.length === 0) {
+            console.log("No leave data available");
+            return;
+        }
+
+        console.log("Leave data:", leaves);
+        
+        // Get all months for x-axis
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        // Create datasets for each leave type
+        const datasets = leaves.map((leave, index) => ({
+            label: leave.name,
+            data: leave.monthly_data || Array(12).fill(0), // Use actual monthly data or zeros if not available
+            backgroundColor: this.getRandomColor(index),
+            borderColor: this.getRandomColor(index),
+            borderWidth: 1
+        }));
+
+        this.leaveChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Months'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Days Taken'
+                        },
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw} days`;
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Leave Distribution by Month and Type'
+                    }
+                }
+            }
+        });
+    }
+
+    getRandomColor(index) {
+        const colors = [
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(255, 206, 86, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+            'rgba(153, 102, 255, 0.7)',
+            'rgba(255, 159, 64, 0.7)',
+            'rgba(199, 199, 199, 0.7)',
+            'rgba(83, 102, 255, 0.7)',
+            'rgba(40, 159, 64, 0.7)',
+            'rgba(210, 199, 199, 0.7)'
+        ];
+        return colors[index % colors.length];
     }
 }
 

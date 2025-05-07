@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="EmployeeDashboard">
-        <div class="o_employee_dashboard">
+        <div class="o_employee_dashboard dark-theme">
             <t t-if="state.loading">
                 <div class="text-center p-5">
                     <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">Loading...</span>
+                        <span class="sr-only"/>
                     </div>
                     <p class="mt-2">Loading employee data...</p>
                 </div>
@@ -22,7 +22,7 @@
             </t>
             <t t-else="">
                 <!-- Employee Greeting Section -->
-                <div class="o_employee_greeting mb-4 bg-white p-4 rounded shadow-sm">
+                <div class="o_employee_greeting mb-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <div class="d-flex align-items-center">
@@ -42,7 +42,7 @@
                                     </t>
                                 </div>
                                 <div>
-                                    <h2 class="mb-2 text-primary">Hello, <t t-esc="state.data.employee_info.name || 'Employee'"/></h2>
+                                    <h2 class="mb-2 text-white">Hello, <t t-esc="state.data.employee_info.name || 'Employee'"/></h2>
                                     <p class="text-muted mb-1 fs-5">
                                         <i class="fa fa-briefcase me-2"/> <t t-esc="state.data.employee_info.job_title || 'Employee'"/>
                                     </p>
@@ -60,8 +60,8 @@
                         <div class="col-md-4">
                             <div class="row g-3">
                                 <div class="col-6">
-                                    <div class="d-flex align-items-center p-2 bg-light rounded">
-                                        <i class="fa fa-envelope text-primary me-2"/>
+                                    <div class="info-card">
+                                        <i class="fa fa-envelope"/>
                                         <div class="small">
                                             <div class="text-muted">Email</div>
                                             <div class="text-truncate" style="max-width: 150px;">
@@ -71,8 +71,8 @@
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="d-flex align-items-center p-2 bg-light rounded">
-                                        <i class="fa fa-phone text-primary me-2"/>
+                                    <div class="info-card">
+                                        <i class="fa fa-phone"/>
                                         <div class="small">
                                             <div class="text-muted">Phone</div>
                                             <div class="text-truncate" style="max-width: 150px;">
@@ -82,8 +82,8 @@
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="d-flex align-items-center p-2 bg-light rounded">
-                                        <i class="fa fa-map-marker text-primary me-2"/>
+                                    <div class="info-card">
+                                        <i class="fa fa-map-marker"/>
                                         <div class="small">
                                             <div class="text-muted">Location</div>
                                             <div class="text-truncate" style="max-width: 150px;">
@@ -93,8 +93,8 @@
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="d-flex align-items-center p-2 bg-light rounded">
-                                        <i class="fa fa-user text-primary me-2"/>
+                                    <div class="info-card">
+                                        <i class="fa fa-user"/>
                                         <div class="small">
                                             <div class="text-muted">Manager</div>
                                             <div class="text-truncate" style="max-width: 150px;">
@@ -109,8 +109,8 @@
                 </div>
 
                 <!-- Tabs Section -->
-                <div class="bg-white rounded shadow-sm">
-                    <ul class="nav nav-tabs px-4 pt-3" role="tablist">
+                <div class="dashboard-container">
+                    <ul class="nav nav-tabs" role="tablist">
                         <li class="nav-item">
                             <a t-att-class="'nav-link ' + (state.activeTab === 'attendance' ? 'active' : '')"
                                t-on-click="() => this.switchTab('attendance')"
@@ -133,37 +133,111 @@
                             </a>
                         </li>
                     </ul>
-                    <div class="tab-content p-4">
+                    <div class="tab-content">
                         <t t-if="state.activeTab === 'attendance'">
                             <div class="o_attendance_tab">
                                 <div class="row g-4">
                                     <div class="col-md-4">
-                                        <div class="card border-0 bg-light">
-                                            <div class="card-body">
-                                                <h5 class="card-title text-primary">
-                                                    <i class="fa fa-sign-in me-2"/> Today's Check In
+                                        <div class="stat-card">
+                                            <div class="stat-card-body">
+                                                <h5 class="stat-card-title">
+                                                    <i class="fa fa-sign-in me-2"></i> Last Check In
                                                 </h5>
-                                                <p class="card-text fs-4" t-esc="state.data.attendance?.check_in || 'Not checked in'"/>
+                                                <p class="stat-card-value" t-esc="state.data.attendance?.check_in || 'No check-in record'"/>
+                                                <small class="text-muted">Last recorded attendance</small>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="card border-0 bg-light">
-                                            <div class="card-body">
-                                                <h5 class="card-title text-primary">
-                                                    <i class="fa fa-sign-out me-2"/> Today's Check Out
+                                        <div class="stat-card">
+                                            <div class="stat-card-body">
+                                                <h5 class="stat-card-title">
+                                                    <i class="fa fa-sign-out me-2"></i> Last Check Out
                                                 </h5>
-                                                <p class="card-text fs-4" t-esc="state.data.attendance?.check_out || 'Not checked out'"/>
+                                                <p class="stat-card-value" t-esc="state.data.attendance?.check_out || 'No check-out record'"/>
+                                                <small class="text-muted">Last recorded attendance</small>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="card border-0 bg-light">
-                                            <div class="card-body">
-                                                <h5 class="card-title text-primary">
-                                                    <i class="fa fa-clock-o me-2"/> Total Worked Hours
+                                        <div class="stat-card">
+                                            <div class="stat-card-body">
+                                                <h5 class="stat-card-title">
+                                                    <i class="fa fa-clock-o me-2"></i> Total Worked Hours
                                                 </h5>
-                                                <p class="card-text fs-4" t-esc="state.data.attendance?.worked_hours || '0'"/>
+                                                <p class="stat-card-value" t-esc="state.data.attendance?.worked_hours || '0h 0m / 9h'"/>
+                                                <small class="text-muted">Last recorded day</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Weekly and Monthly Average Section -->
+                                <div class="row mt-4">
+                                    <!-- Weekly Average -->
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <div class="stat-card-body text-center">
+                                                <h6 class="stat-card-title mb-3">Last Week's Average</h6>
+                                                <div class="mb-2">
+                                                    <small class="text-muted">Period: <t t-esc="state.data.attendance?.week_date_range"/></small>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <div>
+                                                        <small class="text-muted">Your average:</small>
+                                                        <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.weekly_average"/></div>
+                                                    </div>
+                                                    <div>
+                                                        <small class="text-muted">Target:</small>
+                                                        <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.weekly_target"/></div>
+                                                    </div>
+                                                </div>
+                                                <t t-if="state.data.attendance?.meets_target">
+                                                    <div class="alert alert-success mb-0">
+                                                        <i class="fa fa-check-circle me-2"></i>
+                                                        Great job! You've met your weekly target
+                                                    </div>
+                                                </t>
+                                                <t t-else="">
+                                                    <div class="alert alert-warning mb-0">
+                                                        <i class="fa fa-exclamation-circle me-2"></i>
+                                                        You're missing <t t-esc="state.data.attendance?.hours_diff"/> from your weekly target
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Monthly Average -->
+                                    <div class="col-md-6">
+                                        <div class="stat-card">
+                                            <div class="stat-card-body text-center">
+                                                <h6 class="stat-card-title mb-3">Current Month's Total</h6>
+                                                <div class="mb-2">
+                                                    <small class="text-muted">Period: <t t-esc="state.data.attendance?.month_range"/></small>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <div>
+                                                        <small class="text-muted">Total Hours:</small>
+                                                        <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.monthly_total"/></div>
+                                                    </div>
+                                                    <div>
+                                                        <small class="text-muted">Monthly Target:</small>
+                                                        <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.monthly_target"/></div>
+                                                    </div>
+                                                </div>
+                                                <t t-if="state.data.attendance?.monthly_meets_target">
+                                                    <div class="alert alert-success mb-0">
+                                                        <i class="fa fa-check-circle me-2"></i>
+                                                        Great job! You've met your monthly target
+                                                    </div>
+                                                </t>
+                                                <t t-else="">
+                                                    <div class="alert alert-info mb-0">
+                                                        <i class="fa fa-info-circle me-2"></i>
+                                                        You need to work <t t-esc="state.data.attendance?.monthly_diff"/> more to reach your monthly target
+                                                    </div>
+                                                </t>
                                             </div>
                                         </div>
                                     </div>
@@ -172,65 +246,100 @@
                         </t>
                         <t t-elif="state.activeTab === 'leave'">
                             <div class="o_leave_tab">
-                                <div class="row g-4">
-                                    <div class="col-md-8">
-                                        <div class="card border-0 bg-light">
-                                            <div class="card-body">
-                                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                                    <h5 class="card-title text-primary mb-0">
-                                                        <i class="fa fa-list me-2"/> Leave Summary
-                                                    </h5>
-                                                    <div class="text-muted">
-                                                        <i class="fa fa-calendar me-2"/>
-                                                        <t t-esc="getMonthOptions().find(m => m.value === state.selectedMonth)?.label || ''"/>
-                                                        <t t-esc="state.selectedYear"/>
-                                                    </div>
+                                <!-- Leave Summary Cards -->
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-6">
+                                        <div class="stat-card h-100">
+                                            <div class="stat-card-body text-center">
+                                                <h5 class="stat-card-title">
+                                                    <i class="fa fa-check-circle me-2"></i> Approved Leaves
+                                                </h5>
+                                                <p class="stat-card-value mb-0" t-esc="state.data.leave?.approved_count || 0"></p>
+                                                <small class="text-muted">This Month</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stat-card h-100">
+                                            <div class="stat-card-body text-center">
+                                                <h5 class="stat-card-title">
+                                                    <i class="fa fa-hourglass-half me-2"></i> Pending Approval
+                                                </h5>
+                                                <p class="stat-card-value mb-0" t-esc="state.data.leave?.to_approve_count || 0"></p>
+                                                <small class="text-muted">This Month</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Leave Chart -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <div class="stat-card">
+                                            <div class="stat-card-body">
+                                                <h5 class="stat-card-title mb-4">
+                                                    <i class="fa fa-bar-chart me-2"/> Leave Distribution
+                                                </h5>
+                                                <div class="leave-chart-container" style="height: 400px;">
+                                                    <canvas id="leaveChart"/>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Leave Details Table -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="stat-card">
+                                            <div class="stat-card-body">
+                                                <h5 class="stat-card-title mb-4">
+                                                    <i class="fa fa-list me-2"/> Leave Balance Details
+                                                </h5>
                                                 <div class="table-responsive">
                                                     <table class="table table-hover">
                                                         <thead>
                                                             <tr>
                                                                 <th>Leave Type</th>
-                                                                <th>Available</th>
-                                                                <th>Taken</th>
-                                                                <th>Remaining</th>
+                                                                <th class="text-center">Available</th>
+                                                                <th class="text-center">Taken</th>
+                                                                <th class="text-center">Remaining</th>
+                                                                <th class="text-center">Status</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <t t-foreach="state.data.leave?.leaves || []" t-as="leave" t-key="leave.name">
                                                                 <tr>
-                                                                    <td><t t-esc="leave.name"/></td>
-                                                                    <td><t t-esc="leave.available"/></td>
-                                                                    <td><t t-esc="leave.taken"/></td>
-                                                                    <td><t t-esc="leave.remaining"/></td>
+                                                                    <td>
+                                                                        <div class="d-flex align-items-center">
+                                                                            <div class="leave-type-dot me-2" t-att-style="'background-color: ' + getRandomColor(leave_index)"/>
+                                                                            <span><t t-esc="leave.name"/></span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <span><t t-esc="leave.available"/></span>
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <span><t t-esc="leave.taken"/></span>
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <span><t t-esc="leave.remaining"/></span>
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <t t-if="leave.remaining > 0">
+                                                                            <span class="badge bg-success">Available</span>
+                                                                        </t>
+                                                                        <t t-elif="leave.remaining == 0">
+                                                                            <span class="badge bg-warning">Exhausted</span>
+                                                                        </t>
+                                                                        <t t-else="">
+                                                                            <span class="badge bg-danger">Exceeded</span>
+                                                                        </t>
+                                                                    </td>
                                                                 </tr>
                                                             </t>
                                                         </tbody>
                                                     </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="row g-4">
-                                            <div class="col-12">
-                                                <div class="card border-0 bg-light">
-                                                    <div class="card-body">
-                                                        <h5 class="card-title text-primary">
-                                                            <i class="fa fa-check-circle me-2"/> Approved Leaves
-                                                        </h5>
-                                                        <p class="card-text fs-4" t-esc="state.data.leave?.approved_count || 0"/>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-12">
-                                                <div class="card border-0 bg-light">
-                                                    <div class="card-body">
-                                                        <h5 class="card-title text-primary">
-                                                            <i class="fa fa-hourglass-half me-2"/> Leaves to Approve
-                                                        </h5>
-                                                        <p class="card-text fs-4" t-esc="state.data.leave?.to_approve_count || 0"/>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -240,8 +349,8 @@
                         </t>
                         <t t-elif="state.activeTab === 'project'">
                             <div class="o_project_tab">
-                                <div class="card border-0 bg-light">
-                                    <div class="card-body">
+                                <div class="stat-card">
+                                    <div class="stat-card-body">
                                         <div class="table-responsive">
                                             <table class="table table-hover">
                                                 <thead>
@@ -257,7 +366,11 @@
                                                         <tr>
                                                             <td><t t-esc="project.name"/></td>
                                                             <td><t t-esc="project.time_spent"/></td>
-                                                            <td><t t-esc="project.status"/></td>
+                                                            <td>
+                                                                <span t-att-class="'badge ' + (project.status === 'Active' ? 'bg-success' : 'bg-secondary')">
+                                                                    <t t-esc="project.status"/>
+                                                                </span>
+                                                            </td>
                                                             <td>
                                                                 <button t-on-click="() => this.viewProject(project.id)"
                                                                         class="btn btn-primary btn-sm">

@@ -59,27 +59,132 @@ class HrEmployee(models.Model):
         }
 
     def _get_attendance_data(self, date):
-        date_start = datetime.combine(date, datetime.min.time())
-        date_end = datetime.combine(date, datetime.max.time())
-
+        # Get the last recorded attendance for the employee
         attendance = self.env['hr.attendance'].search([
             ('employee_id', '=', self.id),
-            ('check_in', '>=', date_start),
-            ('check_in', '<=', date_end)
-        ], limit=1)
+        ], order='check_in desc', limit=1)
+
+        # Calculate previous calendar week's average
+        today = fields.Date.today()
+        current_week = today.isocalendar()[1]  # Get current week number
+        current_year = today.year
+        
+        # If we're in week 1, we need to get data from last year's last week
+        if current_week == 1:
+            last_week = 52
+            last_week_year = current_year - 1
+        else:
+            last_week = current_week - 1
+            last_week_year = current_year
+
+        # Get the date for the Monday of the previous week
+        last_week_start = datetime.strptime(f'{last_week_year}-W{last_week}-1', '%Y-W%W-%w').date()
+        last_week_end = last_week_start + timedelta(days=6)
+        
+        last_week_attendances = self.env['hr.attendance'].search([
+            ('employee_id', '=', self.id),
+            ('check_in', '>=', last_week_start),
+            ('check_in', '<=', last_week_end)
+        ])
+        
+        # Get company's daily work hours and monthly working days
+        company = self.env.company
+        daily_hours = company.daily_work_hour_dashboard or 9.0
+        monthly_working_days = company.monthly_working_days or 22
+        
+        # Calculate weekly target (5 working days)
+        weekly_target = daily_hours * 5
+        
+        # Calculate monthly target
+        monthly_target = daily_hours * monthly_working_days
+        
+        # Calculate current month's total hours
+        current_month_start = today.replace(day=1)
+        current_month_end = (current_month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        current_month_attendances = self.env['hr.attendance'].search([
+            ('employee_id', '=', self.id),
+            ('check_in', '>=', current_month_start),
+            ('check_in', '<=', current_month_end)
+        ])
+        
+        # Calculate last week's average
+        if last_week_attendances:
+            # Group attendances by date
+            daily_hours_dict = {}
+            for att in last_week_attendances:
+                date = att.check_in.date()
+                if date not in daily_hours_dict:
+                    daily_hours_dict[date] = 0
+                daily_hours_dict[date] += att.worked_hours
+            
+            # Calculate average of daily hours
+            total_days = len(daily_hours_dict)
+            total_hours = sum(daily_hours_dict.values())
+            weekly_average = total_hours / total_days if total_days > 0 else 0
+        else:
+            weekly_average = 0
+
+        # Calculate monthly total
+        monthly_total = sum(current_month_attendances.mapped('worked_hours'))
+        
+        # Format monthly values
+        monthly_hours = int(monthly_total)
+        monthly_minutes = int((monthly_total - monthly_hours) * 60)
+        monthly_formatted = f"{monthly_hours}h {monthly_minutes}m"
+        
+        monthly_target_hours = int(monthly_target)
+        monthly_target_minutes = int((monthly_target - monthly_target_hours) * 60)
+        monthly_target_formatted = f"{monthly_target_hours}h {monthly_target_minutes}m"
+        
+        # Calculate monthly difference
+        monthly_diff = monthly_total - monthly_target
+        diff_hours = int(abs(monthly_diff))
+        diff_minutes = int((abs(monthly_diff) - diff_hours) * 60)
+        monthly_diff_formatted = f"{diff_hours}h {diff_minutes}m"
 
         if attendance:
             check_in = attendance.check_in.strftime('%H:%M:%S') if attendance.check_in else False
             check_out = attendance.check_out.strftime('%H:%M:%S') if attendance.check_out else False
+            # Format worked hours to show hours and minutes
             worked_hours = attendance.worked_hours
+            hours = int(worked_hours)
+            minutes = int((worked_hours - hours) * 60)
+            worked_hours_formatted = f"{hours}h {minutes}m"
+            worked_hours_formatted += f" / {int(daily_hours)}h"
         else:
             check_in = check_out = False
-            worked_hours = 0.0
+            worked_hours_formatted = f"0h 0m / {int(daily_hours)}h"
+
+        # Format weekly average
+        weekly_avg_hours = int(weekly_average)
+        weekly_avg_minutes = int((weekly_average - weekly_avg_hours) * 60)
+        weekly_avg_formatted = f"{weekly_avg_hours}h {weekly_avg_minutes}m"
+        
+        # Calculate weekly difference from target
+        hours_diff = weekly_average - daily_hours
+        diff_hours = int(abs(hours_diff))
+        diff_minutes = int((abs(hours_diff) - diff_hours) * 60)
+        diff_formatted = f"{diff_hours}h {diff_minutes}m"
+
+        # Format date range for display
+        date_range = f"Week {last_week} ({last_week_start.strftime('%d %b')} - {last_week_end.strftime('%d %b')})"
+        month_range = f"{current_month_start.strftime('%B %Y')}"
 
         return {
             'check_in': check_in,
             'check_out': check_out,
-            'worked_hours': worked_hours
+            'worked_hours': worked_hours_formatted,
+            'weekly_average': weekly_avg_formatted,
+            'weekly_target': f"{int(weekly_target)}h",
+            'meets_target': weekly_average >= daily_hours,
+            'hours_diff': diff_formatted,
+            'week_date_range': date_range,
+            'monthly_total': monthly_formatted,
+            'monthly_target': monthly_target_formatted,
+            'monthly_meets_target': monthly_total >= monthly_target,
+            'monthly_diff': monthly_diff_formatted,
+            'month_range': month_range
         }
 
     def _get_leave_data(self, month=None, year=None):
@@ -95,6 +200,7 @@ class HrEmployee(models.Model):
 
         leave_types = self.env['hr.leave.type'].search([])
         leaves = []
+        monthly_data = {}
 
         for leave_type in leave_types:
             allocation = self.env['hr.leave.allocation'].search([
@@ -107,13 +213,26 @@ class HrEmployee(models.Model):
                 ('date_to', '=', False)
             ], limit=1)
 
+            # Get leaves for the entire year
             taken_leaves = self.env['hr.leave'].search([
                 ('employee_id', '=', employee.id),
                 ('holiday_status_id', '=', leave_type.id),
                 ('state', '=', 'validate'),
-                ('date_from', '>=', first_day),
-                ('date_to', '<=', last_day)
+                ('date_from', '>=', f'{year}-01-01'),
+                ('date_to', '<=', f'{year}-12-31')
             ])
+
+            # Calculate monthly distribution
+            monthly_distribution = [0] * 12
+            for leave in taken_leaves:
+                start_date = leave.date_from
+                end_date = leave.date_to
+                current_date = start_date
+                while current_date <= end_date:
+                    if current_date.year == year:
+                        month_index = current_date.month - 1
+                        monthly_distribution[month_index] += 1
+                    current_date += timedelta(days=1)
 
             available = allocation.number_of_days if allocation else 0
             taken = sum(taken_leaves.mapped('number_of_days'))
@@ -123,7 +242,8 @@ class HrEmployee(models.Model):
                 'name': leave_type.name,
                 'available': available,
                 'taken': taken,
-                'remaining': remaining
+                'remaining': remaining,
+                'monthly_data': monthly_distribution
             })
 
         approved_count = self.env['hr.leave'].search_count([

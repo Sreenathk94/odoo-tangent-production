@@ -26,6 +26,7 @@
         'web.assets_backend': [
             'vision_board/static/src/js/*',
             'vision_board/static/src/xml/*',
+            'vision_board/static/src/css/*',
         ],
     },
     'installable': True,

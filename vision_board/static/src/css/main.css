@@ -1,0 +1,253 @@
+/* Dashboard Container */
+.o_employee_dashboard {
+    height: 100%;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+/* Leave Tab Styles */
+.leave-type-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.o_leave_tab .card {
+    transition: transform 0.2s;
+}
+
+.o_leave_tab .card:hover {
+    transform: translateY(-2px);
+}
+
+.o_leave_tab .badge {
+    font-size: 0.9rem;
+    padding: 0.5em 0.8em;
+}
+
+.o_leave_tab .table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.o_leave_tab .table td {
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+
+.o_leave_tab .table td span {
+    font-weight: 500;
+}
+
+.o_leave_tab .display-6 {
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+.current-period-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.current-period-display .month {
+    font-weight: 400;
+}
+
+.current-period-display .year {
+    font-weight: 400;
+}
+
+/* Make sure the tab content is scrollable */
+.tab-content {
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* Ensure the leave chart container has a fixed height */
+.leave-chart-container {
+    height: 400px;
+    min-height: 400px;
+}
+
+/* Dark Theme Styles */
+.dark-theme {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.dark-theme .o_employee_greeting {
+    background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .info-card {
+    background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.2s ease;
+}
+
+.dark-theme .info-card:hover {
+    transform: translateY(-2px);
+}
+
+.dark-theme .info-card i {
+    font-size: 1.5rem;
+    color: #4a9eff;
+}
+
+.dark-theme .dashboard-container {
+    background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .nav-tabs {
+    border-bottom: 1px solid #333;
+    margin-bottom: 20px;
+}
+
+.dark-theme .nav-tabs .nav-link {
+    color: #888;
+    border: none;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+.dark-theme .nav-tabs .nav-link:hover {
+    color: #4a9eff;
+    background: transparent;
+}
+
+.dark-theme .nav-tabs .nav-link.active {
+    color: #4a9eff;
+    background: transparent;
+    border-bottom: 2px solid #4a9eff;
+}
+
+.dark-theme .stat-card {
+    background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+    border-radius: 12px;
+    padding: 20px;
+    height: 100%;
+    transition: transform 0.2s ease;
+}
+
+.dark-theme .stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.dark-theme .stat-card-title {
+    color: #4a9eff;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.dark-theme .stat-card-value {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.dark-theme .table {
+    color: #ffffff;
+}
+
+.dark-theme .table thead th {
+    border-bottom: 2px solid #333;
+    color: #888;
+    font-weight: 600;
+}
+
+.dark-theme .table tbody tr {
+    border-bottom: 1px solid #333;
+}
+
+.dark-theme .table tbody tr:hover {
+    background-color: #2a2a2a;
+}
+
+.dark-theme .badge {
+    padding: 6px 12px;
+    font-weight: 500;
+}
+
+.dark-theme .alert {
+    background: rgba(74, 158, 255, 0.1);
+    border: none;
+    color: #4a9eff;
+}
+
+.dark-theme .alert-success {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.dark-theme .alert-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.dark-theme .alert-info {
+    background: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
+}
+
+.dark-theme .btn-primary {
+    background: #4a9eff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.dark-theme .btn-primary:hover {
+    background: #357abd;
+    transform: translateY(-1px);
+}
+
+.dark-theme .leave-type-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dark-theme .text-muted {
+    color: #888 !important;
+}
+
+/* Chart Styles */
+.dark-theme .leave-chart-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .dark-theme {
+        padding: 10px;
+    }
+    
+    .dark-theme .stat-card {
+        margin-bottom: 15px;
+    }
+    
+    .dark-theme .stat-card-value {
+        font-size: 1.5rem;
+    }
+} 
