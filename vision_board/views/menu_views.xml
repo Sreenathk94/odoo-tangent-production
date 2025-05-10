@@ -5,7 +5,7 @@
         <menuitem id="menu_vision_board_root"
                   name="Vision Board"
                   web_icon="vision_board,static/description/icon.png"
-                  sequence="10"/>
+                  sequence="2"/>
 
         <menuitem id="menu_vision_board_employee"
                   name="Employee"
