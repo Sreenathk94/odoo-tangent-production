@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
+from datetime import timedelta
 
 
 class HrLeave(models.Model):
@@ -46,3 +47,17 @@ class HrLeave(models.Model):
                 raise UserError("Team leads cannot approve their own leave request.")
 
         return super(HrLeave, self).action_approve(check_state)
+
+    @api.constrains('holiday_status_id', 'date_from')
+    def _check_probation_period(self):
+        for record in self:
+            if not record.employee_id or not record.date_from or not record.holiday_status_id:
+                continue
+            # Check only for Annual Leave
+            if record.holiday_status_id.code == 'AL':
+                # Use contract start date (if defined) or fallback to employee join date
+                joining_date = record.employee_id.date_of_join
+                if not joining_date:
+                    raise UserError("Missing joining date")
+                if record.date_from.date() < joining_date + timedelta(days=180):
+                    raise UserError("Annual leave is not allowed during the probation period (first 6 months).")

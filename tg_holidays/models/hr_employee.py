@@ -1,6 +1,7 @@
 from odoo import api, models
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from datetime import date
 
 
 class HrEmployee(models.Model):
@@ -69,3 +70,113 @@ class HrEmployee(models.Model):
     @api.onchange('parent_id')
     def _onchange_manager_approver(self):
         self.leave_manager_id = self.parent_id.user_id.id
+
+    def _accrue_daily_probation_leave(self):
+        leave_type = self.env['hr.leave.type'].search([('code', '=', 'AL')], limit=1)
+        if not leave_type or leave_type.request_unit != 'hour':
+            return
+
+        today = date.today()
+        current_month_start = today.replace(day=1)
+        six_months_ago = today - relativedelta(months=6)
+
+        # --- PART 1: Monthly accrual during probation ---
+        probation_employees = self.search([
+            ('date_of_join', '>=', six_months_ago),
+            ('date_of_join', '<=', today),
+        ])
+
+        for employee in probation_employees:
+            existing_allocation = self.env['hr.leave.allocation'].search([
+                ('employee_id', '=', employee.id),
+                ('state', '!=', 'refuse'),
+                ('holiday_status_id', '=', leave_type.id),
+                ('is_probation_accrual', '=', True),
+                ('create_date', '>=', current_month_start),
+            ], limit=1)
+
+            if not existing_allocation:
+                self.env['hr.leave.allocation'].create({
+                    'name': f'Probation Monthly Allocation ({today.strftime("%B %Y")}-{employee.name})',
+                    'employee_id': employee.id,
+                    'employee_ids': [(6, 0, [employee.id])],
+                    'holiday_status_id': leave_type.id,
+                    'number_of_days': 1.83,
+                    'allocation_type': 'regular',
+                    'is_probation_accrual': True,
+                })
+
+        # --- PART 2: Pro-rated annual leave post probation completion ---
+        post_probation_employees = self.search([
+            ('date_of_join', '!=', False),
+        ])
+
+        for employee in post_probation_employees:
+            probation_end_date = employee.date_of_join + relativedelta(months=6)
+            if probation_end_date != today:
+                continue
+
+            existing_post_alloc = self.env['hr.leave.allocation'].search([
+                ('employee_id', '=', employee.id),
+                ('state', '!=', 'refuse'),
+                ('holiday_status_id', '=', leave_type.id),
+                ('is_post_probation_allocation', '=', True),
+            ], limit=1)
+
+            if existing_post_alloc:
+                continue
+
+            # Leave accrual for remaining months (excluding the probation end month)
+            months_remaining = 12 - probation_end_date.month
+
+            if months_remaining <= 0:
+                continue  # No allocation needed
+            self.env['hr.leave.allocation'].create({
+                'name': f'Post-Probation Annual Allocation ({today.year}-{employee.name})',
+                'employee_id': employee.id,
+                'employee_ids': [(6, 0, [employee.id])],
+                'holiday_status_id': leave_type.id,
+                'number_of_days': 1.83 * months_remaining,
+                'allocation_type': 'regular',
+                'is_post_probation_allocation': True,
+            })
+
+    def _allocate_annual_leave_post_probation(self):
+        leave_type = self.env['hr.leave.type'].search([('code', '=', 'AL')], limit=1)
+        if not leave_type or leave_type.request_unit != 'hour':
+            return
+
+        today = date.today()
+        probation_cutoff = today - relativedelta(months=6)
+
+        eligible_employees = self.search([
+            ('date_of_join', '!=', False),
+            ('date_of_join', '<=', probation_cutoff),
+        ])
+
+        # Filter out employees who already received an annual allocation this year
+        employees_to_allocate = []
+        for emp in eligible_employees:
+            existing = self.env['hr.leave.allocation'].search([
+                ('employee_id', '=', emp.id),
+                ('holiday_status_id', '=', leave_type.id),
+                ('is_annual_allocation', '=', True),
+                ('create_date', '>=', today.replace(month=1, day=1)),
+            ], limit=1)
+            if not existing:
+                employees_to_allocate.append(emp.id)
+
+        if not employees_to_allocate:
+            return
+
+        # Create a single batch allocation
+        self.env['hr.leave.allocation'].create({
+            'name': f'Annual Leave Allocation ({today.year})',
+            'employee_id': 118,
+            'employee_ids': [(6, 0, employees_to_allocate)],
+            'holiday_status_id': leave_type.id,
+            'number_of_days':  22,
+            'allocation_type': 'regular',
+            'is_post_probation_allocation': True,
+        })
+
