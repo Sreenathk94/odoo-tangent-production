@@ -84,6 +84,7 @@ class HrEmployee(models.Model):
         probation_employees = self.search([
             ('date_of_join', '>=', six_months_ago),
             ('date_of_join', '<=', today),
+            ('location_id', '!=', 3)
         ])
 
         for employee in probation_employees:
@@ -108,7 +109,7 @@ class HrEmployee(models.Model):
 
         # --- PART 2: Pro-rated annual leave post probation completion ---
         post_probation_employees = self.search([
-            ('date_of_join', '!=', False),
+            ('date_of_join', '!=', False),('location_id', '!=', 3)
         ])
 
         for employee in post_probation_employees:
@@ -152,6 +153,7 @@ class HrEmployee(models.Model):
         eligible_employees = self.search([
             ('date_of_join', '!=', False),
             ('date_of_join', '<=', probation_cutoff),
+            ('location_id', '!=', 3)
         ])
 
         # Filter out employees who already received an annual allocation this year
