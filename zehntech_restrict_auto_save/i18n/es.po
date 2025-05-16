@@ -1,0 +1,179 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* zehntech_restrict_auto_save
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-21 13:24+0000\n"
+"PO-Revision-Date: 2025-01-21 13:24+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: zehntech_restrict_auto_save
+#: model_terms:ir.ui.view,arch_db:zehntech_restrict_auto_save.prevent_model_view_form
+msgid "Add a Model"
+msgstr "Agregar un Modelo"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__create_uid
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__create_date
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__model_description
+msgid "Description"
+msgstr "Descripción"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__display_name
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__display_name
+msgid "Display Name"
+msgstr "Nombre para mostrar"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__id
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__id
+msgid "ID"
+msgstr "IDENTIFICACIÓN"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__write_uid
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__write_uid
+msgid "Last Updated by"
+msgstr "Actualizado por última vez por"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__write_date
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__model
+msgid "Model ID"
+msgstr "ID del modelo"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__model_id
+msgid "Model Name"
+msgstr "Nombre del modelo"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.actions.act_window,name:zehntech_restrict_auto_save.prevent_model_view_action
+#: model:ir.ui.menu,name:zehntech_restrict_auto_save.auto_save_menu
+#: model_terms:ir.ui.view,arch_db:zehntech_restrict_auto_save.prevent_model_view_form
+msgid "Prevent Auto Save"
+msgstr "Evitar el guardado automático"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__auto_save_prevent_all
+msgid "Prevent Auto Save Globally"
+msgstr "Evitar el guardado automático a nivel mundial"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__auto_save_prevent
+msgid "Prevent Auto Save for Specific Model"
+msgstr "Evitar el guardado automático para un modelo específico"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model,name:zehntech_restrict_auto_save.model_prevent_model
+msgid "Prevent Model"
+msgstr "Prevenir modelo"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model_line__prevent_id
+msgid "Prevent Model Id"
+msgstr "Evitar la identificación del modelo"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model,name:zehntech_restrict_auto_save.model_prevent_model_line
+msgid "Prevent Model Line"
+msgstr "Prevenir línea de modelo"
+
+#. module: zehntech_restrict_auto_save
+#. odoo-javascript
+#: code:addons/zehntech_restrict_auto_save/static/src/js/prevent_autosave_formcontroller.js:0
+#, python-format
+msgid "Save Changes"
+msgstr "Guardar cambios"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,field_description:zehntech_restrict_auto_save.field_prevent_model__model_ids
+#: model_terms:ir.ui.view,arch_db:zehntech_restrict_auto_save.prevent_model_view_form
+msgid "Select Model"
+msgstr "Seleccionar modelo"
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,help:zehntech_restrict_auto_save.field_prevent_model__model_ids
+msgid ""
+"Select specific models for which auto-save will be prevented. You can choose"
+" multiple models here."
+msgstr ""
+"Seleccione modelos específicos para los cuales se evitará el guardado "
+"automático. Puedes elegir varios modelos aquí."
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,help:zehntech_restrict_auto_save.field_prevent_model_line__model_id
+msgid "Select the model for which you want to configure settings."
+msgstr "Seleccione el modelo para el que desea configurar los ajustes."
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,help:zehntech_restrict_auto_save.field_prevent_model_line__prevent_id
+msgid ""
+"This field links to a specific 'prevent.model' record, indicating the "
+"configuration that applies to the selected model."
+msgstr ""
+"Este campo está vinculado a un registro específico de 'prevent.model', "
+"indicando la configuración que se aplica al modelo seleccionado."
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,help:zehntech_restrict_auto_save.field_prevent_model_line__model_description
+msgid "This is the description of the selected model."
+msgstr "Esta es la descripción del modelo seleccionado."
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,help:zehntech_restrict_auto_save.field_prevent_model_line__model
+msgid "This is the technical identifier for the selected model."
+msgstr "Este es el identificador técnico del modelo seleccionado."
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,help:zehntech_restrict_auto_save.field_prevent_model__auto_save_prevent_all
+msgid ""
+"This option allows you to disable auto-save globally across all models. When"
+" enabled, no changes will be automatically saved."
+msgstr ""
+"Esta opción le permite desactivar el guardado automático globalmente en "
+"todos los modelos. Cuando esté habilitado, no se guardarán cambios "
+"automáticamente."
+
+#. module: zehntech_restrict_auto_save
+#: model:ir.model.fields,help:zehntech_restrict_auto_save.field_prevent_model__auto_save_prevent
+msgid ""
+"This option allows you to prevent auto-save for a specific model. When "
+"enabled, the system will not automatically save changes made to this model."
+msgstr ""
+"Esta opción le permite evitar el guardado automático de un modelo "
+"específico. Cuando esté habilitado, el sistema no guardará automáticamente "
+"los cambios realizados en este modelo."
+
+#. module: zehntech_restrict_auto_save
+#. odoo-javascript
+#: code:addons/zehntech_restrict_auto_save/static/src/js/prevent_autosave_formcontroller.js:0
+#, python-format
+msgid ""
+"You have unsaved changes do you want to continue? Your changes will be lost"
+msgstr ""
+"Tienes cambios no guardados ¿quieres continuar? Tus cambios se perderán"
