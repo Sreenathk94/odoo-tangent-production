@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="employee_late_checkin.Dashboard">
+        <div class="container" style="font-family: 'Lexend', sans-serif;">
+            <!-- Title in Top-Left -->
+            <div style="margin: 20px;">
+                <h1 style="text-align: left; font-weight: bold;">Late Check-In Report</h1>
+            </div>
+            <!-- Filter Button, Clear Button, and List View Table -->
+            <div style="margin: 20px;">
+                <!-- Filter Button and Dropdown -->
+                <style>
+                    .filter-option:hover {
+                        background-color: #f0f0f0;
+                    }
+                    .table-container {
+                        max-height: 672px; /* Adjust height as needed */
+                        overflow-y: auto; /* Enable vertical scrolling */
+                        border: 2px solid #000; /* Match table border */
+                    }
+                    .table.table-bordered {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 0;
+                    }
+                    .table.table-bordered thead th {
+                        position: sticky;
+                        top: 0;
+                        background-color: #fff; /* Ensure header is visible */
+                        z-index: 10; /* Keep header above scrolling body */
+                        border-bottom: 2px solid #000;
+                    }
+                    .table.table-bordered tbody {
+                        border-top: 2px solid #000;
+                    }
+                </style>
+                <div style="position: relative; display: inline-block; margin-bottom: 10px;">
+                    <button t-on-click="toggleFilterDropdown"
+                            style="padding: 8px 16px; font-weight: bold; background-color: #4CAF50; color: white; border: none; border-radius: 9px; cursor: pointer;">
+                        Filter:
+                        <t t-esc="state.selectedFilter.charAt(0).toUpperCase() + state.selectedFilter.slice(1).replace('_', ' ')"/>
+                    </button>
+                    <t t-if="state.showFilterDropdown">
+                        <div style="position: absolute; left: 0; background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000;">
+                            <div t-on-click="() => applyFilter('latest')" class="filter-option"
+                                 style="padding: 10px; cursor: pointer;">Latest
+                            </div>
+                            <div t-on-click="() => applyFilter('this_week')" class="filter-option"
+                                 style="padding: 10px; cursor: pointer;">This Week
+                            </div>
+                            <div t-on-click="() => applyFilter('this_month')" class="filter-option"
+                                 style="padding: 10px; cursor: pointer;">This Month
+                            </div>
+                            <div t-on-click="() => applyFilter('custom')" class="filter-option"
+                                 style="padding: 10px; cursor: pointer;">Custom Date
+                            </div>
+                        </div>
+                    </t>
+                </div>
+                <!-- Custom Date Inputs -->
+                <t t-if="state.showDateInputs">
+                    <input type="date" t-model="state.startDate" t-on-change="onDateChange"
+                           style="margin-left: 20px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"/>
+                    <input type="date" t-model="state.endDate" t-on-change="onDateChange"
+                           style="margin-left: 10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"/>
+                </t>
+                <!-- Clear and Download Buttons -->
+                <button t-on-click="clearRecords"
+                        style="margin-bottom: 10px; padding: 8px 16px; font-weight: bold; background-color: #F26B5E; color: white; border: none; border-radius: 9px; cursor: pointer; margin-left: 20px;">
+                    Clear Records
+                </button>
+                <button t-on-click="downloadPDF"
+                        style="margin-bottom: 2.5px; padding: 8px 16px; font-weight: bold; background-color: #5d9592; color: white; border: none; border-radius: 9px; cursor: pointer; margin-left: 20px;"
+                        class="btn btn-primary">Download PDF
+                </button>
+                <!-- Scrollable Table -->
+                <div class="table-container" >
+                    <table class="table table-bordered" style="font-weight: bold;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #000;">
+                                <th style="border-right: 2px solid #000; padding: 10px; text-align: center; font-weight: 900; color: #000;">Employee Name</th>
+                                <th style="border-right: 2px solid #000; padding: 10px; text-align: center; font-weight: 900; color: #000;">Department</th>
+                                <th style="border-right: 2px solid #000; padding: 10px; text-align: center; font-weight: 900; color: #000;">Date</th>
+                                <th style="border-right: 2px solid #000; padding: 10px; text-align: center; font-weight: 900; color: #000;">Check-in Time</th>
+                                <th style="padding: 10px; text-align: center; font-weight: 900; color: #000;">Delayed Time(HH:MM)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.records" t-as="record" t-key="record.id">
+                                <tr>
+                                    <td style="border-right: 2px solid #000; padding: 10px;"><t t-esc="record.employee_name"/></td>
+                                    <td style="border-right: 2px solid #000; padding: 10px; text-align: center;"><t t-esc="record.department"/></td>
+                                    <td style="border-right: 2px solid #000; padding: 10px; text-align: center;"><t t-esc="record.date"/></td>
+                                    <td style="border-right: 2px solid #000; padding: 10px; text-align: center;"><t t-esc="record.check_in_time"/></td>
+                                    <td style="padding: 10px; text-align: center;"><t t-esc="record.delayed_minutes"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="!state.records.length">
+                                <tr>
+                                    <td colspan="5" style="padding: 10px; text-align: center;">No records found.</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
+
+
+<!--<templates>-->
+<!--    <t t-name="employee_late_checkin.Dashboard">-->
+<!--        <div class="container-fluid" style="font-family: 'Lexend', sans-serif;">-->
+<!--            &lt;!&ndash; Adding Bootstrap CSS CDN &ndash;&gt;-->
+<!--            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"/>-->
+<!--            &lt;!&ndash; Title in Top-Left &ndash;&gt;-->
+<!--            <div class="my-4 ms-3">-->
+<!--                <h1 class="text-start fw-bold">Late Check-In Report</h1>-->
+<!--            </div>-->
+<!--            &lt;!&ndash; Filter Button, Clear Button, and List View Table &ndash;&gt;-->
+<!--            <div class="my-4 mx-3">-->
+<!--                &lt;!&ndash; Filter Button and Dropdown &ndash;&gt;-->
+<!--                <style>-->
+<!--                    .filter-option:hover {-->
+<!--                        background-color: #f0f0f0;-->
+<!--                    }-->
+<!--                </style>-->
+<!--                <div class="position-relative d-inline-block mb-3">-->
+<!--                    <button t-on-click="toggleFilterDropdown"-->
+<!--                            class="btn btn-success fw-bold rounded-pill px-4 py-2">-->
+<!--                        Filter:-->
+<!--                        <t t-esc="state.selectedFilter.charAt(0).toUpperCase() + state.selectedFilter.slice(1).replace('_', ' ')"/>-->
+<!--                    </button>-->
+<!--                    <t t-if="state.showFilterDropdown">-->
+<!--                        <div class="position-absolute start-0 bg-white border rounded shadow-sm" style="z-index: 1000;">-->
+<!--                            <div t-on-click="() => applyFilter('latest')" class="filter-option px-3 py-2 cursor-pointer">-->
+<!--                                Latest-->
+<!--                            </div>-->
+<!--                            <div t-on-click="() => applyFilter('this_week')" class="filter-option px-3 py-2 cursor-pointer">-->
+<!--                                This Week-->
+<!--                            </div>-->
+<!--                            <div t-on-click="() => applyFilter('this_month')" class="filter-option px-3 py-2 cursor-pointer">-->
+<!--                                This Month-->
+<!--                            </div>-->
+<!--                            <div t-on-click="() => applyFilter('custom')" class="filter-option px-3 py-2 cursor-pointer">-->
+<!--                                Custom Date-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </t>-->
+<!--                </div>-->
+<!--                &lt;!&ndash; Custom Date Inputs &ndash;&gt;-->
+<!--                <t t-if="state.showDateInputs">-->
+<!--                    <input type="date" t-model="state.startDate" t-on-change="onDateChange"-->
+<!--                           class="form-control d-inline-block w-auto ms-3 p-2 rounded"/>-->
+<!--                    <input type="date" t-model="state.endDate" t-on-change="onDateChange"-->
+<!--                           class="form-control d-inline-block w-auto ms-2 p-2 rounded"/>-->
+<!--                </t>-->
+<!--                &lt;!&ndash; Clear and Download Buttons &ndash;&gt;-->
+<!--                <button t-on-click="clearRecords"-->
+<!--                        class="btn btn-danger fw-bold rounded-pill px-4 py-2 ms-3 mb-3">-->
+<!--                    Clear Records-->
+<!--                </button>-->
+<!--                <button t-on-click="downloadPDF"-->
+<!--                        class="btn btn-primary fw-bold rounded-pill px-4 py-2 ms-3 mb-3">-->
+<!--                    Download PDF-->
+<!--                </button>-->
+<!--                &lt;!&ndash; Table &ndash;&gt;-->
+<!--                <table class="table table-bordered table-hover" style="border: 2px solid #000;">-->
+<!--                    <thead class="table-dark">-->
+<!--                        <tr style="border-bottom: 2px solid #000;">-->
+<!--                            <th scope="col" class="border-end text-center fw-bolder" style="border-right: 2px solid #000; padding: 10px;">Employee Name</th>-->
+<!--                            <th scope="col" class="border-end text-center fw-bolder" style="border-right: 2px solid #000; padding: 10px;">Department</th>-->
+<!--                            <th scope="col" class="border-end text-center fw-bolder" style="border-right: 2px solid #000; padding: 10px;">Date</th>-->
+<!--                            <th scope="col" class="border-end text-center fw-bolder" style="border-right: 2px solid #000; padding: 10px;">Check-in Time</th>-->
+<!--                            <th scope="col" class="text-center fw-bolder" style="padding: 10px;">Delayed Time(HH:MM)</th>-->
+<!--                        </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody style="border-top: 2px solid #000;">-->
+<!--                        <t t-foreach="state.records" t-as="record" t-key="record.id">-->
+<!--                            <tr>-->
+<!--                                <td class="border-end text-center" style="border-right: 2px solid #000; padding: 10px;"><t t-esc="record.employee_name"/></td>-->
+<!--                                <td class="border-end text-center" style="border-right: 2px solid #000; padding: 10px;"><t t-esc="record.department"/></td>-->
+<!--                                <td class="border-end text-center" style="border-right: 2px solid #000; padding: 10px;"><t t-esc="record.date"/></td>-->
+<!--                                <td class="border-end text-center" style="border-right: 2px solid #000; padding: 10px;"><t t-esc="record.check_in_time"/></td>-->
+<!--                                <td class="text-center" style="padding: 10px;"><t t-esc="record.delayed_minutes"/></td>-->
+<!--                            </tr>-->
+<!--                        </t>-->
+<!--                    </tbody>-->
+<!--                </table>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </t>-->
+<!--</templates>-->
