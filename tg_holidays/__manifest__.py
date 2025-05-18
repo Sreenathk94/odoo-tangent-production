@@ -16,6 +16,7 @@
         'views/tg_employee_views.xml',
         'views/tg_leave_form_view.xml',
         'views/tg_leave_report.xml',
+        'views/hr_leave_allocation_views.xml',
     ],
     'license': 'AGPL-3',
     'installable': True,
