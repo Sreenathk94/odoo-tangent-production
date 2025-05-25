@@ -115,14 +115,7 @@
                             <a t-att-class="'nav-link ' + (state.activeTab === 'attendance' ? 'active' : '')"
                                t-on-click="() => this.switchTab('attendance')"
                                href="#" role="tab">
-                               <i class="fa fa-clock-o me-2"/> Attendance
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a t-att-class="'nav-link ' + (state.activeTab === 'leave' ? 'active' : '')"
-                               t-on-click="() => this.switchTab('leave')"
-                               href="#" role="tab">
-                               <i class="fa fa-calendar-check-o me-2"/> Leave
+                               <i class="fa fa-clock-o me-2"/> Attendance &amp; Leave
                             </a>
                         </li>
                         <li class="nav-item">
@@ -141,9 +134,12 @@
                                         <div class="stat-card">
                                             <div class="stat-card-body">
                                                 <h5 class="stat-card-title">
-                                                    <i class="fa fa-sign-in me-2"></i> Last Check In
+                                                    <i class="fa fa-sign-in me-2"></i> Yesterday's Check In
                                                 </h5>
                                                 <p class="stat-card-value" t-esc="state.data.attendance?.check_in || 'No check-in record'"/>
+                                                <t t-if="state.data.attendance?.is_late_checkin">
+                                                    <p class="text-danger mb-0">Late Check-in</p>
+                                                </t>
                                                 <small class="text-muted">Last recorded attendance</small>
                                             </div>
                                         </div>
@@ -152,7 +148,7 @@
                                         <div class="stat-card">
                                             <div class="stat-card-body">
                                                 <h5 class="stat-card-title">
-                                                    <i class="fa fa-sign-out me-2"></i> Last Check Out
+                                                    <i class="fa fa-sign-out me-2"></i> Yesterday's Check Out
                                                 </h5>
                                                 <p class="stat-card-value" t-esc="state.data.attendance?.check_out || 'No check-out record'"/>
                                                 <small class="text-muted">Last recorded attendance</small>
@@ -187,10 +183,10 @@
                                                         <small class="text-muted">Your average:</small>
                                                         <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.weekly_average"/></div>
                                                     </div>
-                                                    <div>
-                                                        <small class="text-muted">Target:</small>
-                                                        <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.weekly_target"/></div>
-                                                    </div>
+<!--                                                    <div>-->
+<!--                                                        <small class="text-muted">Target:</small>-->
+<!--                                                        <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.weekly_target"/></div>-->
+<!--                                                    </div>-->
                                                 </div>
                                                 <t t-if="state.data.attendance?.meets_target">
                                                     <div class="alert alert-success mb-0">
@@ -221,10 +217,10 @@
                                                         <small class="text-muted">Total Hours:</small>
                                                         <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.monthly_total"/></div>
                                                     </div>
-                                                    <div>
-                                                        <small class="text-muted">Monthly Target:</small>
-                                                        <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.monthly_target"/></div>
-                                                    </div>
+<!--                                                    <div>-->
+<!--                                                        <small class="text-muted">Monthly Target:</small>-->
+<!--                                                        <div class="stat-card-value mb-0"><t t-esc="state.data.attendance?.monthly_target"/></div>-->
+<!--                                                    </div>-->
                                                 </div>
                                                 <t t-if="state.data.attendance?.monthly_meets_target">
                                                     <div class="alert alert-success mb-0">
@@ -243,104 +239,100 @@
                                     </div>
                                 </div>
                             </div>
-                        </t>
-                        <t t-elif="state.activeTab === 'leave'">
-                            <div class="o_leave_tab">
-                                <!-- Leave Summary Cards -->
-                                <div class="row g-4 mb-4">
-                                    <div class="col-md-6">
-                                        <div class="stat-card h-100">
-                                            <div class="stat-card-body text-center">
-                                                <h5 class="stat-card-title">
-                                                    <i class="fa fa-check-circle me-2"></i> Approved Leaves
-                                                </h5>
-                                                <p class="stat-card-value mb-0" t-esc="state.data.leave?.approved_count || 0"></p>
-                                                <small class="text-muted">This Month</small>
-                                            </div>
+                            <!-- Leave Summary Cards -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <div class="stat-card h-100">
+                                        <div class="stat-card-body text-center">
+                                            <h5 class="stat-card-title">
+                                                <i class="fa fa-check-circle me-2"></i> Annual Leave Availed
+                                            </h5>
+                                            <p class="stat-card-value mb-0" t-esc="state.data.leave?.annual_leave_taken || 0"></p>
+                                            <small class="text-muted">This Year</small>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="stat-card h-100">
-                                            <div class="stat-card-body text-center">
-                                                <h5 class="stat-card-title">
-                                                    <i class="fa fa-hourglass-half me-2"></i> Pending Approval
-                                                </h5>
-                                                <p class="stat-card-value mb-0" t-esc="state.data.leave?.to_approve_count || 0"></p>
-                                                <small class="text-muted">This Month</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="stat-card h-100">
+                                        <div class="stat-card-body text-center">
+                                            <h5 class="stat-card-title">
+                                                <i class="fa fa-hospital-o me-2"></i> Sick Leave Taken
+                                            </h5>
+                                            <p class="stat-card-value mb-0" t-esc="state.data.leave?.sick_leave_taken || 0"></p>
+                                            <small class="text-muted">This Year</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Leave Chart -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="stat-card">
+                                        <div class="stat-card-body">
+                                            <h5 class="stat-card-title mb-4">
+                                                <i class="fa fa-bar-chart me-2"/> Leave Distribution
+                                            </h5>
+                                            <div class="leave-chart-container" style="height: 400px; background-color: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 8px;">
+                                                <canvas id="leaveChart"/>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- Leave Chart -->
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <div class="stat-card">
-                                            <div class="stat-card-body">
-                                                <h5 class="stat-card-title mb-4">
-                                                    <i class="fa fa-bar-chart me-2"/> Leave Distribution
-                                                </h5>
-                                                <div class="leave-chart-container" style="height: 400px;">
-                                                    <canvas id="leaveChart"/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Leave Details Table -->
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="stat-card">
-                                            <div class="stat-card-body">
-                                                <h5 class="stat-card-title mb-4">
-                                                    <i class="fa fa-list me-2"/> Leave Balance Details
-                                                </h5>
-                                                <div class="table-responsive">
-                                                    <table class="table table-hover">
-                                                        <thead>
+                            <!-- Leave Details Table -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="stat-card">
+                                        <div class="stat-card-body">
+                                            <h5 class="stat-card-title mb-4">
+                                                <i class="fa fa-list me-2"/> Leave Balance Details
+                                            </h5>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Leave Type</th>
+                                                            <th class="text-center">Available</th>
+                                                            <th class="text-center">Taken</th>
+                                                            <th class="text-center">Remaining</th>
+                                                            <th class="text-center">Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <t t-foreach="state.data.leave?.leaves || []" t-as="leave" t-key="leave.name">
                                                             <tr>
-                                                                <th>Leave Type</th>
-                                                                <th class="text-center">Available</th>
-                                                                <th class="text-center">Taken</th>
-                                                                <th class="text-center">Remaining</th>
-                                                                <th class="text-center">Status</th>
+                                                                <td>
+                                                                    <div class="d-flex align-items-center">
+                                                                        <div class="leave-type-dot me-2" t-att-style="'background-color: ' + getRandomColor(leave_index)"/>
+                                                                        <span><t t-esc="leave.name"/></span>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <span><t t-esc="leave.available"/></span>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <span><t t-esc="leave.taken"/></span>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <span><t t-esc="leave.remaining"/></span>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <t t-if="leave.remaining > 0">
+                                                                        <span class="badge bg-success">Available</span>
+                                                                    </t>
+                                                                    <t t-elif="leave.remaining == 0">
+                                                                        <span class="badge bg-warning">Exhausted</span>
+                                                                    </t>
+                                                                    <t t-else="">
+                                                                        <span class="badge bg-danger">Exceeded</span>
+                                                                    </t>
+                                                                </td>
                                                             </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <t t-foreach="state.data.leave?.leaves || []" t-as="leave" t-key="leave.name">
-                                                                <tr>
-                                                                    <td>
-                                                                        <div class="d-flex align-items-center">
-                                                                            <div class="leave-type-dot me-2" t-att-style="'background-color: ' + getRandomColor(leave_index)"/>
-                                                                            <span><t t-esc="leave.name"/></span>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td class="text-center">
-                                                                        <span><t t-esc="leave.available"/></span>
-                                                                    </td>
-                                                                    <td class="text-center">
-                                                                        <span><t t-esc="leave.taken"/></span>
-                                                                    </td>
-                                                                    <td class="text-center">
-                                                                        <span><t t-esc="leave.remaining"/></span>
-                                                                    </td>
-                                                                    <td class="text-center">
-                                                                        <t t-if="leave.remaining > 0">
-                                                                            <span class="badge bg-success">Available</span>
-                                                                        </t>
-                                                                        <t t-elif="leave.remaining == 0">
-                                                                            <span class="badge bg-warning">Exhausted</span>
-                                                                        </t>
-                                                                        <t t-else="">
-                                                                            <span class="badge bg-danger">Exceeded</span>
-                                                                        </t>
-                                                                    </td>
-                                                                </tr>
-                                                            </t>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                        </t>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -351,24 +343,51 @@
                             <div class="o_project_tab">
                                 <div class="stat-card">
                                     <div class="stat-card-body">
+                                        <!-- Add Status Filter -->
+                                        <div class="row mb-3">
+                                            <div class="col-md-3">
+                                                <select class="form-select" t-on-change="onStatusChange">
+                                                    <option value="all">All Statuses</option>
+                                                    <t t-foreach="state.data.projects" t-as="project" t-key="project.id">
+                                                        <t t-if="!state.data.projects.slice(0, project_index).some(p => p.timesheet_status === project.timesheet_status)">
+                                                            <option t-att-value="project.timesheet_status">
+                                                                <t t-esc="project.timesheet_status"/>
+                                                            </option>
+                                                        </t>
+                                                    </t>
+                                                </select>
+                                            </div>
+                                        </div>
                                         <div class="table-responsive">
                                             <table class="table table-hover">
                                                 <thead>
                                                     <tr>
                                                         <th>Project</th>
                                                         <th>Time Spent</th>
-                                                        <th>Status</th>
+                                                        <th>Timesheet Status</th>
+                                                        <th>Last Submission</th>
+                                                        <th>Pending Weeks</th>
                                                         <th>Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <t t-foreach="state.data.projects || []" t-as="project" t-key="project.id">
-                                                        <tr>
+                                                    <t t-foreach="filteredProjects" t-as="project" t-key="project.id">
+                                                        <tr t-att-class="{'bg-dark text-white': project.is_pending}">
                                                             <td><t t-esc="project.name"/></td>
                                                             <td><t t-esc="project.time_spent"/></td>
                                                             <td>
-                                                                <span t-att-class="'badge ' + (project.status === 'Active' ? 'bg-success' : 'bg-secondary')">
-                                                                    <t t-esc="project.status"/>
+                                                                <span class="badge bg-info">
+                                                                    <t t-esc="project.timesheet_status"/>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span t-att-class="'badge ' + (project.last_submission_date === 'No Submissions' ? 'bg-danger' : 'bg-success')">
+                                                                    <t t-esc="project.last_submission_date"/>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span t-att-class="'badge ' + (project.pending_weeks > 0 ? 'bg-danger' : 'bg-success')">
+                                                                    <t t-esc="project.pending_weeks"/>
                                                                 </span>
                                                             </td>
                                                             <td>

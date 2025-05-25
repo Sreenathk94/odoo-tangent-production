@@ -1,5 +1,5 @@
 from odoo import models, fields, api
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import calendar
 
 
@@ -22,9 +22,12 @@ class HrEmployee(models.Model):
         }
 
     def _get_employee_info(self):
-        # Use joining_date instead of create_date if available
-        joining_date =  self.create_date
-        time_since_joining = fields.Date.today() - joining_date.date()
+        # Handle both date and datetime fields
+        joining_date = self.date_of_join or self.create_date
+        if isinstance(joining_date, datetime):
+            joining_date = joining_date.date()
+        
+        time_since_joining = fields.Date.today() - joining_date
         years = time_since_joining.days // 365
         months = (time_since_joining.days % 365) // 30
 
@@ -59,10 +62,24 @@ class HrEmployee(models.Model):
         }
 
     def _get_attendance_data(self, date):
-        # Get the last recorded attendance for the employee
+        # Get yesterday's attendance
+        yesterday = date - timedelta(days=1)
+        yesterday_start = fields.Datetime.to_string(datetime.combine(yesterday, time.min))
+        yesterday_end = fields.Datetime.to_string(datetime.combine(yesterday, time.max))
+
         attendance = self.env['hr.attendance'].search([
             ('employee_id', '=', self.id),
+            ('check_in', '>=', yesterday_start),
+            ('check_in', '<=', yesterday_end),
         ], order='check_in desc', limit=1)
+
+        # Calculate if yesterday's check-in was late (after 8:15 AM)
+        is_late_checkin = False
+        if attendance and attendance.check_in:
+            checkin_time = attendance.check_in.time()
+            late_threshold = time(8, 15, 0)  # 8:15 AM
+            if checkin_time > late_threshold:
+                is_late_checkin = True
 
         # Calculate previous calendar week's average
         today = fields.Date.today()
@@ -184,7 +201,8 @@ class HrEmployee(models.Model):
             'monthly_target': monthly_target_formatted,
             'monthly_meets_target': monthly_total >= monthly_target,
             'monthly_diff': monthly_diff_formatted,
-            'month_range': month_range
+            'month_range': month_range,
+            'is_late_checkin': is_late_checkin,
         }
 
     def _get_leave_data(self, month=None, year=None):
@@ -198,9 +216,17 @@ class HrEmployee(models.Model):
         first_day = fields.Date.to_date(f'{year}-{month:02d}-01')
         last_day = fields.Date.to_date(f'{year}-{month:02d}-{calendar.monthrange(year, month)[1]}')
 
+        # Get current year's start and end dates
+        current_year_start = fields.Date.to_date(f'{year}-01-01')
+        current_year_end = fields.Date.to_date(f'{year}-12-31')
+
         leave_types = self.env['hr.leave.type'].search([])
         leaves = []
         monthly_data = {}
+
+        # Initialize counters for annual and sick leave
+        annual_leave_taken = 0
+        sick_leave_taken = 0
 
         for leave_type in leave_types:
             allocation = self.env['hr.leave.allocation'].search([
@@ -224,6 +250,7 @@ class HrEmployee(models.Model):
 
             # Calculate monthly distribution
             monthly_distribution = [0] * 12
+            total_days = 0
             for leave in taken_leaves:
                 start_date = leave.date_from
                 end_date = leave.date_to
@@ -232,11 +259,18 @@ class HrEmployee(models.Model):
                     if current_date.year == year:
                         month_index = current_date.month - 1
                         monthly_distribution[month_index] += 1
+                        total_days += 1
                     current_date += timedelta(days=1)
 
             available = allocation.number_of_days if allocation else 0
-            taken = sum(taken_leaves.mapped('number_of_days'))
+            taken = total_days  # Use the calculated total days instead of number_of_days
             remaining = available - taken
+
+            # Update annual and sick leave counters
+            if 'annual' in leave_type.name.lower():
+                annual_leave_taken = taken
+            elif 'sick' in leave_type.name.lower():
+                sick_leave_taken = taken
 
             leaves.append({
                 'name': leave_type.name,
@@ -263,28 +297,61 @@ class HrEmployee(models.Model):
         return {
             'leaves': leaves,
             'approved_count': approved_count,
-            'to_approve_count': to_approve_count
+            'to_approve_count': to_approve_count,
+            'annual_leave_taken': annual_leave_taken,
+            'sick_leave_taken': sick_leave_taken
         }
 
     def _get_project_data(self):
+        # Get all projects where the current user is assigned
         projects = self.env['project.project'].search([
-            ('user_id', '=', self.user_id.id)
+            '|',
+            ('user_id', '=', self.user_id.id),
+            ('message_partner_ids', 'in', [self.user_id.partner_id.id])
         ])
 
         project_data = []
         for project in projects:
+            # Get timesheet entries for this project and user
             timesheet_entries = self.env['account.analytic.line'].search([
                 ('project_id', '=', project.id),
                 ('user_id', '=', self.user_id.id)
             ])
 
+            # Calculate total time spent
             time_spent = sum(timesheet_entries.mapped('unit_amount'))
+            
+            # Format time spent into hours and minutes
+            hours = int(time_spent)
+            minutes = int((time_spent - hours) * 60)
+            time_spent_formatted = f"{hours}h {minutes}m"
+
+            # Get timesheet status name
+            timesheet_status = self.env['hr.timesheet.status'].search([
+                ('project_ids', 'in', project.id)
+            ], limit=1)
+
+            # Get last submission date and pending weeks
+            last_submission = self.env['hr.timesheet.submit.line'].search([
+                ('employee_id', '=', self.id),
+                ('submit_status', '=', 'submit')
+            ], order='submit_id desc', limit=1)
+
+            # Get pending submission weeks
+            pending_submissions = self.env['hr.timesheet.submit.line'].search([
+                ('employee_id', '=', self.id),
+                ('submit_status', '=', 'not_submit'),
+                ('submit_id.from_date', '<=', fields.Date.today())
+            ], order='submit_id asc')
 
             project_data.append({
                 'id': project.id,
                 'name': project.name,
-                'time_spent': time_spent,
-                'status': 'Active' if project.active else 'Inactive'
+                'time_spent': time_spent_formatted,
+                'timesheet_status': timesheet_status.name if timesheet_status else 'Not Set',
+                'last_submission_date': last_submission.submit_id.name if last_submission else 'No Submissions',
+                'pending_weeks': len(pending_submissions),
+                'is_pending': len(pending_submissions) > 0
             })
 
         return project_data

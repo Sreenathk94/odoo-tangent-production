@@ -14,6 +14,7 @@ class EmployeeDashboard extends Component {
             activeTab: 'attendance',
             selectedMonth: currentDate.getMonth() + 1, // 1-12
             selectedYear: currentDate.getFullYear(),
+            selectedStatus: 'all',
             data: {
                 employee_info: {
                     name: '',
@@ -77,8 +78,10 @@ class EmployeeDashboard extends Component {
                 // Update state with current date
                 this.state.selectedMonth = currentDate.getMonth() + 1;
                 this.state.selectedYear = currentDate.getFullYear();
-                // Initialize leave chart after data is loaded
-                this.initializeLeaveChart();
+                // Initialize leave chart after data is loaded with a delay
+                setTimeout(() => {
+                    this.initializeLeaveChart();
+                }, 1000); // Increased delay to ensure DOM is ready
             }
         } catch (error) {
             this.state.error = "Failed to load employee data.";
@@ -90,12 +93,6 @@ class EmployeeDashboard extends Component {
 
     switchTab(tab) {
         this.state.activeTab = tab;
-        if (tab === 'leave' && this.state.data.leave) {
-            // Initialize chart when switching to leave tab
-            setTimeout(() => {
-                this.initializeLeaveChart();
-            }, 100);
-        }
     }
 
     async viewProject(projectId) {
@@ -197,53 +194,73 @@ class EmployeeDashboard extends Component {
             borderWidth: 1
         }));
 
-        this.leaveChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: months,
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Months'
-                        }
-                    },
-                    y: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Days Taken'
-                        },
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
+        try {
+            this.leaveChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: datasets
                 },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: ${context.raw} days`;
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Months',
+                                color: '#fff'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Days Taken',
+                                color: '#fff'
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
                             }
                         }
                     },
-                    legend: {
-                        position: 'top'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Leave Distribution by Month and Type'
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw} days`;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#fff'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Leave Distribution by Month and Type',
+                            color: '#fff'
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error("Error initializing leave chart:", error);
+        }
     }
 
     getRandomColor(index) {
@@ -260,6 +277,19 @@ class EmployeeDashboard extends Component {
             'rgba(210, 199, 199, 0.7)'
         ];
         return colors[index % colors.length];
+    }
+
+    get filteredProjects() {
+        if (this.state.selectedStatus === 'all') {
+            return this.state.data.projects || [];
+        }
+        return (this.state.data.projects || []).filter(project => 
+            project.timesheet_status === this.state.selectedStatus
+        );
+    }
+
+    onStatusChange(ev) {
+        this.state.selectedStatus = ev.target.value;
     }
 }
 
