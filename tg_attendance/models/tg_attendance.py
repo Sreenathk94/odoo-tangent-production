@@ -97,17 +97,10 @@ class TgAttendance(models.Model):
 
     @api.model
     def _employee_alert_daily_attendance(self):
-        company = self.env.company
-        today = company.fetch_date
+        today = self.env.company.fetch_date
         yesterday = today - relativedelta(days=1)
         attendance_ids = self.env['hr.attendance'].search([('fetch_date', '=', yesterday)])
-
-        if today > company.ramadan_start_date and today < company.ramadan_end_date:
-            notification_need = attendance_ids.filtered(lambda a: a.actual_hours < company.ramadan_total_work_time)
-            com_work_hrs = self.env.company.ramadan_total_work_time
-        else:
-            notification_need = attendance_ids.filtered(lambda a: a.actual_hours < company.attend_work_hrs)
-            com_work_hrs = self.env.company.attend_work_hrs
+        notification_need = attendance_ids.filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)
 
         for attendance in notification_need:
             data_to_load_html_template = []
@@ -210,16 +203,18 @@ class TgAttendance(models.Model):
                 f'Net total time inside the office ({self.float_to_time(attendance.worked_hours)} - { to_reduce }) {worked_hours_td - to_reduce}', ' ', ' ',' ', ' ', ' ', ' '
             ])
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            # 'email_to': attendance.employee_id.work_email,
             context = {
-                'email_to': attendance.employee_id.work_email,
+                'email_to': 'abhilash.sudhakaran@tangentlandscape.com',
                 'email_from': self.env.company.erp_email,
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
                 'datas': data_to_load_html_template,
-                'com_work_hrs': com_work_hrs
+                'com_work_hrs': self.env.company.attend_work_hrs
             }
             template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
             template.with_context(context).send_mail(attendance.id, force_send=True)
+
 
 class Employee(models.Model):
     _inherit = "hr.employee"
