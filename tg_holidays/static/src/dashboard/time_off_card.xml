@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+        <t t-name="Time Off Card: Show Days from Hours" t-inherit="hr_holidays.TimeOffCard" t-inherit-mode="extension">
+            <xpath expr="//span[@class='o_timeoff_duration']" position="after">
+                <t t-if="data.request_unit == 'hour'">
+                    (<t t-esc="(parsed_duration/9).toFixed(2)"/>-Days)
+                </t>
+            </xpath>
+        </t>
+</templates>

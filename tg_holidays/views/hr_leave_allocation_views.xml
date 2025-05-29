@@ -8,6 +8,7 @@
             <xpath expr="//group[@name='alloc_right_col']" position="inside">
                 <field name="is_cp_leave" invisible="1"/>
                 <field name="leave_mode" widget="radio" invisible="not is_cp_leave"/>
+                <field name="duration_days_only"/>
             </xpath>
         </field>
     </record>
@@ -21,6 +22,17 @@
             </xpath>
             <xpath expr="//button[@name='action_refuse']" position="attributes">
                 <attribute name="invisible">not can_approve or state not in ('confirm', 'validate', 'paid')</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_leave_allocation_view_tree" model="ir.ui.view">
+        <field name="name">hr.leave.allocation.manager.tree.inherit.tg_holidays</field>
+        <field name="model">hr.leave.allocation</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_allocation_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='duration_display']" position="after">
+                <field name="duration_days_only" string="Duration(Days)"/>
             </xpath>
         </field>
     </record>

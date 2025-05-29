@@ -17,7 +17,13 @@
         'views/tg_leave_form_view.xml',
         'views/tg_leave_report.xml',
         'views/hr_leave_allocation_views.xml',
+        'views/hr_leave_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'tg_holidays/static/src/dashboard/time_off_card.xml',
+        ],
+    },
     'license': 'AGPL-3',
     'installable': True,
     'auto_install': False,

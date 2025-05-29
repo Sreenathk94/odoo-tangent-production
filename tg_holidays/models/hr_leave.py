@@ -1,6 +1,8 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 from datetime import timedelta
+from odoo.tools import float_round
+
 
 
 class HrLeave(models.Model):
@@ -10,6 +12,11 @@ class HrLeave(models.Model):
         string="Is leave of team Leader",
         compute='_compute_is_leave_of_team_lead',
         store=True
+    )
+    duration_days_only = fields.Float(
+        string='Requested (Days Only)',
+        compute='_compute_duration_days_only',
+        help="Displays the duration of the leave request strictly in days."
     )
 
     @api.depends('employee_ids')
@@ -61,3 +68,12 @@ class HrLeave(models.Model):
                     raise UserError("Missing joining date")
                 if record.date_from.date() < joining_date + timedelta(days=180):
                     raise UserError("Annual leave is not allowed during the probation period (first 6 months).")
+
+    @api.depends('number_of_days_display', 'number_of_hours_display','leave_type_request_unit')
+    def _compute_duration_days_only(self):
+        for record in self:
+            if record.leave_type_request_unit == 'hour':
+                record.duration_days_only = float_round(record.number_of_hours_display / 9.0,
+                                                        precision_digits=2)  # assuming 9 hours = 1 day
+            else:
+                record.duration_days_only = float_round(record.number_of_days_display, precision_digits=2)

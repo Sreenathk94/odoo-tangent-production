@@ -129,7 +129,7 @@ class HrEmployee(models.Model):
 
             # Leave accrual for remaining months (excluding the probation end month)
             months_remaining = 12 - probation_end_date.month
-
+            end_of_year = date(today.year, 12, 31)
             if months_remaining <= 0:
                 continue  # No allocation needed
             self.env['hr.leave.allocation'].create({
@@ -140,6 +140,7 @@ class HrEmployee(models.Model):
                 'number_of_days': 1.83 * months_remaining,
                 'allocation_type': 'regular',
                 'is_post_probation_allocation': True,
+                'date_to': end_of_year,
             })
 
     def _allocate_annual_leave_post_probation(self):
@@ -148,6 +149,7 @@ class HrEmployee(models.Model):
             return
 
         today = date.today()
+        end_of_year = date(today.year, 12, 31)
         probation_cutoff = today - relativedelta(months=6)
 
         eligible_employees = self.search([
@@ -156,8 +158,8 @@ class HrEmployee(models.Model):
             ('location_id', '!=', 3)
         ])
 
-        # Filter out employees who already received an annual allocation this year
         employees_to_allocate = []
+
         for emp in eligible_employees:
             existing = self.env['hr.leave.allocation'].search([
                 ('employee_id', '=', emp.id),
@@ -165,20 +167,58 @@ class HrEmployee(models.Model):
                 ('is_annual_allocation', '=', True),
                 ('create_date', '>=', today.replace(month=1, day=1)),
             ], limit=1)
+
             if not existing:
                 employees_to_allocate.append(emp.id)
 
-        if not employees_to_allocate:
-            return
+            # --- Carry Forward Logic ---
+            last_year = today.year - 1
+            previous_allocs = self.env['hr.leave.allocation'].search([
+                ('employee_id', '=', emp.id),
+                ('holiday_status_id', '=', leave_type.id),
+                ('state', '=', 'validate'),
+                # ('create_date', '<', date(today.year, 1, 1)),
+            ])
 
-        # Create a single batch allocation
-        self.env['hr.leave.allocation'].create({
-            'name': f'Annual Leave Allocation ({today.year})',
-            'employee_id': 118,
-            'employee_ids': [(6, 0, employees_to_allocate)],
-            'holiday_status_id': leave_type.id,
-            'number_of_days':  22,
-            'allocation_type': 'regular',
-            'is_post_probation_allocation': True,
-        })
+            used_leaves = self.env['hr.leave'].search_read([
+                ('employee_ids', 'in', emp.id),
+                ('holiday_status_id', '=', leave_type.id),
+                ('state', '=', 'validate'),
+                ('request_date_from', '>=', date(last_year, 1, 1)),
+                ('request_date_to', '<=', date(last_year, 12, 31)),
+            ], ['number_of_hours'])
+            total_allocated = sum(
+                a.number_of_days * 9 for a in previous_allocs if a.holiday_status_id.request_unit == 'hour'
+            )
+            total_used = sum(l['number_of_hours'] for l in used_leaves)
+            remaining_hours = max(0, total_allocated - total_used)
+            carry_forward_hours = min(63, remaining_hours)  # Max 7 days * 9 hours
+
+            if carry_forward_hours > 0:
+                self.env['hr.leave.allocation'].create({
+                    'name': f'Carry Forward Annual Leave ({today.year})',
+                    'employee_id': emp.id,
+                    'employee_ids': [(6, 0, [emp.id])],
+                    'holiday_status_id': leave_type.id,
+                    'number_of_days': carry_forward_hours/9,
+                    'allocation_type': 'regular',
+                    'is_carry_forward': True,
+                    'notes': 'Carry Forward Annual Leave',
+                    'date_to': end_of_year,
+                })
+
+        if employees_to_allocate:
+            self.env['hr.leave.allocation'].create({
+                'name': f'Annual Leave Allocation ({today.year})',
+                'employee_id': employees_to_allocate[0],
+                'employee_ids': [(6, 0, employees_to_allocate)],
+                'holiday_status_id': leave_type.id,
+                'number_of_days': 22,
+                'allocation_type': 'regular',
+                'is_post_probation_allocation': True,
+                'is_annual_allocation': True,
+                'date_to': end_of_year,
+            })
+
+
 
