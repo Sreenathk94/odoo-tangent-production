@@ -94,106 +94,127 @@ class TgAttendance(models.Model):
         minutes = int(round((float_value - hours) * 60))
         return f"{hours:02d}:{minutes:02d}"
 
-
     @api.model
     def _employee_alert_daily_attendance(self):
-        dubai_tz = timezone('Asia/Dubai')
         today = self.env.company.fetch_date
         yesterday = today - relativedelta(days=1)
-
         attendance_ids = self.env['hr.attendance'].search([('fetch_date', '=', yesterday)])
-        notification_needed = attendance_ids.filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)
+        notification_need = attendance_ids.filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)
 
-        for attendance in notification_needed:
-            data_rows = []
+        for attendance in notification_need:
+            data_to_load_html_template = []
 
-            check_in = attendance.check_in.astimezone(dubai_tz)
-            check_out = attendance.check_out.astimezone(dubai_tz)
+            # Convert check-in and check-out times to Asia/Dubai timezone
+            check_in_dubai = attendance.check_in.astimezone(dubai_tz)
+            check_out_dubai = attendance.check_out.astimezone(dubai_tz)
 
-            data_rows.append([
+            data_to_load_html_template.append([
                 'First Check-in & Last Check-out',
-                check_in.strftime("%d-%m-%Y %H:%M:%S"),
-                check_out.strftime("%d-%m-%Y %H:%M:%S"),
-                'Lunch Break',
-                self.float_to_time(attendance.worked_hours), '', ''
+                check_in_dubai.strftime("%d-%m-%Y %H:%M:%S"),
+                check_out_dubai.strftime("%d-%m-%Y %H:%M:%S"),
+                "Lunch Break",
+                self.float_to_time(attendance.worked_hours),
+                ' ', ' '
             ])
 
-            data_rows.append(['Breaks', '', '', '', 'Long Break', 'Short Break', ''])
+            # data_to_load_html_template.append(['Total time excluding break', ' ', ' ', ' ', self.float_to_time(attendance.actual_hours), ' '])
 
-            start_hour = int(self.env.company.company_start_time)
-            start_minute = int(round((self.env.company.company_start_time - start_hour) * 100))
-            start_dt = datetime(yesterday.year, yesterday.month, yesterday.day, start_hour, start_minute, tzinfo=UTC).astimezone(dubai_tz)
+            data_to_load_html_template.append([
+                'Breaks', ' ', ' ', ' ', 'Long Break', 'Short Break', ' '
+            ])
 
-            if check_in > start_dt:
-                delay = check_in - start_dt
-                delay_minutes = delay.total_seconds() / 60
-                row = ['Break (Delay)', start_dt.strftime("%d-%m-%Y %H:%M:%S"), check_in.strftime("%d-%m-%Y %H:%M:%S"), '', '', '', False]
-                if delay_minutes > 15:
-                    row[3] = str(delay)
+            start_time = self.env.company.company_start_time
+            hours = int(start_time)
+            minutes = int((start_time - hours) * 100)
+
+            # Convert start time to Asia/Dubai timezone
+            start_time_date = datetime(yesterday.year, yesterday.month, yesterday.day, hours, minutes,
+                                       tzinfo=UTC).astimezone(dubai_tz)
+
+            if check_in_dubai > start_time_date:
+                start_time_difference = check_in_dubai - start_time_date
+                total_late_in_minutes = start_time_difference.total_seconds() // 60
+                row = [
+                    'Break (Delay)',
+                    start_time_date.strftime("%d-%m-%Y %H:%M:%S"),
+                    check_in_dubai.strftime("%d-%m-%Y %H:%M:%S"),
+                    ' ', ' ', ' ', False
+                ]
+                if total_late_in_minutes > 15:
+                    row[3] = start_time_difference
                     row[6] = 'claim'
                 else:
-                    row[4] = str(delay)
-                data_rows.append(row)
+                    row[4] = start_time_difference
+                data_to_load_html_template.append(row)
 
             line_count = 1
             is_first_row = False
-            previous_check_out = None
-            lunch_break = timedelta()
-            long_break = timedelta()
-            short_break = timedelta()
-            lunch_excess = timedelta()
-            break_rows = []
-
+            attendance_lines = []
+            non_counted = timedelta(days=0)
+            counted = timedelta(days=0)
+            lunch_break = timedelta(days=0)
+            lunch_break_none_counted = timedelta(days=0)
             for line in attendance.line_ids:
-                line_in = line.check_in.astimezone(dubai_tz)
-                line_out = line.check_out.astimezone(dubai_tz)
-
                 if is_first_row:
-                    gap = line_in - previous_check_out
-                    row = [f"Break {line_count}", previous_check_out.strftime("%d-%m-%Y %H:%M:%S"), line_in.strftime("%d-%m-%Y %H:%M:%S"), '', '', '', False]
-
-                    if time(12, 45) <= previous_check_out.time() <= time(14, 15):
-                        lunch_break += gap
-                        row[3] = str(gap)
-                        if gap > timedelta(hours=1):
-                            row[6] = 'lunch_claim'
-                            lunch_excess += (gap - timedelta(hours=1))
-                    elif gap <= timedelta(minutes=15):
-                        short_break += gap
-                        row[5] = str(gap)
+                    last_line = attendance_lines[-1]
+                    check_in = line.check_in.astimezone(dubai_tz)
+                    check_out = last_line[1]
+                    if check_out.time() > time(12, 45) and check_out.time() < time(14, 15):
+                        dif = check_in - check_out
+                        lunch_break += dif
+                        if dif > timedelta(hours=1):
+                            last_line[3] = str(dif)
+                        else:
+                            last_line[3] = str(dif)
+                            last_line[6] = 'lunch_claim'
+                            lunch_break_none_counted = dif - timedelta(hours=1)
                     else:
-                        long_break += gap
-                        row[4] = str(gap)
-                        row[6] = 'claim'
-
-                    break_rows.append(row)
+                        dif = check_in - check_out
+                        hours = int(dif.seconds / 3600)
+                        minutes = (dif.seconds % 3600) / 60
+                        if hours == 0 and minutes <= 15:
+                            last_line[5] = str(dif)
+                            non_counted += dif
+                        else:
+                            last_line[4] = str(dif)
+                            last_line[6] = 'claim'
+                            counted += dif
+                    last_line[1] = last_line[1].strftime("%d-%m-%Y %H:%M:%S")
+                    last_line[2] = check_in.strftime("%d-%m-%Y %H:%M:%S")
+                if line.check_out.astimezone(dubai_tz) != check_out_dubai:
+                    attendance_lines.append([
+                        f"Break {line_count}",
+                        line.check_out.astimezone(dubai_tz),
+                        ' ', ' ', ' ', ' ', False
+                    ])
+                    is_first_row = True
                     line_count += 1
+            data_to_load_html_template += attendance_lines
 
-                previous_check_out = line_out
-                is_first_row = True
+            # Fix calculation here:
+            total_presence = check_out_dubai - check_in_dubai
+            to_reduce = non_counted + lunch_break + counted  # sum of all breaks to subtract
+            net_time = total_presence - to_reduce
 
-            data_rows += break_rows
+            data_to_load_html_template.append([
+                'Total Breaks', ' ', ' ', str(lunch_break), str(counted), str(non_counted), ' '
+            ])
 
-            data_rows.append(['Total Breaks', '', '', str(lunch_break), str(long_break), str(short_break), ''])
-
-            total_deduction = lunch_excess + long_break + short_break
-            worked_td = timedelta(hours=int(attendance.worked_hours), minutes=int(round((attendance.worked_hours % 1) * 60)))
-            net_time = worked_td - total_deduction
-
-            data_rows.append([
-                f'Net total time inside the office ({self.float_to_time(attendance.worked_hours)} - {total_deduction}) = {net_time}', '', '', '', '', '', ''
+            data_to_load_html_template.append([
+                f'Net total time inside the office ({total_presence} - {to_reduce}) {net_time}', ' ', ' ', ' ', ' ',
+                ' ', ' '
             ])
 
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+            # 'email_to': attendance.employee_id.work_email,
             context = {
                 'email_to': 'abhilash.sudhakaran@tangentlandscape.com',
                 'email_from': self.env.company.erp_email,
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
-                'datas': data_rows,
+                'datas': data_to_load_html_template,
                 'com_work_hrs': self.env.company.attend_work_hrs
             }
-
             template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
             template.with_context(context).send_mail(attendance.id, force_send=True)
 
