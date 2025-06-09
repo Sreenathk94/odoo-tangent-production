@@ -1,6 +1,6 @@
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from odoo import api, models, fields, _
-from datetime import datetime, time
-
 from odoo.exceptions import ValidationError, AccessDenied
 
 
@@ -9,7 +9,20 @@ class HrLeave(models.Model):
 
     def create(self, vals_list):
         """Super the create function in hr.leave to calculate duration days."""
+        employee_id = vals_list.get('employee_id')
+        leave_type_id = vals_list.get('holiday_status_id')
 
+        if employee_id and leave_type_id:
+            employee = self.env['hr.employee'].browse(employee_id)
+            leave_type = self.env['hr.leave.type'].browse(leave_type_id)
+            if leave_type.code == 'AL' and employee.date_of_join:
+                doj = employee.date_of_join
+                if isinstance(doj, str):  # if it's a string, convert
+                    doj = datetime.strptime(doj, '%Y-%m-%d').date()
+                today = datetime.today().date()
+                six_months_after_doj = doj + relativedelta(months=6)
+                if today < six_months_after_doj:
+                    raise ValidationError("Employee is under probation and cannot take annual leave.")
         res = super(HrLeave, self).create(vals_list)
         if res.holiday_status_id.id == res.env.ref(
                 'hr_holidays.holiday_status_sl').id:
@@ -18,10 +31,8 @@ class HrLeave(models.Model):
                     "Employee must submit the attachment or medical report for sick leave of 2 or more consecutive days.")
             if res.number_of_days_display and res.number_of_days_display == 1 and not res.supported_attachment_ids:
                 request_date_from = res.request_date_from
-                print("request_date_from", request_date_from)
                 date_obj = fields.Date.from_string(res.request_date_from)
                 # Check if the day is Monday (0) or Friday (4)
-                print("Check", date_obj)
                 if date_obj.weekday() in (0, 4):
                     day = "Monday" if date_obj.weekday() == 0 else "Friday"
                     raise ValidationError(
