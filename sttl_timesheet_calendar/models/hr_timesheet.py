@@ -52,7 +52,7 @@ class AccountAnalyticLine(models.Model):
         domain="[('project_id', '=', project_id)]"
     )
 
-    description = fields.Text('Description')
+    description = fields.Text('Description',required=True)
     message = fields.Text('Message')
     # is_project_start_mail_sent = fields.Boolean("Project Start Mail Sent?",default=False,copy=False)
 
