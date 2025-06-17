@@ -52,5 +52,5 @@ class HrLeaveAllocation(models.Model):
             if record.state == 'paid':
                 record.write({'state': 'refuse'})
                 return
-        return super().action_validate()
+        return super().action_refuse()
 
