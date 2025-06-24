@@ -129,31 +129,9 @@ class ResCompany(models.Model):
             if con.is_connected():
                 con.close()
 
-    def _notify_missed_attendance_via_email(self, missing_dates):
-        email_to = 'abhilash.sudhakaran@tangentlandscape.com, fouvtylive@gmail.com'
-        subject = "⚠️ Missed Attendance Alert"
-        body_html = f"""
-            <p>Dear Admin,</p>
-            <p>The system detected missing attendance records for the following dates:</p>
-            <ul>
-                {''.join(f'<li>{date}</li>' for date in missing_dates)}
-            </ul>
-            <p>Please review the records in the system.</p>
-            <p>— Odoo Automated Alert</p>
-        """
-        mail_values = {
-            'subject': subject,
-            'email_to': email_to,
-            'body_html': body_html,
-            'auto_delete': True,
-            'email_from': self.env.user.company_id.email or 'noreply@yourcompany.com',
-        }
-        self.env['mail.mail'].create(mail_values).send()
-        _logger.info("📧 Notification email sent to %s for missed dates: %s", email_to, missing_dates)
 
     def fetch_missed_attendance_data(self):
         _logger.info("Starting missed attendance fetch...")
-        print("🟢 Starting missed attendance fetch...")
 
         self = self.env['res.company'].search([('id', '=', 1)])
         dubai_tz = pytz.timezone('Asia/Dubai')
@@ -213,10 +191,7 @@ class ResCompany(models.Model):
                 check_date += relativedelta(days=1)
 
             print("📅 Missing dates found:", [str(d) for d in missing_dates])
-            missing_dates_str = [str(d) for d in missing_dates]
             _logger.info("Missing attendance dates: %s", ", ".join([str(d) for d in missing_dates]) or "None")
-            if missing_dates:
-                self._notify_missed_attendance_via_email(missing_dates_str)
 
             # 3. Fetch and create attendance for each missing date
             for missing_date in missing_dates:
@@ -229,6 +204,7 @@ class ResCompany(models.Model):
 
                 if not records:
                     _logger.info("No data for %s in external DB", sql_date)
+                    print(f"⚠️ No data found in DB for {sql_date}")
                     continue
 
                 for employee in employee_ids:
