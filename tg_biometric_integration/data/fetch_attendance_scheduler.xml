@@ -2,7 +2,7 @@
 <odoo>
 	<data>
 
-        <!-- Monthly scheduler -->
+        <!-- Daily scheduler to fetch regular attendance -->
 	    <record id="fetch_attendance_scheduler" model="ir.cron">
             <field name="name">Fetch Attendance Scheduler</field>
             <field name="model_id" ref="base.model_res_company"/>
@@ -13,7 +13,20 @@
             <field name="numbercall">-1</field>
             <field name="active">True</field>
             <field name="doall" eval="False"/>
-            
         </record>
+
+        <!-- Daily scheduler to fetch missed attendance -->
+        <record id="fetch_missed_attendance_scheduler" model="ir.cron">
+            <field name="name">Fetch Missed Attendance Scheduler</field>
+            <field name="model_id" ref="base.model_res_company"/>
+            <field name="state">code</field>
+            <field name="code">model.fetch_missed_attendance_data()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+            <field name="doall" eval="False"/>
+        </record>
+
 	</data>
 </odoo>
