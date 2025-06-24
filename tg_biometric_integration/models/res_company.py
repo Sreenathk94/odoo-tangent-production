@@ -150,7 +150,6 @@ class ResCompany(models.Model):
         }
         self.env['mail.mail'].create(mail_values).send()
         _logger.info("📧 Notification email sent to %s for missed dates: %s", email_to, missing_dates)
-        print(f"📧 Notification email sent to {email_to}")
 
     def fetch_missed_attendance_data(self):
         _logger.info("Starting missed attendance fetch...")
@@ -215,7 +214,7 @@ class ResCompany(models.Model):
 
             print("📅 Missing dates found:", [str(d) for d in missing_dates])
             missing_dates_str = [str(d) for d in missing_dates]
-            _logger.warning("Missing attendance dates: %s", ", ".join([str(d) for d in missing_dates]) or "None")
+            _logger.info("Missing attendance dates: %s", ", ".join([str(d) for d in missing_dates]) or "None")
             if missing_dates:
                 self._notify_missed_attendance_via_email(missing_dates_str)
 
@@ -229,8 +228,7 @@ class ResCompany(models.Model):
                 print(f"📥 Retrieved {len(records)} records from MySQL for {sql_date}")
 
                 if not records:
-                    _logger.warning("No data for %s in external DB", sql_date)
-                    print(f"⚠️ No data found in DB for {sql_date}")
+                    _logger.info("No data for %s in external DB", sql_date)
                     continue
 
                 for employee in employee_ids:
@@ -242,7 +240,7 @@ class ResCompany(models.Model):
                     for rec in emp_records:
                         if rec[1].year == 1970 or rec[2].year == 1970:
                             employee.missing_count += 1
-                            _logger.warning("Invalid time for %s on %s", employee.name, sql_date)
+                            _logger.info("Invalid time for %s on %s", employee.name, sql_date)
                             print(f"⛔ Invalid time for {employee.name} on {sql_date}")
                             continue
 
