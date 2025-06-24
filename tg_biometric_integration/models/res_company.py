@@ -129,7 +129,6 @@ class ResCompany(models.Model):
             if con.is_connected():
                 con.close()
 
-
     def fetch_missed_attendance_data(self):
         _logger.info("Starting missed attendance fetch...")
 
@@ -140,7 +139,6 @@ class ResCompany(models.Model):
         con = None
         cursor = None
         _logger.info("Field value from res.company: %s", self.fetch_date)
-        print("Company fetch_date config:", self.fetch_date)
 
         try:
             # 1. Get the latest fetch_date recorded in hr.attendance
@@ -152,20 +150,14 @@ class ResCompany(models.Model):
 
             _logger.info("Last fetch date in attendance: %s", last_fetch_date)
             _logger.info("Company start fetch date: %s", self.fetch_date)
-            print("Last fetch_date in attendance:", last_fetch_date)
-            print("Company fetch_date:", self.fetch_date)
 
             today = fields.Date.today()
             fetch_start_date = self.fetch_date
-            print("Today is:", today)
 
-            # Ensure fetch_start_date is not after today
             if fetch_start_date >= today:
                 _logger.info("No dates to fetch. Start date %s is today or later.", fetch_start_date)
-                print("No missing dates to fetch.")
                 return
 
-            print("🔌 Connecting to MySQL...")
             con = mysql.connector.connect(
                 host=self.db_hostname,
                 database=self.db_name,
@@ -174,37 +166,30 @@ class ResCompany(models.Model):
                 auth_plugin='mysql_native_password'
             )
             cursor = con.cursor()
-            print("✅ Connected to MySQL.")
 
             employee_ids = self.env['hr.employee'].search([])
-            print(f"👥 Found {len(employee_ids)} employees.")
 
             # 2. Loop over missing dates between last_fetch_date + 1 and today
             check_date = last_fetch_date + relativedelta(days=1)
             missing_dates = []
 
-            print("🔍 Searching for missing dates...")
             while check_date < today:
                 exists = self.env['hr.attendance'].search([('fetch_date', '=', check_date)], limit=1)
                 if not exists:
                     missing_dates.append(check_date)
                 check_date += relativedelta(days=1)
 
-            print("📅 Missing dates found:", [str(d) for d in missing_dates])
             _logger.info("Missing attendance dates: %s", ", ".join([str(d) for d in missing_dates]) or "None")
 
             # 3. Fetch and create attendance for each missing date
             for missing_date in missing_dates:
                 _logger.info("Fetching data for: %s", missing_date)
-                print(f"📡 Fetching attendance for {missing_date}...")
                 sql_date = missing_date.strftime('%Y-%m-%d')
                 cursor.execute(f"SELECT * FROM attendance WHERE workdate = '{sql_date}'")
                 records = cursor.fetchall()
-                print(f"📥 Retrieved {len(records)} records from MySQL for {sql_date}")
 
                 if not records:
                     _logger.info("No data for %s in external DB", sql_date)
-                    print(f"⚠️ No data found in DB for {sql_date}")
                     continue
 
                 for employee in employee_ids:
@@ -217,7 +202,6 @@ class ResCompany(models.Model):
                         if rec[1].year == 1970 or rec[2].year == 1970:
                             employee.missing_count += 1
                             _logger.info("Invalid time for %s on %s", employee.name, sql_date)
-                            print(f"⛔ Invalid time for {employee.name} on {sql_date}")
                             continue
 
                         check_in = rec[1].replace(tzinfo=dubai_tz) if rec[1].tzinfo is None else rec[1]
@@ -232,7 +216,6 @@ class ResCompany(models.Model):
                         }))
 
                     if not lines:
-                        print(f"📭 No valid check-in/out for {employee.name} on {missing_date}")
                         continue
 
                     first_check_in = min(emp_records, key=lambda r: r[1])
@@ -253,15 +236,12 @@ class ResCompany(models.Model):
                         'check_in': first_utc,
                         'check_out': last_utc
                     })
-                    print(f"✅ Attendance created for {employee.name} on {missing_date}")
                     _logger.info("Created attendance for %s on %s", employee.name, missing_date)
 
-            print("🎯 Attendance fetch completed.")
             _logger.info("Completed fetching all missed attendances.")
 
         except Exception as e:
             _logger.exception("Failed to fetch missed attendance: %s", str(e))
-            print("❌ ERROR:", str(e))
             raise ValidationError(_("Missed attendance fetch failed: %s") % str(e))
 
         finally:
@@ -269,4 +249,4 @@ class ResCompany(models.Model):
                 cursor.close()
             if con and con.is_connected():
                 con.close()
-            print("🔒 MySQL connection closed.")
+            _logger.info("MySQL connection closed.")
