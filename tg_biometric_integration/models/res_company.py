@@ -152,11 +152,6 @@ class ResCompany(models.Model):
             _logger.info("Company start fetch date: %s", self.fetch_date)
 
             today = fields.Date.today()
-            fetch_start_date = self.fetch_date
-
-            if fetch_start_date >= today:
-                _logger.info("No dates to fetch. Start date %s is today or later.", fetch_start_date)
-                return
 
             con = mysql.connector.connect(
                 host=self.db_hostname,
@@ -172,16 +167,17 @@ class ResCompany(models.Model):
             # 2. Loop over missing dates between last_fetch_date + 1 and today
             check_date = last_fetch_date + relativedelta(days=1)
             missing_dates = []
+            print(missing_dates,"missing_dates")
 
             while check_date < today:
                 exists = self.env['hr.attendance'].search([('fetch_date', '=', check_date)], limit=1)
                 if not exists:
                     missing_dates.append(check_date)
+                    print(missing_dates, "missing_dates")
                 check_date += relativedelta(days=1)
 
             _logger.info("Missing attendance dates: %s", ", ".join([str(d) for d in missing_dates]) or "None")
-
-            # 3. Fetch and create attendance for each missing date
+                        # 3. Fetch and create attendance for each missing date
             for missing_date in missing_dates:
                 _logger.info("Fetching data for: %s", missing_date)
                 sql_date = missing_date.strftime('%Y-%m-%d')
