@@ -159,14 +159,15 @@ class TgAttendance(models.Model):
                     last_line = attendance_lines[-1]
                     check_in = line.check_in.astimezone(dubai_tz)
                     check_out = last_line[1]
-                    if check_out.time() > time(12, 45) and check_out.time() < time(14, 15):
+                    if time(12, 45) < check_out.time() < time(14, 15):
                         dif = check_in - check_out
                         lunch_break += dif
-                        if dif > timedelta(hours=1):
-                            last_line[3] = str(dif)
-                        else:
-                            last_line[3] = str(dif)
+                        last_line[3] = str(dif)
+
+                        # Only allow lunch_claim if the return time is after 14:15
+                        if check_in.time() > time(14, 15):
                             last_line[6] = 'lunch_claim'
+                            # Subtract 1 hour standard lunch to get excess time
                             lunch_break_none_counted = dif - timedelta(hours=1)
                     else:
                         dif = check_in - check_out
