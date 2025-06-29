@@ -1,7 +1,5 @@
-# models/hr_leave_allocation.py
 from odoo import api, models, fields
 from odoo.tools import float_round
-
 
 
 class HrLeaveAllocation(models.Model):
@@ -11,6 +9,16 @@ class HrLeaveAllocation(models.Model):
     is_post_probation_allocation = fields.Boolean("Post-Probation Leave Allocation")
     is_annual_allocation = fields.Boolean(string="Annual Leave Allocation")
     is_carry_forward = fields.Boolean(string="Carry Forward Annual Leave Allocation")
+    # Sick Leave
+    is_probation_sl_allocation = fields.Boolean("Probation Sick Leave Allocation")
+    is_sl_leave_allocation = fields.Boolean("Sick Leave Allocation")
+    # Special Leave (Indian)
+    is_probation_spl_allocation = fields.Boolean("Probation Special Leave Allocation")
+    is_spl_leave_allocation = fields.Boolean("Special Leave Allocation")
+    # Festive Leave (Indian)
+    is_probation_fl_allocation = fields.Boolean("Probation Festive Leave Allocation")
+    is_fl_leave_allocation = fields.Boolean("Festive Leave Allocation")
+
     leave_mode = fields.Selection([
         ('paid', 'Paid Leave'),
         ('compensatory', 'Compensatory Days'),
@@ -53,4 +61,3 @@ class HrLeaveAllocation(models.Model):
                 record.write({'state': 'refuse'})
                 return
         return super().action_refuse()
-
