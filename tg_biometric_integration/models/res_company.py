@@ -129,7 +129,7 @@ class ResCompany(models.Model):
             if con.is_connected():
                 con.close()
 
-       def fetch_missed_attendance_data(self):
+    def fetch_missed_attendance_data(self):
         _logger.info("Starting missed attendance fetch...")
 
         self = self.env['res.company'].search([('id', '=', 1)])
