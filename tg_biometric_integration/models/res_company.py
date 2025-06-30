@@ -129,7 +129,7 @@ class ResCompany(models.Model):
             if con.is_connected():
                 con.close()
 
-    def fetch_missed_attendance_data(self):
+       def fetch_missed_attendance_data(self):
         _logger.info("Starting missed attendance fetch...")
 
         self = self.env['res.company'].search([('id', '=', 1)])
@@ -138,21 +138,25 @@ class ResCompany(models.Model):
 
         con = None
         cursor = None
-        _logger.info("Field value from res.company: %s", self.fetch_date)
 
         try:
-            # 1. Get the latest fetch_date recorded in hr.attendance
-            last_attendance = self.env['hr.attendance'].search([], order='fetch_date desc', limit=1)
-            last_fetch_date = last_attendance.fetch_date if last_attendance else self.fetch_date
-
-            if not last_fetch_date:
-                raise ValidationError(_("Missing 'fetch_date' in company or no attendance found."))
-
-            _logger.info("Last fetch date in attendance: %s", last_fetch_date)
-            _logger.info("Company start fetch date: %s", self.fetch_date)
-
             today = fields.Date.today()
+            first_day = today.replace(day=1)
 
+            # Get all attendance fetch_dates for this month till today
+            existing_dates = self.env['hr.attendance'].search([
+                ('fetch_date', '>=', first_day),
+                ('fetch_date', '<=', today)
+            ]).mapped('fetch_date')
+
+            # Generate all dates in current month up to today
+            all_dates = set(first_day + timedelta(days=i) for i in range((today - first_day).days + 1))
+            missing_dates = sorted(all_dates - set(existing_dates))
+
+            _logger.info("Missing attendance dates this month: %s",
+                         ", ".join([str(d) for d in missing_dates]) or "None")
+
+            # Connect to external DB
             con = mysql.connector.connect(
                 host=self.db_hostname,
                 database=self.db_name,
@@ -164,20 +168,6 @@ class ResCompany(models.Model):
 
             employee_ids = self.env['hr.employee'].search([])
 
-            # 2. Loop over missing dates between last_fetch_date + 1 and today
-            check_date = last_fetch_date + relativedelta(days=1)
-            missing_dates = []
-            print(missing_dates,"missing_dates")
-
-            while check_date < today:
-                exists = self.env['hr.attendance'].search([('fetch_date', '=', check_date)], limit=1)
-                if not exists:
-                    missing_dates.append(check_date)
-                    print(missing_dates, "missing_dates")
-                check_date += relativedelta(days=1)
-
-            _logger.info("Missing attendance dates: %s", ", ".join([str(d) for d in missing_dates]) or "None")
-                        # 3. Fetch and create attendance for each missing date
             for missing_date in missing_dates:
                 _logger.info("Fetching data for: %s", missing_date)
                 sql_date = missing_date.strftime('%Y-%m-%d')
