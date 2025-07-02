@@ -211,6 +211,7 @@ class TgAttendance(models.Model):
             # 'email_to': attendance.employee_id.work_email,
             context = {
                 'email_from': self.env.company.erp_email,
+                'email_to' : 'abhilash.sudhakaran@tangentlandscape.com',
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
                 'datas': data_to_load_html_template,
