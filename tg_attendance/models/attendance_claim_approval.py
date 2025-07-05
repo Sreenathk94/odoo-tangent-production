@@ -44,7 +44,7 @@ class AttendanceClaimApproval(models.Model):
 
     def action_accept(self):
         day = self.date_from.date()
-        header_id = self.env['hr.attendance'].search([
+        header_id = self.env['hr.attendance'].sudo().search([
             ('fetch_date', '=', day),
             ('employee_id', '=', self.employee_id.id)
         ])
