@@ -30,6 +30,15 @@ class HrLeaveAllocation(models.Model):
         compute='_compute_duration_days_only',
         help="Displays the duration of the leave request strictly in days."
     )
+    project_id = fields.Many2one('project.project', "Project")
+    from_date = fields.Datetime("Start Time")
+    to_date = fields.Datetime("End Time")
+    allowed_stage_ids = fields.Many2many(
+        related='project_id.allowed_stage_ids')
+    status_id = fields.Many2one(
+        "hr.timesheet.status", 'Stage', order='sequence asc',
+        domain="[('id', 'in', allowed_stage_ids)]", required=True
+    )
 
     @api.depends('number_of_days_display', 'number_of_hours_display', 'type_request_unit')
     def _compute_duration_days_only(self):

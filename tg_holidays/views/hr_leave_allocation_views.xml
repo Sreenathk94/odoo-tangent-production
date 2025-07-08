@@ -10,6 +10,16 @@
                 <field name="leave_mode" widget="radio" invisible="not is_cp_leave"/>
                 <field name="duration_days_only"/>
             </xpath>
+            <xpath expr="//group[@name='alloc_right_col']" position="after">
+                <group/>
+               <group string="Project Details" invisible="not is_cp_leave">
+                <field name="allowed_stage_ids" invisible="1"/>
+                <field name="project_id" options="{'no_create': True}" required="is_cp_leave"/>
+                <field name="from_date" widget="datetime" required="is_cp_leave"/>
+                <field name="to_date" widget="datetime" required="is_cp_leave"/>
+                <field name="status_id" domain="[('id', 'in', allowed_stage_ids)]" options="{'no_create': True}" required="is_cp_leave"/>
+            </group>
+            </xpath>
         </field>
     </record>
     <record id="hr_leave_allocation_view_form_manager" model="ir.ui.view">
@@ -19,6 +29,9 @@
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_validate']" position="attributes">
                 <attribute name="invisible">state == 'paid'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='notes']" position="attributes">
+                <attribute name="required">1</attribute>
             </xpath>
             <xpath expr="//button[@name='action_refuse']" position="attributes">
                 <attribute name="invisible">not can_approve or state not in ('confirm', 'validate', 'paid')</attribute>

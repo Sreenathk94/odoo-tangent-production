@@ -1,5 +1,5 @@
 from odoo import api, models
-from datetime import datetime
+from datetime import datetime,timedelta
 from dateutil.relativedelta import relativedelta
 from datetime import date
 
@@ -105,7 +105,7 @@ class HrEmployee(models.Model):
                     'employee_id': employee.id,
                     'employee_ids': [(6, 0, [employee.id])],
                     'holiday_status_id': leave_type.id,
-                    'number_of_days': 1.83,
+                    'number_of_days': 1.833333333333333,
                     'allocation_type': 'regular',
                     'is_probation_accrual': True,
                     'date_to': date(today.year, 12, 31),
@@ -140,7 +140,7 @@ class HrEmployee(models.Model):
 
         for employee in post_probation_employees:
             probation_end_date = employee.date_of_join + relativedelta(months=6)
-            if probation_end_date != today:
+            if today - timedelta(days=3) <= probation_end_date <= today:
                 continue
 
             # Annual Leave for Remaining Year
@@ -159,11 +159,12 @@ class HrEmployee(models.Model):
                         'employee_id': employee.id,
                         'employee_ids': [(6, 0, [employee.id])],
                         'holiday_status_id': leave_type.id,
-                        'number_of_days': 1.83 * months_remaining,
+                        'number_of_days': 1.833333333333333 * months_remaining,
                         'allocation_type': 'regular',
                         'is_post_probation_allocation': True,
                         'date_to': date(today.year, 12, 31),
                     })
+
 
             # Sick Leave: Top up to 12 days
             existing_sick_allocations = self.env['hr.leave.allocation'].search([
@@ -211,7 +212,7 @@ class HrEmployee(models.Model):
             for leave_type, code, label in [
                 (sick_leave_type, 'SL', 'Sick Leave'),
                 (special_leave_type, 'SPL', 'Special Leave'),
-                (festive_leave_type, 'FL', 'Festive Leave'),
+                (festive_leave_type, 'FL', 'Personal Festive Leave'),
             ]:
                 field_flag = f'is_probation_{code.lower()}_allocation'
                 existing = self.env['hr.leave.allocation'].search([
@@ -222,18 +223,35 @@ class HrEmployee(models.Model):
                     ('create_date', '>=', current_month_start),
                 ], limit=1)
 
-                if not existing:
-                    self.env['hr.leave.allocation'].create({
-                        'name': f'Probation Monthly {label} (Indian - {today.strftime("%B %Y")}-{employee.name})',
-                        'employee_id': employee.id,
-                        'employee_ids': [(6, 0, [employee.id])],
-                        'holiday_status_id': leave_type.id,
-                        'number_of_days': 1.0,  # 1 day per month
-                        'allocation_type': 'regular',
-                        field_flag: True,
-                        'notes': f'Indian Probation Monthly {label} Allocation',
-                        'date_to': date(today.year, 12, 31),
-                    })
+                if existing:
+                    continue
+
+                # ✅ Cap festive leave to max 2 days in a year
+                max_allowed = 1.0
+                if code == 'FL':
+                    festive_allocs = self.env['hr.leave.allocation'].search([
+                        ('employee_id', '=', employee.id),
+                        ('state', '!=', 'refuse'),
+                        ('holiday_status_id', '=', festive_leave_type.id),
+                        ('date_from', '>=', date(today.year, 1, 1)),
+                        ('date_to', '<=', date(today.year, 12, 31)),
+                    ])
+                    festive_days_allocated = sum(festive_allocs.mapped('number_of_days'))
+                    if festive_days_allocated >= 2.0:
+                        continue  # Skip allocation
+                    max_allowed = min(1.0, 2.0 - festive_days_allocated)
+
+                self.env['hr.leave.allocation'].create({
+                    'name': f'Probation Monthly {label} (Indian - {today.strftime("%B %Y")}-{employee.name})',
+                    'employee_id': employee.id,
+                    'employee_ids': [(6, 0, [employee.id])],
+                    'holiday_status_id': leave_type.id,
+                    'number_of_days': max_allowed,
+                    'allocation_type': 'regular',
+                    field_flag: True,
+                    'notes': f'Indian Probation Monthly {label} Allocation',
+                    'date_to': date(today.year, 12, 31),
+                })
 
         # --- PART 2: Post-Probation Top-up allocation ---
         post_probation_employees = self.search([
@@ -243,13 +261,13 @@ class HrEmployee(models.Model):
 
         for employee in post_probation_employees:
             probation_end_date = employee.date_of_join + relativedelta(months=6)
-            if probation_end_date != today:
+            if today - timedelta(days=3) <= probation_end_date <= today:
                 continue
 
             for leave_type, total_days, code, label in [
                 (sick_leave_type, 6, 'SL', 'Sick Leave'),
                 (special_leave_type, 6, 'SPL', 'Special Leave'),
-                (festive_leave_type, 12, 'FL', 'Festive Leave'),
+                (festive_leave_type, 2, 'FL', 'Personal Festive Leave'),  # ✅ Max 2 days
             ]:
                 existing_allocations = self.env['hr.leave.allocation'].search([
                     ('employee_id', '=', employee.id),
@@ -260,6 +278,7 @@ class HrEmployee(models.Model):
                 ])
                 total_allocated_hours = sum(existing_allocations.mapped('number_of_days')) * 9
                 remaining_hours = max(0, (total_days * 9) - total_allocated_hours)
+
                 if remaining_hours > 0:
                     self.env['hr.leave.allocation'].create({
                         'name': f'{label} Top-Up (Indian - {today.year}-{employee.name})',
@@ -502,7 +521,7 @@ class HrEmployee(models.Model):
                 'employee_id': employees_to_allocate[0],
                 'employee_ids': [(6, 0, employees_to_allocate)],
                 'holiday_status_id': festive_leave_type.id,
-                'number_of_days': 12,
+                'number_of_days': 2,
                 'allocation_type': 'regular',
                 'is_post_probation_allocation': True,
                 'is_festive_allocation': True,

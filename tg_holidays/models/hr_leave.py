@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from datetime import timedelta
 from odoo.tools import float_round
@@ -77,3 +77,60 @@ class HrLeave(models.Model):
                                                         precision_digits=2)  # assuming 9 hours = 1 day
             else:
                 record.duration_days_only = float_round(record.number_of_days_display, precision_digits=2)
+
+    @api.model
+    def create(self, vals):
+        """Override create to validate annual leave limits."""
+        self._check_annual_leave_limit(vals)
+        return super().create(vals)
+
+    def write(self, vals):
+        """
+        Override write to validate annual leave limits if modified.
+        Ensures any update to employee or number of days does not exceed limit.
+        """
+        for record in self:
+            check_vals = dict(vals)
+            if 'employee_ids' not in check_vals:
+                check_vals['employee_ids'] = record.sudo().employee_ids.ids
+            self._check_annual_leave_limit(check_vals)
+        return super().write(vals)
+
+    def _check_annual_leave_limit(self, vals):
+        """
+        Raises a UserError if the employee is trying to request more than
+        30 days of annual leave (code = 'AL') including already taken/approved leave.
+        """
+        leave_type = self.env['hr.leave.type'].search([('code', '=', 'AL')], limit=1)
+        if not leave_type:
+            return  # Skip check if annual leave type not found
+
+        # Skip check if the leave type is not AL
+        leave_type_id = vals.get('holiday_status_id')
+        if leave_type_id and leave_type_id != leave_type.id:
+            return
+
+        employee_ids = vals.get('employee_ids')
+        if isinstance(employee_ids, list):
+            if employee_ids and isinstance(employee_ids[0], tuple):
+                employee_ids = employee_ids[0][2]  # M2M format
+        elif isinstance(employee_ids, int):
+            employee_ids = [employee_ids]
+        elif not employee_ids:
+            return
+
+        for emp_id in employee_ids:
+            existing_leaves = self.env['hr.leave'].search([
+                ('employee_ids', 'in', emp_id),
+                ('holiday_status_id', '=', leave_type.id),
+                ('state', 'in', ['confirm', 'validate1', 'validate']),
+            ])
+            total_days = sum(l.number_of_days for l in existing_leaves)
+
+            if total_days > 30:
+                employee = self.env['hr.employee'].browse(emp_id)
+                raise UserError(_(
+                    "Annual Leave limit exceeded!\nEmployee %s is requesting %.2f days, "
+                    "which exceeds the allowed maximum of 30 annual leave days per year."
+                ) % (employee.name, total_days))
+
