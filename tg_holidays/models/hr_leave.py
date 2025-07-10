@@ -101,7 +101,7 @@ class HrLeave(models.Model):
         Raises a UserError if the employee is trying to request more than
         30 days of annual leave (code = 'AL') including already taken/approved leave.
         """
-        leave_type = self.env['hr.leave.type'].search([('code', '=', 'AL')], limit=1)
+        leave_type = self.env['hr.leave.type'].sudo().search([('code', '=', 'AL')], limit=1)
         if not leave_type:
             return  # Skip check if annual leave type not found
 
@@ -120,7 +120,7 @@ class HrLeave(models.Model):
             return
 
         for emp_id in employee_ids:
-            existing_leaves = self.env['hr.leave'].search([
+            existing_leaves = self.env['hr.leave'].sudo().search([
                 ('employee_ids', 'in', emp_id),
                 ('holiday_status_id', '=', leave_type.id),
                 ('state', 'in', ['confirm', 'validate1', 'validate']),
@@ -128,7 +128,7 @@ class HrLeave(models.Model):
             total_days = sum(l.number_of_days for l in existing_leaves)
 
             if total_days > 30:
-                employee = self.env['hr.employee'].browse(emp_id)
+                employee = self.env['hr.employee'].sudo().browse(emp_id)
                 raise UserError(_(
                     "Annual Leave limit exceeded!\nEmployee %s is requesting %.2f days, "
                     "which exceeds the allowed maximum of 30 annual leave days per year."
