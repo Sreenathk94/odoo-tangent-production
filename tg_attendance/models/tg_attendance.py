@@ -96,15 +96,16 @@ class TgAttendance(models.Model):
 
     @api.model
     def _employee_alert_daily_attendance(self):
+        dubai_tz = timezone('Asia/Dubai')
         today = self.env.company.fetch_date
         yesterday = today - relativedelta(days=1)
+
         attendance_ids = self.env['hr.attendance'].search([('fetch_date', '=', yesterday)])
         notification_need = attendance_ids.filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)
 
         for attendance in notification_need:
             data_to_load_html_template = []
 
-            # Convert check-in and check-out times to Asia/Dubai timezone
             check_in_dubai = attendance.check_in.astimezone(dubai_tz)
             check_out_dubai = attendance.check_out.astimezone(dubai_tz)
 
@@ -117,8 +118,6 @@ class TgAttendance(models.Model):
                 ' ', ' '
             ])
 
-            # data_to_load_html_template.append(['Total time excluding break', ' ', ' ', ' ', self.float_to_time(attendance.actual_hours), ' '])
-
             data_to_load_html_template.append([
                 'Breaks', ' ', ' ', ' ', 'Long Break', 'Short Break', ' '
             ])
@@ -126,8 +125,6 @@ class TgAttendance(models.Model):
             start_time = self.env.company.company_start_time
             hours = int(start_time)
             minutes = int((start_time - hours) * 100)
-
-            # Convert start time to Asia/Dubai timezone
             start_time_date = datetime(yesterday.year, yesterday.month, yesterday.day, hours, minutes,
                                        tzinfo=UTC).astimezone(dubai_tz)
 
@@ -154,6 +151,7 @@ class TgAttendance(models.Model):
             counted = timedelta(days=0)
             lunch_break = timedelta(days=0)
             lunch_break_none_counted = timedelta(days=0)
+
             for line in attendance.line_ids:
                 if is_first_row:
                     last_line = attendance_lines[-1]
@@ -162,13 +160,17 @@ class TgAttendance(models.Model):
                     if time(12, 45) < check_out.time() < time(14, 15):
                         dif = check_in - check_out
                         lunch_break += dif
-                        last_line[3] = str(dif)
 
-                        # Only allow lunch_claim if the return time is after 14:15
-                        if check_in.time() > time(14, 15):
+                        # ✅ Skip claim if break is fully within 13:00–14:00
+                        if time(13, 0) <= check_out.time() <= time(14, 0) and time(13, 0) <= check_in.time() <= time(14,
+                                                                                                                     0):
+                            last_line[3] = str(dif)
+                        elif check_in.time() > time(14, 15):
+                            last_line[3] = str(dif)
                             last_line[6] = 'lunch_claim'
-                            # Subtract 1 hour standard lunch to get excess time
                             lunch_break_none_counted = dif - timedelta(hours=1)
+                        else:
+                            last_line[3] = str(dif)
                     else:
                         dif = check_in - check_out
                         hours = int(dif.seconds / 3600)
@@ -182,6 +184,7 @@ class TgAttendance(models.Model):
                             counted += dif
                     last_line[1] = last_line[1].strftime("%d-%m-%Y %H:%M:%S")
                     last_line[2] = check_in.strftime("%d-%m-%Y %H:%M:%S")
+
                 if line.check_out.astimezone(dubai_tz) != check_out_dubai:
                     attendance_lines.append([
                         f"Break {line_count}",
@@ -190,11 +193,11 @@ class TgAttendance(models.Model):
                     ])
                     is_first_row = True
                     line_count += 1
+
             data_to_load_html_template += attendance_lines
 
-            # Fix calculation here:
             total_presence = check_out_dubai - check_in_dubai
-            to_reduce = non_counted + lunch_break + counted  # sum of all breaks to subtract
+            to_reduce = non_counted + lunch_break + counted
             net_time = total_presence - to_reduce
 
             data_to_load_html_template.append([
@@ -202,22 +205,21 @@ class TgAttendance(models.Model):
             ])
 
             data_to_load_html_template.append([
-                f'Net total time inside the office ({total_presence} - {to_reduce}) {net_time}', ' ', ' ', ' ', ' ',
-                ' ', ' '
+                f'Net total time inside the office ({total_presence} - {to_reduce}) {net_time}',
+                ' ', ' ', ' ', ' ', ' ', ' '
             ])
 
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-            # 'email_to' : 'abhilash.sudhakaran@tangentlandscape.com',
-            # 'email_to': attendance.employee_id.work_email,
+
             context = {
                 'email_from': self.env.company.erp_email,
-                'email_to' : 'abhilash.sudhakaran@tangentlandscape.com',
+                'email_to': attendance.employee_id.work_email,
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
                 'datas': data_to_load_html_template,
-                'com_work_hrs': self.env.company.attend_work_hrs,
-                'work_location': attendance.employee_id.work_location_id.name
+                'com_work_hrs': self.env.company.attend_work_hrs
             }
+
             template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
             template.with_context(context).send_mail(attendance.id, force_send=True)
 
@@ -279,7 +281,6 @@ class Employee(models.Model):
                         'month': previous_month.strftime("%B"),
                         'com_work_hrs': self.env.company.attend_work_hrs,
                         'act_work_hrs': self.float_to_time(avg),
-
                     }
                     template = self.env.ref('tg_attendance.email_template_employee_monthly_attendance_timesheet_alert')
                     template.with_context(context).send_mail(emp.id, force_send=True)
