@@ -211,11 +211,12 @@ class TgAttendance(models.Model):
             # 'email_to': attendance.employee_id.work_email,
             context = {
                 'email_from': self.env.company.erp_email,
-                'email_to' : attendance.employee_id.work_email,
+                'email_to' : 'abhilash.sudhakaran@tangentlandscape.com',
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
                 'datas': data_to_load_html_template,
-                'com_work_hrs': self.env.company.attend_work_hrs
+                'com_work_hrs': self.env.company.attend_work_hrs,
+                'work_location': attendance.employee_id.work_location_id.name
             }
             template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
             template.with_context(context).send_mail(attendance.id, force_send=True)
@@ -278,6 +279,7 @@ class Employee(models.Model):
                         'month': previous_month.strftime("%B"),
                         'com_work_hrs': self.env.company.attend_work_hrs,
                         'act_work_hrs': self.float_to_time(avg),
+
                     }
                     template = self.env.ref('tg_attendance.email_template_employee_monthly_attendance_timesheet_alert')
                     template.with_context(context).send_mail(emp.id, force_send=True)
