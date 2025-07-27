@@ -11,6 +11,10 @@ from odoo.tools import date_utils
 
 dubai_tz = timezone('Asia/Dubai')
 
+# Lunch hour window (no claim inside this period)
+LUNCH_START = time(13, 0)  # 1:00 PM
+LUNCH_END = time(14, 0)    # 2:00 PM
+
 class LocationMaster(models.Model):
     _name = "hr.location.master"
     _description = "Location Master"
@@ -96,19 +100,34 @@ class TgAttendance(models.Model):
 
     @api.model
     def _employee_alert_daily_attendance(self):
-        dubai_tz = timezone('Asia/Dubai')
+        """
+        Cron job to send daily attendance alerts.
+        - Checks attendance for the previous day.
+        - Calculates breaks (claims vs short) while excluding 1:00–2:00 PM lunch hour.
+        """
+
         today = self.env.company.fetch_date
         yesterday = today - relativedelta(days=1)
 
+        # Prepare lunch window datetimes
+        lunch_start_dt = dubai_tz.localize(datetime.combine(yesterday, LUNCH_START))
+        lunch_end_dt = dubai_tz.localize(datetime.combine(yesterday, LUNCH_END))
+        default_lunch = timedelta(hours=1)  # Default 1-hour deduction
+
+        # Fetch attendances for yesterday
         attendance_ids = self.env['hr.attendance'].search([('fetch_date', '=', yesterday)])
-        notification_need = attendance_ids.filtered(lambda a: a.actual_hours < self.env.company.attend_work_hrs)
+        notification_need = attendance_ids.filtered(
+            lambda a: a.actual_hours < self.env.company.attend_work_hrs
+        )
 
         for attendance in notification_need:
             data_to_load_html_template = []
 
+            # Convert check-in/out to Dubai time
             check_in_dubai = attendance.check_in.astimezone(dubai_tz)
             check_out_dubai = attendance.check_out.astimezone(dubai_tz)
 
+            # Add initial row
             data_to_load_html_template.append([
                 'First Check-in & Last Check-out',
                 check_in_dubai.strftime("%d-%m-%Y %H:%M:%S"),
@@ -118,15 +137,18 @@ class TgAttendance(models.Model):
                 ' ', ' '
             ])
 
+            # Break header row
             data_to_load_html_template.append([
                 'Breaks', ' ', ' ', ' ', 'Long Break', 'Short Break', ' '
             ])
 
+            # Late check-in as a break (Delay)
             start_time = self.env.company.company_start_time
             hours = int(start_time)
             minutes = int((start_time - hours) * 100)
-            start_time_date = datetime(yesterday.year, yesterday.month, yesterday.day, hours, minutes,
-                                       tzinfo=UTC).astimezone(dubai_tz)
+            start_time_date = dubai_tz.localize(datetime(
+                yesterday.year, yesterday.month, yesterday.day, hours, minutes
+            ))
 
             if check_in_dubai > start_time_date:
                 start_time_difference = check_in_dubai - start_time_date
@@ -138,53 +160,91 @@ class TgAttendance(models.Model):
                     ' ', ' ', ' ', False
                 ]
                 if total_late_in_minutes > 15:
-                    row[3] = start_time_difference
+                    row[4] = start_time_difference  # Long Break column
                     row[6] = 'claim'
                 else:
-                    row[4] = start_time_difference
+                    row[5] = start_time_difference  # Short Break column
                 data_to_load_html_template.append(row)
 
+            # Track breaks
             line_count = 1
             is_first_row = False
             attendance_lines = []
-            non_counted = timedelta(days=0)
-            counted = timedelta(days=0)
-            lunch_break = timedelta(days=0)
-            lunch_break_none_counted = timedelta(days=0)
+            non_counted = timedelta(0)  # Short breaks
+            counted = timedelta(0)  # Long breaks
+            extra_lunch = timedelta(0)  # Extra lunch beyond 1 hr
+            actual_lunch = timedelta(0)
 
+            # Loop through attendance lines
             for line in attendance.line_ids:
                 if is_first_row:
                     last_line = attendance_lines[-1]
                     check_in = line.check_in.astimezone(dubai_tz)
                     check_out = last_line[1]
-                    if time(12, 45) < check_out.time() < time(14, 15):
-                        dif = check_in - check_out
-                        lunch_break += dif
+                    dif = check_in - check_out
 
-                        # ✅ Skip claim if break is fully within 13:00–14:00
-                        if time(13, 0) <= check_out.time() <= time(14, 0) and time(13, 0) <= check_in.time() <= time(14,
-                                                                                                                     0):
-                            last_line[3] = str(dif)
-                        elif check_in.time() > time(14, 15):
-                            last_line[3] = str(dif)
-                            last_line[6] = 'lunch_claim'
-                            lunch_break_none_counted = dif - timedelta(hours=1)
-                        else:
-                            last_line[3] = str(dif)
-                    else:
-                        dif = check_in - check_out
-                        hours = int(dif.seconds / 3600)
-                        minutes = (dif.seconds % 3600) / 60
-                        if hours == 0 and minutes <= 15:
-                            last_line[5] = str(dif)
-                            non_counted += dif
-                        else:
-                            last_line[4] = str(dif)
+                    # Split logic for lunch
+                    lunch_part = timedelta(0)
+                    pre_lunch_part = timedelta(0)
+                    post_lunch_part = timedelta(0)
+
+                    # Fully before lunch
+                    if check_out < lunch_start_dt and check_in <= lunch_start_dt:
+                        pre_lunch_part = dif
+
+                    # Fully after lunch
+                    elif check_out >= lunch_end_dt and check_in > lunch_end_dt:
+                        post_lunch_part = dif
+
+                    # Fully within lunch
+                    elif check_out >= lunch_start_dt and check_in <= lunch_end_dt:
+                        lunch_part = dif
+
+                    # Overlapping lunch start (before 1 PM to during lunch)
+                    elif check_out < lunch_start_dt < check_in <= lunch_end_dt:
+                        pre_lunch_part = lunch_start_dt - check_out
+                        lunch_part = check_in - lunch_start_dt
+
+                    # Overlapping lunch end (during lunch to after 2 PM)
+                    elif lunch_start_dt <= check_out < lunch_end_dt < check_in:
+                        lunch_part = lunch_end_dt - check_out
+                        post_lunch_part = check_in - lunch_end_dt
+
+                    # Overlapping both sides
+                    elif check_out < lunch_start_dt and check_in > lunch_end_dt:
+                        pre_lunch_part = lunch_start_dt - check_out
+                        lunch_part = lunch_end_dt - lunch_start_dt
+                        post_lunch_part = check_in - lunch_end_dt
+
+                    # Add lunch part
+                    if lunch_part > timedelta(0):
+                        actual_lunch += lunch_part
+                        last_line[3] = str(lunch_part)  # Lunch Break column
+
+                    # Add pre-lunch part
+                    if pre_lunch_part > timedelta(0):
+                        if pre_lunch_part >= timedelta(minutes=15):
+                            last_line[4] = str(pre_lunch_part)
                             last_line[6] = 'claim'
-                            counted += dif
+                            counted += pre_lunch_part
+                        else:
+                            last_line[5] = str(pre_lunch_part)
+                            non_counted += pre_lunch_part
+
+                    # Add post-lunch part
+                    if post_lunch_part > timedelta(0):
+                        if post_lunch_part >= timedelta(minutes=15):
+                            last_line[4] = str(post_lunch_part)
+                            last_line[6] = 'claim'
+                            counted += post_lunch_part
+                        else:
+                            last_line[5] = str(post_lunch_part)
+                            non_counted += post_lunch_part
+
                     last_line[1] = last_line[1].strftime("%d-%m-%Y %H:%M:%S")
                     last_line[2] = check_in.strftime("%d-%m-%Y %H:%M:%S")
 
+                # Prepare next break
                 if line.check_out.astimezone(dubai_tz) != check_out_dubai:
                     attendance_lines.append([
                         f"Break {line_count}",
@@ -194,36 +254,70 @@ class TgAttendance(models.Model):
                     is_first_row = True
                     line_count += 1
 
+            # Add attendance lines
             data_to_load_html_template += attendance_lines
 
-            total_presence = check_out_dubai - check_in_dubai
-            to_reduce = non_counted + lunch_break + counted
-            net_time = total_presence - to_reduce
+            # Calculate extra lunch beyond 1 hour
+            if actual_lunch > default_lunch:
+                extra_lunch = actual_lunch - default_lunch
 
+            total_presence = check_out_dubai - check_in_dubai
+            total_breaks = counted + non_counted + extra_lunch + default_lunch
+            net_time = total_presence - total_breaks
+
+            # Main totals row
             data_to_load_html_template.append([
-                'Total Breaks', ' ', ' ', str(lunch_break), str(counted), str(non_counted), ' '
+                'Total Breaks', ' ', ' ', str(actual_lunch), str(counted), str(non_counted), ' '
             ])
 
+            # Net total time
             data_to_load_html_template.append([
-                f'Net total time inside the office ({total_presence} - {to_reduce}) {net_time}',
+                f'Net total time inside the office ({total_presence} - {total_breaks}) {net_time}',
                 ' ', ' ', ' ', ' ', ' ', ' '
             ])
 
+            # --- NEW SUMMARY TABLE ---
+            data_to_load_html_template.append([' ', ' ', ' ', ' ', ' ', ' ', ' '])
+            data_to_load_html_template.append([
+                'Breaks Taken During Lunch Period(1PM-2PM)',
+                str(actual_lunch),
+                '1 Hour Default deduction',
+                ' ', ' ', ' ', ' '
+            ])
+            data_to_load_html_template.append([
+                'Long Break+Short Break',
+                str(counted + non_counted),
+                ' ', ' ', ' ', ' ', ' '
+            ])
+            data_to_load_html_template.append([
+                'Total Break including Lunch 1 hour',
+                str(counted + non_counted),
+                str(default_lunch),
+                str(total_breaks),
+                ' ', ' ', ' '
+            ])
+            data_to_load_html_template.append([
+                'Productive Hours of the Day',
+                str(net_time),
+                ' ', ' ', ' ', ' ', ' '
+            ])
+
+            # Send email
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-            # 'email_to' : 'abhilash.sudhakaran@tangentlandscape.com',
-            # 'email_to': attendance.employee_id.work_email,
             context = {
-                'email_from': self.env.company.erp_email,
                 'email_to' : 'abhilash.sudhakaran@tangentlandscape.com',
+                'email_from': self.env.company.erp_email,
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
                 'datas': data_to_load_html_template,
                 'com_work_hrs': self.env.company.attend_work_hrs
             }
-
             template = self.env.ref('tg_attendance.email_template_employee_daily_attendance_alert')
             template.with_context(context).send_mail(attendance.id, force_send=True)
 
+    def _classify_break(self, duration):
+        """Classify a break based on the 15-minute rule."""
+        return 'claim' if duration >= timedelta(minutes=15) else 'short'
 
 class Employee(models.Model):
     _inherit = "hr.employee"
