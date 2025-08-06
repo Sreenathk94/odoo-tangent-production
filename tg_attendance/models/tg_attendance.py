@@ -272,7 +272,7 @@ class TgAttendance(models.Model):
 
             # Net total time
             data_to_load_html_template.append([
-                f'Net total time inside the office ({total_presence} - {total_breaks}) {net_time}',
+                f'Estimated Productive Hours ({total_presence} - {total_breaks}) {net_time}',
                 ' ', ' ', ' ', ' ', ' ', ' '
             ])
 
@@ -283,6 +283,11 @@ class TgAttendance(models.Model):
                 str(actual_lunch),
                 '1 Hour Default deduction',
                 ' ', ' ', ' ', ' '
+            ])
+            data_to_load_html_template.append([
+                'Break balance during lunch break',
+                (default_lunch)-(actual_lunch),
+                ' ',' ', ' ', ' ', ' '
             ])
             data_to_load_html_template.append([
                 'Long Break+Short Break',
@@ -305,7 +310,7 @@ class TgAttendance(models.Model):
             # Send email
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             context = {
-                'email_to' : 'abhilash.sudhakaran@tangentlandscape.com',
+                'email_to' : attendance.employee_id.work_email,
                 'email_from': self.env.company.erp_email,
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
@@ -329,7 +334,7 @@ class Employee(models.Model):
 
     def _employee_weekly_alert_timesheet_attendance(self):
         today = datetime.now().date()
-        if today.weekday() == 0:
+        if today:
             start_date = today - relativedelta(days=1)
             last_date = today - relativedelta(days=7)
             emp_ids = self.env['hr.employee'].search([])

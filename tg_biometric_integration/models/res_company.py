@@ -141,20 +141,25 @@ class ResCompany(models.Model):
 
         try:
             today = fields.Date.today()
-            first_day = today.replace(day=1)
+            # Check last 60 days (can change to 30 if needed)
+            start_date = today - timedelta(days=60)
 
-            # Get all attendance fetch_dates for this month till today
+            # Get all attendance fetch_dates from last 60 days
             existing_dates = self.env['hr.attendance'].search([
-                ('fetch_date', '>=', first_day),
+                ('fetch_date', '>=', start_date),
                 ('fetch_date', '<=', today)
             ]).mapped('fetch_date')
 
-            # Generate all dates in current month up to today
-            all_dates = set(first_day + timedelta(days=i) for i in range((today - first_day).days + 1))
+            # Generate all dates from start_date to today
+            all_dates = set(start_date + timedelta(days=i) for i in range((today - start_date).days + 1))
             missing_dates = sorted(all_dates - set(existing_dates))
 
-            _logger.info("Missing attendance dates this month: %s",
+            _logger.info("Missing attendance dates (last 60 days): %s",
                          ", ".join([str(d) for d in missing_dates]) or "None")
+
+            if not missing_dates:
+                _logger.info("No missing attendance dates found in the last 60 days.")
+                return
 
             # Connect to external DB
             con = mysql.connector.connect(
