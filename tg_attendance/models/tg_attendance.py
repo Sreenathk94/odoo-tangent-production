@@ -321,32 +321,41 @@ class Employee(models.Model):
         minutes = int(round((float_value - hours) * 60))
         return f"{hours:02d}:{minutes:02d}"
 
+
     def _employee_weekly_alert_timesheet_attendance(self):
         today = datetime.now().date()
-        if today:
-            start_date = today - relativedelta(days=1)
-            last_date = today - relativedelta(days=7)
-            emp_ids = self.env['hr.employee'].search([])
-            for emp in emp_ids:
-                attendance_ids = self.env['hr.attendance'].search(
-                    [('employee_id', '=', emp.id), ('fetch_date', '>=', last_date), ('fetch_date', '<=', start_date)])
-                if attendance_ids:
-                    leave_count = 0
-                    leave_days = emp.get_unusual_days_emp(emp.resource_calendar_id, last_date, start_date)
-                    leave_count += list(leave_days.values()).count(False)
-                    if sum(attendance_ids.mapped('actual_hours')) < (leave_count * self.env.company.attend_work_hrs):
-                        avg = sum(attendance_ids.mapped('actual_hours')) / leave_count
-                        context = {
-                            'email_to': emp.work_email,
-                            'email_from': self.env.company.erp_email,
-                            'today': start_date,
-                            'last_week': last_date,
-                            'com_work_hrs': self.float_to_time(self.env.company.attend_work_hrs),
-                            'act_work_hrs': self.float_to_time(avg),
-                        }
-                        template = self.env.ref(
-                            'tg_attendance.email_template_employee_weekly_attendance_timesheet_alert')
-                        template.with_context(context).send_mail(emp.id, force_send=True)
+
+        # Calculate last week's Sunday and Saturday
+        weekday = today.weekday()  # Monday=0 ... Sunday=6
+        last_saturday = today - timedelta(days=weekday + 2)  # Go back to last Saturday
+        last_sunday = last_saturday - timedelta(days=6)
+
+        emp_ids = self.env['hr.employee'].search([])
+        for emp in emp_ids:
+            attendance_ids = self.env['hr.attendance'].search([
+                ('employee_id', '=', emp.id),
+                ('fetch_date', '>=', last_sunday),
+                ('fetch_date', '<=', last_saturday)
+            ])
+            if attendance_ids:
+                leave_count = 0
+                leave_days = emp.get_unusual_days_emp(emp.resource_calendar_id, last_sunday, last_saturday)
+                leave_count += list(leave_days.values()).count(False)
+
+                if sum(attendance_ids.mapped('actual_hours')) < (leave_count * self.env.company.attend_work_hrs):
+                    avg = sum(attendance_ids.mapped('actual_hours')) / leave_count
+                    context = {
+                        'email_to': emp.work_email,
+                        'email_from': self.env.company.erp_email,
+                        'today': last_saturday,
+                        'last_week': last_sunday,
+                        'com_work_hrs': self.float_to_time(self.env.company.attend_work_hrs),
+                        'act_work_hrs': self.float_to_time(avg),
+                    }
+                    template = self.env.ref(
+                        'tg_attendance.email_template_employee_weekly_attendance_timesheet_alert')
+                    template.with_context(context).send_mail(emp.id, force_send=True)
+
 
     def _employee_monthly_alert_timesheet_attendance(self):
         today = fields.date.today()
