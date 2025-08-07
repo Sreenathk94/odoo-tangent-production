@@ -8,6 +8,8 @@ from dateutil.rrule import rrule, DAILY
 from dateutil.relativedelta import relativedelta
 import calendar
 from odoo.tools import date_utils
+import logging
+_logger = logging.getLogger(__name__)
 
 dubai_tz = timezone('Asia/Dubai')
 
