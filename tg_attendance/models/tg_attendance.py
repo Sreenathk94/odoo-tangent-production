@@ -110,8 +110,22 @@ class TgAttendance(models.Model):
     
         _logger.info("Starting daily attendance alert cron job...")
     
-        today = self.env.company.fetch_date
+        today = fields.Date.context_today(self)
+
         yesterday = today - relativedelta(days=1)
+        weekday = today.weekday()  # Monday=0, Tuesday=1, ..., Sunday=6
+
+
+        if weekday in (5, 6):  # Saturday or Sunday
+            _logger.info("Weekend detected. Skipping mail send.")
+            return
+
+        # If Monday, pick last Friday
+        if weekday == 0:
+            yesterday = today - timedelta(days=3)
+        else:
+            yesterday = today - timedelta(days=1)
+
     
         _logger.info("Processing attendance for: %s", yesterday)
     
@@ -120,7 +134,7 @@ class TgAttendance(models.Model):
         lunch_end_dt = dubai_tz.localize(datetime.combine(yesterday, LUNCH_END))
         default_lunch = timedelta(hours=1)
     
-        attendance_ids = self.env['hr.attendance'].search([('fetch_date', '=', yesterday)])
+        attendance_ids = self.env['hr.attendance'].search([('fetch_date', '>=', yesterday),('fetch_date', '<', yesterday + relativedelta(days=1)),('employee_id.work_location_id.name', '=', 'Dubai')])
         _logger.info("Found %d attendance records", len(attendance_ids))
     
         notification_need = attendance_ids.filtered(
@@ -296,7 +310,7 @@ class TgAttendance(models.Model):
     
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             context = {
-                'email_to' : attendance.employee_id.work_email,
+                'email_to': attendance.employee_id.work_email,
                 'email_from': self.env.company.erp_email,
                 'sterday': yesterday,
                 'base_url': f"{base_url}/attendance/claim/form?date={yesterday.strftime('%d-%b-%Y')}&employee_id={attendance.employee_id.id}",
@@ -323,68 +337,149 @@ class Employee(models.Model):
         minutes = int(round((float_value - hours) * 60))
         return f"{hours:02d}:{minutes:02d}"
 
-
     def _employee_weekly_alert_timesheet_attendance(self):
         today = datetime.now().date()
 
-        # Calculate last week's Sunday and Saturday
+        # Calculate last week's Monday and Friday
         weekday = today.weekday()  # Monday=0 ... Sunday=6
-        last_saturday = today - timedelta(days=weekday + 2)  # Go back to last Saturday
-        last_sunday = last_saturday - timedelta(days=6)
+        last_friday = today - timedelta(days=weekday + 3)  # Go back to last Friday
+        last_monday = last_friday - timedelta(days=4)  # Monday of last week
 
-        emp_ids = self.env['hr.employee'].search([])
-        for emp in emp_ids:
+        _logger.info("Running weekly attendance alert from %s to %s", last_monday, last_friday)
+
+        employees = self.env['hr.employee'].search([])
+        _logger.info("Found %s employees to process.", len(employees))
+
+        for emp in employees:
             attendance_ids = self.env['hr.attendance'].search([
                 ('employee_id', '=', emp.id),
-                ('fetch_date', '>=', last_sunday),
-                ('fetch_date', '<=', last_saturday)
+                ('fetch_date', '>=', last_monday),
+                ('fetch_date', '<=', last_friday)
             ])
-            if attendance_ids:
-                leave_count = 0
-                leave_days = emp.get_unusual_days_emp(emp.resource_calendar_id, last_sunday, last_saturday)
-                leave_count += list(leave_days.values()).count(False)
 
-                if sum(attendance_ids.mapped('actual_hours')) < (leave_count * self.env.company.attend_work_hrs):
-                    avg = sum(attendance_ids.mapped('actual_hours')) / leave_count
+            if not attendance_ids:
+                _logger.debug("No attendance found for employee %s [%s]", emp.name, emp.id)
+                continue
+
+            total_hours = sum(attendance_ids.mapped('actual_hours'))
+            expected_days = float(len(attendance_ids))  # number of attendance records (Mon–Fri)
+            avg_hours = total_hours / expected_days if expected_days > 0 else 0.0
+
+            _logger.info(
+                "Employee: %s | Attendance Days: %s | Total Hours: %.2f | Avg Hours: %.2f",
+                emp.name, int(expected_days), total_hours, avg_hours
+            )
+
+            if avg_hours < 9.0:
+                try:
                     context = {
                         'email_to': emp.work_email,
                         'email_from': self.env.company.erp_email,
-                        'today': last_saturday,
-                        'last_week': last_sunday,
+                        'today': last_friday,
+                        'last_week': last_monday,
                         'com_work_hrs': self.float_to_time(self.env.company.attend_work_hrs),
-                        'act_work_hrs': self.float_to_time(avg),
+                        'act_work_hrs': self.float_to_time(avg_hours),
                     }
                     template = self.env.ref(
-                        'tg_attendance.email_template_employee_weekly_attendance_timesheet_alert')
+                        'tg_attendance.email_template_employee_weekly_attendance_timesheet_alert'
+                    )
                     template.with_context(context).send_mail(emp.id, force_send=True)
 
+                    _logger.warning(
+                        "Alert sent to employee %s [%s] | Avg Hours: %.2f < 9.0",
+                        emp.name, emp.id, avg_hours
+                    )
+                except Exception as e:
+                    _logger.error(
+                        "Failed to send attendance alert email for employee %s [%s]: %s",
+                        emp.name, emp.id, str(e)
+                    )
 
+
+
+    @api.model
     def _employee_monthly_alert_timesheet_attendance(self):
-        today = fields.date.today()
-        previous_month = date_utils.subtract(today, months=1)
-        last_day = calendar.monthrange(previous_month.year, previous_month.month)[1]
-        start_date = previous_month.replace(day=1, month=previous_month.month, year=previous_month.year)
-        last_date = previous_month.replace(day=last_day, month=previous_month.month, year=previous_month.year)
-        emp_ids = self.env['hr.employee'].search([])
+        _logger.info("=== Monthly Hours Check ===")
+        today = fields.Date.today()
+
+        # Get first & last day of previous month
+        first_day_last_month = (today.replace(day=1) - relativedelta(months=1))
+        last_day_last_month = today.replace(day=1) - timedelta(days=1)
+
+        _logger.info("Checking from %s to %s", first_day_last_month, last_day_last_month)
+
+        emp_ids = self.search([])
+        _logger.info("Found %d employees to process", len(emp_ids))
+
         for emp in emp_ids:
-            attendance_ids = self.env['hr.attendance'].search(
-                [('employee_id', '=', emp.id), ('fetch_date', '>=', start_date), ('fetch_date', '<=', last_date)])
-            if attendance_ids:
-                leave_count = 0
-                leave_days = emp.get_unusual_days_emp(emp.resource_calendar_id, start_date, last_date)
-                leave_count += list(leave_days.values()).count(False)
-                if sum(attendance_ids.mapped('actual_hours')) < (leave_count * self.env.company.attend_work_hrs):
-                    avg = sum(attendance_ids.mapped('actual_hours')) / leave_count
+            calendar_id = emp.resource_calendar_id or self.env.company.resource_calendar_id
+            if not calendar_id:
+                _logger.warning("No working calendar found for employee %s. Skipping.", emp.name)
+                continue
+
+            # 1️⃣ Calculate total working days in last month
+            total_working_days = 0
+            day_count = (last_day_last_month - first_day_last_month).days + 1
+            for n in range(day_count):
+                day_date = first_day_last_month + timedelta(days=n)
+                start_dt = datetime.combine(day_date, time.min)
+                end_dt = datetime.combine(day_date, time.max)
+                if calendar_id.get_work_hours_count(start_dt, end_dt) > 0:
+                    total_working_days += 1
+
+            # 2️⃣ Calculate approved leave days in last month
+            leaves = self.env['hr.leave'].search([
+                ('employee_id', '=', emp.id),
+                ('state', '=', 'validate'),
+                ('request_date_from', '<=', last_day_last_month),
+                ('request_date_to', '>=', first_day_last_month)
+            ])
+            leave_days = sum(leaves.mapped('number_of_days'))
+            _logger.warning("No working calendar found for employee %s. Skipping.", emp.name)
+
+            # 3️⃣ Calculate required monthly hours
+            daily_hours = calendar_id.hours_per_day or 8
+            required_hours = max(total_working_days - leave_days, 0) * daily_hours
+
+            # 4️⃣ Calculate actual worked hours from attendance
+            attendance_ids = self.env['hr.attendance'].search([
+                ('employee_id', '=', emp.id),
+                ('fetch_date', '>=', first_day_last_month),
+                ('fetch_date', '<=', last_day_last_month)
+            ])
+            total_hours = sum(attendance_ids.mapped('actual_hours'))
+
+            _logger.info(
+                "Employee: %s | Total Working Days: %d | Leave Days: %.1f | Required Hours: %.2f | Actual Hours: %.2f",
+                emp.name, total_working_days, leave_days, required_hours, total_hours
+            )
+
+            # 5️⃣ Send alert email if below required hours
+            if total_hours < required_hours:
+                _logger.warning("Employee %s below required hours. Sending alert email...", emp.name)
+                try:
                     context = {
                         'email_to': emp.work_email,
                         'email_from': self.env.company.erp_email,
-                        'month': previous_month.strftime("%B"),
-                        'com_work_hrs': self.env.company.attend_work_hrs,
-                        'act_work_hrs': self.float_to_time(avg),
+                        'month': first_day_last_month.strftime("%B"),
+                        'com_work_hrs': required_hours,
+                        'act_work_hrs': self.float_to_time(total_hours),
                     }
-                    template = self.env.ref('tg_attendance.email_template_employee_monthly_attendance_timesheet_alert')
-                    template.with_context(context).send_mail(emp.id, force_send=True)
+                    template = self.env.ref(
+                        'tg_attendance.email_template_employee_monthly_attendance_timesheet_alert',
+                        raise_if_not_found=False
+                    )
+                    if template:
+                        template.with_context(context).send_mail(emp.id, force_send=True)
+                        _logger.info("Email sent to %s", emp.work_email)
+                    else:
+                        _logger.error(
+                            "Mail template not found: tg_attendance.email_template_employee_monthly_attendance_timesheet_alert"
+                        )
+                except Exception as e:
+                    _logger.exception("Failed to send email to %s: %s", emp.name, e)
 
+        _logger.info("=== Monthly Hours Check Completed ===")
 
 class TgAttendanceLine(models.Model):
     _name = "hr.attendance.line"

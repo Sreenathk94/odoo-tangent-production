@@ -1,0 +1,165 @@
+<odoo>
+    <record id="mail_template_leave_balance_employee" model="mail.template">
+        <field name="name">Leave Balance Alert - Employee</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="subject">
+            Leave Balance Alert
+        </field>
+        <field name="email_to">${object.work_email}</field>
+        <field name="body_html" type="html">
+            <html>
+                <body style="font-family: Arial, sans-serif; font-size: 14px;">
+                    <p>Dear
+                        <strong>
+                            <t t-esc="object.name"/>
+                        </strong>
+                        ,
+                    </p>
+
+                    <p>
+                        This is to inform you that your
+                        <strong>annual leave balance</strong>
+                        is currently
+                        <strong>
+                            <t t-esc="ctx.get('balance')"/>
+                            days
+                        </strong>
+                        .
+                    </p>
+
+                    <p>
+                        As per company policy, balances above
+                        <strong>
+                            <t t-esc="ctx.get('threshold')"/>
+                            days
+                        </strong>
+                        require planned utilization.
+                    </p>
+
+                    <p>
+                        Please plan your leave accordingly or contact HR for clarification.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,
+                        <br/>
+                        <strong>HR Team</strong>
+                    </p>
+                </body>
+            </html>
+        </field>
+    </record>
+
+    <record id="mail_template_leave_balance_manager" model="mail.template">
+        <field name="name">Leave Balance Alert - Manager</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="subject">
+            Team Leave Balance Alert
+        </field>
+        <field name="email_to">${object.work_email}</field>
+        <field name="body_html" type="html">
+            <html>
+                <body style="font-family: Arial, sans-serif; font-size: 14px;">
+                    <p>Dear
+                        <strong>
+                            <t t-esc="object.name"/>
+                        </strong>
+                        ,
+                    </p>
+
+                    <p>
+                        This is to inform you that your
+                        <strong>annual leave balance</strong>
+                        is currently
+                        <strong>
+                            <t t-esc="ctx.get('balance')"/>
+                            days
+                        </strong>
+                        .
+                    </p>
+
+                    <p>
+                        As per company policy, balances above
+                        <strong>
+                            <t t-esc="ctx.get('threshold')"/>
+                            days
+                        </strong>
+                        require planned utilization.
+                    </p>
+
+                    <p>
+                        Please plan your leave accordingly or contact HR for clarification.
+                    </p>
+
+                    <br/>
+
+                    <p>
+                        Regards,
+                        <br/>
+                        <strong>HR Team</strong>
+                    </p>
+                </body>
+            </html>
+        </field>
+    </record>
+    <record id="mail_template_leave_balance_hr" model="mail.template">
+        <field name="name">Leave Balance Alert - HR</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="subject">
+            Company Leave Balance Report – Above ${ctx.get('threshold')} Days
+        </field>
+        <field name="email_to">
+            ${','.join([u.partner_id.email for u in env.ref('hr.group_hr_manager').users if u.partner_id.email])}
+        </field>
+        <field name="body_html" type="html">
+            <html>
+                <body style="font-family: Arial, sans-serif; font-size: 14px;">
+                    <p>Dear <strong>HR Team</strong>,
+                    </p>
+
+                    <p>
+                        Below is the list of employees whose
+                        <strong>annual leave balance exceeds
+                            <t t-esc="ctx.get('threshold')"/>
+                            days
+                        </strong>
+                        .
+                    </p>
+
+                    <table border="1" cellpadding="8" cellspacing="0"
+                           style="border-collapse: collapse; width: 100%; margin-top: 10px;">
+                        <thead style="background-color: #f0f0f0;">
+                            <tr>
+                                <th align="left">Employee Name</th>
+                                <th align="right">Leave Balance (Days)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="ctx.get('employees', [])" t-as="emp">
+                                <tr>
+                                    <td>
+                                        <t t-esc="emp['name']"/>
+                                    </td>
+                                    <td align="right">
+                                        <t t-esc="emp['balance']"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <br/>
+
+                    <p>
+                        Regards,
+                        <br/>
+                        <strong>System Generated</strong>
+                    </p>
+                </body>
+            </html>
+        </field>
+    </record>
+
+</odoo>

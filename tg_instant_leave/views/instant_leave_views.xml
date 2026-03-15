@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Tree View -->
+        <record id="view_instant_leave_tree" model="ir.ui.view">
+            <field name="name">instant.leave.request.tree</field>
+            <field name="model">instant.leave.request</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="reporting_manager_id"/>
+                    <field name="date"/>
+                    <field name="applied" decoration-success="applied" decoration-muted="not applied"/>
+                    <field name="leave_reason" optional="hide"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_instant_leave_form" model="ir.ui.view">
+            <field name="name">instant.leave.request.form</field>
+            <field name="model">instant.leave.request</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_notify" string="Notify" type="object" class="btn-primary" confirm="Send notification to selected employees and departments?"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" readonly="1"/>
+                                <field name="employee_id"/>
+                                <field name="reporting_manager_id" readonly="1"/>
+                                <field name="date"/>
+                            </group>
+                            <group>
+                                <field name="applied" readonly="1" decoration-success="applied" decoration-muted="not applied"/>
+                                <field name="leave_reason" colspan="2"/>
+                            </group>
+                        </group>
+                        <group string="Notifications">
+                            <field name="notify_employees" widget="many2many_tags"/>
+                            <field name="notify_departments" widget="many2many_tags"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" groups="base.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_instant_leave_request" model="ir.actions.act_window">
+            <field name="name">Instant Leave Requests</field>
+            <field name="res_model">instant.leave.request</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new Instant leave request
+                </p>
+                <p>
+                    Log verbal Instant leaves here. The system will auto-remind if not formally applied.
+                </p>
+            </field>
+        </record>
+
+        <!-- Menu -->
+        <menuitem id="menu_hr_instant_leave_root" name="Instant Leaves" parent="hr_holidays.menu_hr_holidays_root" action="action_instant_leave_request" groups="tg_instant_leave.group_instant_leave_creator,tg_instant_leave.group_instant_leave_admin"/>
+    </data>
+</odoo>

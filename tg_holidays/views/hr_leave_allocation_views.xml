@@ -12,13 +12,14 @@
             </xpath>
             <xpath expr="//group[@name='alloc_right_col']" position="after">
                 <group/>
-               <group string="Project Details" invisible="not is_cp_leave">
-                <field name="allowed_stage_ids" invisible="1"/>
-                <field name="project_id" options="{'no_create': True}" required="is_cp_leave"/>
-                <field name="from_date" widget="datetime" required="is_cp_leave"/>
-                <field name="to_date" widget="datetime" required="is_cp_leave"/>
-                <field name="status_id" domain="[('id', 'in', allowed_stage_ids)]" options="{'no_create': True}" required="is_cp_leave"/>
-            </group>
+                <group string="Project Details" invisible="not is_cp_leave">
+                    <field name="allowed_stage_ids" invisible="1"/>
+                    <field name="project_id" options="{'no_create': True}" required="is_cp_leave"/>
+                    <field name="from_date" widget="datetime" required="is_cp_leave"/>
+                    <field name="to_date" widget="datetime" required="is_cp_leave"/>
+                    <field name="status_id" domain="[('id', 'in', allowed_stage_ids)]" options="{'no_create': True}"
+                           required="is_cp_leave"/>
+                </group>
             </xpath>
         </field>
     </record>
@@ -49,4 +50,63 @@
             </xpath>
         </field>
     </record>
+
+    <record id="leave_form_inherit_carry_forward_max" model="ir.ui.view">
+        <field name="name">leave.form.inherit.carry_forward_max</field>
+        <field name="model">hr.leave.type</field>
+        <field name="inherit_id" ref="hr_holidays.edit_holiday_status_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='leave_validation_type']" position="after">
+                <field create="1" edit="1" name="approval_flow_line_ids"
+                       invisible="leave_validation_type != 'custom'">
+                    <tree editable="bottom">
+                        <field name="sequence"/>
+                        <field name="group_ids" widget="many2many_tags"/>
+                        <field name="is_final"/>
+                    </tree>
+                </field>
+
+            </xpath>
+            <xpath expr="//field[@name='time_type']" position="after">
+
+                <field name="annual_leave_boolean" string="Is Annual Leave?"/>
+                <field name="carry_forward_max"/>
+                <field name="is_sick_leave"/>
+
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_employee_view_form_inherit_employee_cost" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.employee_cost</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_hourly_cost.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='not_required']" position="after">
+                <field name="leave_exemption" widget="boolean_toggle"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_employee_form_leave_exemption" model="ir.ui.view">
+        <field name="name">hr.employee.form.leave.exemption</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='public']" position="before">
+                <page string="Leave Exemption" name="leave_exemption" invisible="not leave_exemption">
+                    <group string="Leave Exemption">
+                        <field name="leave_exemption_line_ids">
+                            <tree editable="bottom">
+                                <field name="year"/>
+                                <field name="exemption_limit"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+
 </odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hr_employee_cost,hr.employee.cost,model_hr_employee_cost,base.group_user,1,1,1,1
+access_hr_employee_cost_line,hr.employee.cost.line,model_hr_employee_cost_line,base.group_user,1,1,1,1
+access_hr_employee_cost_import_wizard,hr.employee.cost.import.wizard,model_hr_employee_cost_import_wizard,base.group_user,1,1,1,1
+access_project_stage_timesheet_report,project.stage.timesheet.report,model_project_stage_timesheet_report,base.group_user,1,1,1,1

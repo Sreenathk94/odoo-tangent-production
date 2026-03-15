@@ -308,14 +308,14 @@
             <field name="model_id" ref="hr_attendance.model_hr_attendance"/>
             <field name="email_from">{{ctx['email_from']}}</field>
             <field name="email_to">{{ctx['email_to']}}</field>
-            <field name="subject">System Notification: Attendance Daily Average time report</field>
+            <field name="subject">System Notification: Attendance Daily Time Report</field>
             <field name="body_html" type="html">
                 <div style="margin: 0px; padding: 0px;">
                     <p style="margin: 0px; padding: 0px; font-size: 13px;">
                         Dear <b><t t-out="object.employee_id.name">Employee Name</t></b>,
                         <br/>
                         <br/>
-                        Kindly note that your daily average time inside office on (<b>
+                        Kindly note that your daily time inside office on (<b>
                         <t t-out="ctx['sterday'].strftime('%d/%b/%Y')"></t></b>) is less than required hours (<b>
                         <t t-out="ctx['com_work_hrs']">Work Hours</t>
                     </b> hrs).
@@ -387,22 +387,21 @@
                         Dear <b><t t-out="object.display_name">Employee Name</t></b>,
                         <br/>
                         <br/>
-                        Kindly note that your daily average time inside office for the week starting from <b>
+                        Kindly note that your weekly average time inside office for the week starting from <b>
                         <t t-out="ctx['last_week'].strftime('%d/%b/%Y')">Last Week</t>
                     </b> to <b><t t-out="ctx['today'].strftime('%d/%b/%Y')">Today</t></b> (<b><t t-out="ctx['act_work_hrs']">Actual Work Hours</t></b> hrs) is less than
                         required hours (<b><t t-out="ctx['com_work_hrs']"/></b> hrs).
                         <br/>
-                        Please make sure you manage this lose hours in the coming days so that you maintain a monthly
+                        Please make sure you manage this lost hours in the coming days so that you can maintain a monthly
                         average of <b><t t-out="ctx['com_work_hrs']"/></b> hrs per day.
                         <br/>
-                        Kindly check the daily average report sent by the system to you directly for understanding your
-                        daily time attendance.
+                        Kindly check the daily report sent by the system for any discrepancies.
                         <br/>
                         <br/>
                         We look forward for your support in this regards,
                         <br/>
                         <br/>
-                        If you need any further information please do not hesitate to contact company HR.
+                        If you need any further information please do not hesitate to contact administrator.
                     </p>
                 </div>
             </field>
@@ -422,38 +421,41 @@
             <field name="doall" eval="False"/>
         </record>
 
+
+
         <record id="email_template_employee_monthly_attendance_timesheet_alert" model="mail.template">
-            <field name="name">Employee Attendance monthly Average time</field>
+            <field name="name">Employee Attendance Monthly Average Time</field>
             <field name="model_id" ref="hr.model_hr_employee"/>
-            <field name="email_from">${ctx['email_from'] |safe}</field>
-            <field name="email_to">${ctx['email_to'] |safe}</field>
-            <field name="subject">System Notification: Attendance Monthly Average time</field>
+            <field name="email_from">{{ctx['email_from']}}</field>
+            <field name="email_to">{{ctx['email_to']}}</field>
+            <field name="subject">System Notification: Attendance Monthly Average Time</field>
             <field name="body_html" type="html">
                 <div style="margin: 0px; padding: 0px;">
                     <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                        Dear <b>${object.display_name}</b>,
+                        Dear <b><t t-out="object.display_name">Employee Name</t></b>,
                         <br/>
                         <br/>
-                        Kindly note that your daily average time inside office for the month of <b>${ctx['month']}</b> (<b>
-                        ${ctx['act_work_hrs']}
-                    </b> hrs) is less than required hours (<b>${ctx['com_work_hrs']}</b> hrs).
+                        Kindly note that your total working hours inside the office for the month of
+                        <b><t t-out="ctx['month']">Month Name</t></b>
+                        (<b><t t-out="ctx['act_work_hrs']">Actual Work Hours</t></b> hrs)
+                        is less than the required monthly hours
+                        (<b><t t-out="ctx['com_work_hrs']">Required Work Hours</t></b> hrs).
                         <br/>
-                        Please make sure you manage this lose hours in the coming months so that you maintain a monthly
-                        average of <b>${ctx['com_work_hrs']}</b> hrs per day.
+                        Please make sure you compensate for these hours in the coming months to maintain the expected
+                        monthly working time.
                         <br/>
-                        Kindly check the daily average report sent by the system to you directly for understanding your
-                        daily time attendance.
-                        <br/>
-                        <br/>
-                        We look forward for your support in this regards,
+                        Kindly check the monthly attendance report sent by the system to you directly for
+                        understanding your attendance performance.
                         <br/>
                         <br/>
-                        If you need any further information please do not hesitate to contact company HR.
+                        We look forward to your cooperation in this regard.
+                        <br/>
+                        <br/>
+                        If you need any further information, please do not hesitate to contact the company HR.
                     </p>
                 </div>
             </field>
             <field name="auto_delete" eval="True"/>
         </record>
-
     </data>
 </odoo>

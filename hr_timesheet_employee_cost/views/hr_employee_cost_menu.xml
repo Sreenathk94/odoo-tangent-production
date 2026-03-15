@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menu under Employees -->
+        <menuitem id="menu_hr_employee_cost_root"
+                  name="Employee Costs"
+                  parent="hr.menu_hr_root"
+                  sequence="90" groups="hr.group_hr_manager"/>
+
+        <menuitem id="menu_hr_employee_cost"
+                  name="Costs History"
+                  parent="menu_hr_employee_cost_root"
+                  action="hr_employee_cost_action"
+                  sequence="10"/>
+
+        <menuitem id="menu_hr_employee_cost_import"
+                  name="Import Costs"
+                  parent="menu_hr_employee_cost_root"
+                  action="hr_timesheet_employee_cost.hr_employee_cost_import_wizard_action"
+                  sequence="20"/>
+    </data>
+</odoo>

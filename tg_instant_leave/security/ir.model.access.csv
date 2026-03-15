@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_urgent_leave_request_creator,instant.leave.request.creator,model_instant_leave_request,tg_instant_leave.group_instant_leave_creator,1,1,1,1
+access_urgent_leave_request_admin,instant.leave.request.admin,model_instant_leave_request,tg_instant_leave.group_instant_leave_admin,1,1,1,1

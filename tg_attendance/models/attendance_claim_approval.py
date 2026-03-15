@@ -26,6 +26,7 @@ class AttendanceClaimApproval(models.Model):
         ('rejected', 'Rejected')
     ], default='draft', tracking=True)
     show_reclaim = fields.Boolean(default=False)
+    is_processed = fields.Boolean(default=False, string="Processed in Attendance")
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -43,29 +44,50 @@ class AttendanceClaimApproval(models.Model):
         return res
 
     def action_accept(self):
-        day = self.date_from.date()
-        header_id = self.env['hr.attendance'].sudo().search([
-            ('fetch_date', '=', day),
-            ('employee_id', '=', self.employee_id.id)
-        ])
+        """Approve claim → update attendance + notify employee"""
+        for rec in self:
+            day = rec.date_from.date()
+            attendance = self.env['hr.attendance'].sudo().search([
+                ('fetch_date', '=', day),
+                ('employee_id', '=', rec.employee_id.id)
+            ], limit=1)
 
-        header_id.claimed_hours = self.approved_hour
-        self.state = 'accepted'
-        template = self.env.ref(
-            'tg_attendance.email_template_employee_daily_attendance_status_alert')
-        template.send_mail(self.id, force_send=True)
+            if not attendance:
+                raise ValidationError("No attendance found for this date.")
+
+            # update attendance with approved hours
+            attendance.claimed_hours = rec.approved_hour
+            attendance.worked_hours += rec.approved_hour
+            attendance.actual_hours += rec.approved_hour
+
+            # update claim status
+            rec.state = 'accepted'
+            rec.is_processed = True
+
+            # send notification email
+            template = self.env.ref(
+                'tg_attendance.email_template_employee_daily_attendance_status_alert')
+            template.send_mail(rec.id, force_send=True)
+
 
     def action_reject(self):
-        self.state = 'rejected'
-        self.show_reclaim = True
-        template = self.env.ref(
-            'tg_attendance.email_template_employee_daily_attendance_status_alert')
-        template.send_mail(self.id, force_send=True)
+        """Reject claim → mark processed + notify employee"""
+        for rec in self:
+            rec.state = 'rejected'
+            rec.show_reclaim = True
+            rec.is_processed = True
+
+            template = self.env.ref(
+                'tg_attendance.email_template_employee_daily_attendance_status_alert')
+            template.send_mail(rec.id, force_send=True)
+
 
     @api.model
     def claim_approval_email(self):
+        """Cron: notify managers about new (unprocessed) claims"""
         request_ids = self.search([
-            ('state', '=', 'draft')
+            ('state', '=', 'draft'),
+            ('is_processed', '=', False),
         ])
         for rec in request_ids:
             template = self.env.ref(

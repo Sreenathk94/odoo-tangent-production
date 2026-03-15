@@ -11,16 +11,35 @@
         </field>
     </record>
     <record id="hr_leave_view_form_inherit_tg_holidays" model="ir.ui.view">
-            <field name="name">hr.leave.inherit.inherit.tg_holidays</field>
-            <field name="model">hr.leave</field>
-            <field name="inherit_id" ref="hr_holidays.hr_leave_view_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='name']" position="before">
-                    <field name="duration_days_only"/>
-                </xpath>
-                <xpath expr="//field[@name='name']" position="attributes">
+        <field name="name">hr.leave.inherit.inherit.tg_holidays</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_validate']" position="after">
+                <field name="can_current_user_approve" invisible="1"/>
+                <button name="action_custom_approve"
+                        string="Approve"
+                        type="object"
+                        class="btn-primary"
+                        invisible="not can_current_user_approve"/>
+            </xpath>
+
+            <button name="action_approve" position="attributes">
+                <attribute name="invisible">holiday_status_id.leave_validation_type == 'custom' or can_current_user_approve == True</attribute>
+            </button>
+            <button name="action_validate" position="attributes">
+                <attribute name="invisible">holiday_status_id.leave_validation_type == 'custom' or can_current_user_approve == True</attribute>
+            </button>
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="duration_days_only"/>
+                <field name="is_sick_leave"/>
+                <field name="medical_document" invisible="not holiday_status_id and not is_sick_leave"/>
+                <field name="medical_doc_verified" invisible="not holiday_status_id and not is_sick_leave"/>
+                <field name="approval_description"/>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
-            </field>
-        </record>
+        </field>
+    </record>
 </odoo>

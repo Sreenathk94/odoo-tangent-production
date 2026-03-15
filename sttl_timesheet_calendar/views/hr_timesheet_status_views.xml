@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	<!--Timesheet status-->
+        <record id="hr_timesheet_status_form_view" model="ir.ui.view">
+            <field name="name">Timesheet stages</field>
+            <field name="model">hr.timesheet.status</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+				<form string="Timesheet stages">
+					<sheet>
+						<group>
+							<group>
+								<field name="name" />
+								<!--<field name="for_admin"/>-->
+							</group>
+						</group>
+					</sheet>
+				</form>
+            </field>
+        </record>
+
+        <record id="hr_timesheet_status_tree_view" model="ir.ui.view">
+            <field name="name">Timesheet stages</field>
+            <field name="model">hr.timesheet.status</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+             	<tree string="Timesheet stages">
+					<field name='sequence' widget='handle'/>
+					<field name="name"/>
+					<!--<field name="for_admin"/>-->
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_hr_timesheet_status" model="ir.actions.act_window">
+            <field name="name">Timesheet stages</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.timesheet.status</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+    	<menuitem name="Timesheet Stages" id="hr_timesheet_status" parent="hr_timesheet.hr_timesheet_menu_configuration"
+    		action="action_hr_timesheet_status" groups="tg_groups.admin_user_group" sequence='2'/>
+
+    </data>
+</odoo>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Tree View for Cost Headers -->
+        <record id="hr_employee_cost_tree_view" model="ir.ui.view">
+            <field name="name">hr.employee.cost.tree</field>
+            <field name="model">hr.employee.cost</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="state" widget="badge" decoration-success="state=='confirmed'" decoration-warning="state=='draft'"/>
+                    <field name="employee_count"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View for Cost Headers (with smart button for lines) -->
+        <record id="hr_employee_cost_form_view" model="ir.ui.view">
+            <field name="name">hr.employee.cost.form</field>
+            <field name="model">hr.employee.cost</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_confirm" type="object" string="Confirm" class="btn-primary"/>
+                        <button name="action_draft" type="object" string="Reset to Draft" class="btn-secondary"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <notebook>
+                            <page string="Cost Lines">
+                                <field name="cost_line_ids">
+                                    <tree editable="bottom">
+                                        <field name="employee_id"/>
+                                        <field name="cost"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <!-- Smart Button for Separate Lines View -->
+                    <div class="oe_button_box" name="button_lines">
+                        <button name="action_view_lines" type="object" class="oe_stat_button" icon="fa-list">
+                            <field name="employee_count" widget="statinfo" string="Lines"/>
+                        </button>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action for Cost Headers -->
+        <record id="hr_employee_cost_action" model="ir.actions.act_window">
+            <field name="name">Employee Cost Periods</field>
+            <field name="res_model">hr.employee.cost</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="hr_employee_cost_tree_view"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_empty_folder">
+                    No cost periods defined yet!
+                </p>
+                <p>
+                    Create a new period or use <strong>Import Costs</strong> to add from Excel.
+                </p>
+            </field>
+        </record>
+
+        <!-- Tree View for Cost Lines -->
+        <record id="hr_employee_cost_line_tree_view" model="ir.ui.view">
+            <field name="name">hr.employee.cost.line.tree</field>
+            <field name="model">hr.employee.cost.line</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="employee_id"/>
+                    <field name="cost"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="cost_id" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View for Cost Lines -->
+        <record id="hr_employee_cost_line_form_view" model="ir.ui.view">
+            <field name="name">hr.employee.cost.line.form</field>
+            <field name="model">hr.employee.cost.line</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="cost"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="cost_id" invisible="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action for Cost Lines -->
+        <record id="hr_employee_cost_line_action" model="ir.actions.act_window">
+            <field name="name">Employee Cost Lines</field>
+            <field name="res_model">hr.employee.cost.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="hr_employee_cost_line_tree_view"/>
+            <field name="domain">[('cost_id.state', '=', 'confirmed')]</field>  <!-- Only confirmed periods -->
+            <field name="context">{'default_cost_id': active_id}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_empty_folder">
+                    No cost lines yet!
+                </p>
+                <p>
+                    Lines are created via imports or manual entry in cost periods.
+                </p>
+            </field>
+        </record>
+
+        <!-- Method on Header Model for Smart Button (add to models/hr_employee_cost.py) -->
+        <!-- In Python: -->
+        <!-- def action_view_lines(self): -->
+        <!--     return { -->
+        <!--         'name': _('Cost Lines'), -->
+        <!--         'type': 'ir.actions.act_window', -->
+        <!--         'res_model': 'hr.employee.cost.line', -->
+        <!--         'view_mode': 'tree,form', -->
+        <!--         'domain': [('cost_id', '=', self.id)], -->
+        <!--         'context': {'default_cost_id': self.id}, -->
+        <!--     } -->
+    </data>
+</odoo>

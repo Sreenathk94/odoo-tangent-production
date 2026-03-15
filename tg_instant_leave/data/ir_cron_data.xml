@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="cron_check_instant_leaves" model="ir.cron">
+            <field name="name">Check Pending Instant Leave Requests</field>
+            <field name="model_id" ref="model_instant_leave_request"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_instant_leaves_reminder()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 00:00:00')"/>
+            <field name="doall" eval="False"/>
+        </record>
+    </data>
+</odoo>

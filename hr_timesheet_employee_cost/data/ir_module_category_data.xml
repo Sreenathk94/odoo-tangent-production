@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="hr_timesheet_employee_cost_category" model="ir.module.category">
+            <field name="name">Timesheet Employee Cost</field>
+        </record>
+    </data>
+</odoo>

@@ -189,14 +189,3 @@ class HrTimesheetSubmitWizard(models.TransientModel):
 
         works = {d[0].date() for d in calendar._work_intervals_batch(dfrom, dto)[False]}
         return {fields.Date.to_string(day.date()): (day.date() not in works) for day in rrule(DAILY, dfrom, until=dto)}
-
-
-class HrTimesheetStatus(models.Model):
-    _name = "hr.timesheet.status"
-    _description = "Timesheet Status"
-    _order = "sequence asc"
-    
-    name = fields.Char('Name', required=True)
-    sequence = fields.Integer('Sequence')
-    project_ids = fields.Many2many("project.project",'allowed_stage_project_rel',string='Projects')
-    

@@ -6,23 +6,57 @@
             <field name="model">project.project</field>
             <field name="inherit_id" ref="hr_timesheet.project_invoice_form" />
             <field name="arch" type="xml">
-				<xpath expr="//header" position="inside">
-					<field name="timesheet_status_id" widget="statusbar" options="{'clickable': '1'}"/>
-				</xpath>
-				<xpath expr="//field[@name='allow_timesheets']" position="after">
-					<field name="allowed_stage_ids" widget="many2many_checkboxes" options="{'no_create': True}"/>
-<!--&lt;!&ndash;					<field name="allowed_timesheet_status_ids"  invisible="1"/>&ndash;&gt;-->
-<!--					<field name="stage_cost_ids" groups="account.group_account_invoice">-->
-<!--						<tree editable="bottom">-->
-<!--							<field name="allowed_stage_ids" widget="many2many_checkboxes" invisible="1"/>-->
-<!--							<field name="timesheet_status_id" options="{'no_create': True}"/>-->
-<!--							<field name="amount" />-->
-<!--						</tree>-->
-<!--					</field>-->
-				</xpath>
+
+                <!-- Statusbar -->
+                <xpath expr="//header" position="inside">
+                    <field name="timesheet_status_id" widget="statusbar"
+                           options="{'clickable': '1'}"/>
+                </xpath>
+
+                <!-- Stage checkboxes -->
+                <xpath expr="//field[@name='allow_timesheets']" position="after">
+                    <field name="allowed_stage_ids"
+                           widget="many2many_checkboxes"
+                           options="{'no_create': True}"/>
+                </xpath>
+
+                <!-- Stage Cost Fee page -->
+                <xpath expr="//page[@name='settings']" position="after">
+                    <page name="stage_cost_fee" string="Stage Cost Fee" groups="sttl_timesheet_calendar.group_fee_visibility_user">
+                        <field name="stage_cost_ids">
+                            <tree editable="bottom">
+                                <field name="allowed_stage_ids" column_invisible="1"/>
+                                <field name="timesheet_status_id"
+                                       options="{'no_create': True}"/>
+                                <!-- base fee -->
+                                <field name="amount"/>
+                                <!-- total including variations -->
+                                <field name="total_amount" string="Total Stage Fee(Includes Variation Costs)" sum="Total Stage Fee"/>
+                            </tree>
+                        </field>
+                    </page>
+
+                    <!-- Variation Fees page -->
+                    <page name="variation_fees" string="Variation Fees" groups="sttl_timesheet_calendar.group_fee_visibility_user">
+                        <field name="variation_ids">
+                            <tree editable="bottom">
+                                <field name="timesheet_status_id"/>
+                                <field name="allowed_stage_ids" column_invisible="1"/>
+                                <field name="description"/>
+                                <field name="project_id" column_invisible="1"/>
+                                <field name="amount" sum="Total Variation"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+                <xpath expr="//field[@name='allocated_hours']" position="after">
+                    <field name="total_stage_cost" readonly="1" string="Total Stage Fee"/>
+                    <field name="total_project_cost" string="Total Project Fee"/>
+                </xpath>
+
             </field>
         </record>
-        
+
         <!--  Tree view  -->
 		<record model="ir.ui.view" id="sttl_view_project_view_tree_inherit">
 			<field name="name">project.project.tree</field>

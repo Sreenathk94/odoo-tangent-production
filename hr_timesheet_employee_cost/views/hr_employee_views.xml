@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_employee_view_form_inherit_employee_cost" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.employee_cost</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_hourly_cost.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='application_group']" position="inside">
+                <field name="current_employee_cost" readonly="1" string="Current Employee Cost (Latest)"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_employee_public_form" model="ir.ui.view">
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="hr.hr_employee_public_view_form"></field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='work_email']" position="after">
+                <field name="current_employee_cost" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+
+
+        <record id="view_hr_timesheet_line_pivot_inherited_cost" model="ir.ui.view">
+        <field name="name">account.analytic.line.pivot</field>
+        <field name="model">account.analytic.line</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="hr_timesheet.view_hr_timesheet_line_pivot"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount']" position="after">
+                <field name="employee_cost" type="row"/>
+                <field name="total_employee_cost" type="measure"/>
+                <field name="stage_fee" type="measure"/>
+<!--                <field name="total_stage_fee" type="measure"/>-->
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_project_stage_timesheet_report" model="ir.actions.act_window">
+    <field name="name">Stage Fee  Hours</field>
+    <field name="res_model">project.stage.timesheet.report</field>
+    <field name="view_mode">pivot</field>
+</record>
+
+<menuitem id="menu_project_stage_timesheet_report"
+          name="Stage Fee  Hours" 
+          groups="sttl_timesheet_calendar.group_fee_visibility_user"
+          parent="hr_timesheet.menu_timesheets_reports_timesheet"
+          action="action_project_stage_timesheet_report"/>
+
+</odoo>

@@ -1,0 +1,60 @@
+<odoo>
+    <data>
+        <!-- Employee pivot -->
+        <record id="timesheets_analysis_report_pivot_employee_inherit_cost" model="ir.ui.view">
+            <field name="name">timesheets.analysis.report.pivot.employee.inherit.cost</field>
+            <field name="model">timesheets.analysis.report</field>
+            <field name="inherit_id" ref="hr_timesheet.timesheets_analysis_report_pivot_employee"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='unit_amount']" position="after">
+                    <field name="current_employee_cost"
+                           string="Employee Cost"
+                           type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"
+                           />
+                    <field name="stage_fee" type="measure" operator="max" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+
+<!--                    <field name="total_stage_fee" type="measure"/>-->
+<!--                    <field name="total_project_stage_fee" type="measure"/>-->
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Project pivot -->
+        <record id="timesheets_analysis_report_pivot_project_inherit_cost" model="ir.ui.view">
+            <field name="name">timesheets.analysis.report.pivot.project.inherit.cost</field>
+            <field name="model">timesheets.analysis.report</field>
+            <field name="inherit_id" ref="hr_timesheet.timesheets_analysis_report_pivot_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='unit_amount']" position="after">
+                    <field name="current_employee_cost"
+                           string="Employee Cost"
+                           type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"
+                           />
+                    <field name="stage_fee" type="measure" operator="max" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+
+<!--                    <field name="total_stage_fee" type="measure"/>-->
+<!--                    <field name="total_project_stage_fee" type="measure"/>-->
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Task pivot -->
+        <record id="timesheets_analysis_report_pivot_task_inherit_cost" model="ir.ui.view">
+            <field name="name">timesheets.analysis.report.pivot.task.inherit.cost</field>
+            <field name="model">timesheets.analysis.report</field>
+            <field name="inherit_id" ref="hr_timesheet.timesheets_analysis_report_pivot_task"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='unit_amount']" position="after">
+                    <field name="current_employee_cost"
+                           string="Employee Cost"
+                           type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"
+                           />
+                    <field name="stage_fee" type="measure" operator="max" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+
+<!--                    <field name="total_stage_fee" type="measure"/>-->
+<!--                    <field name="total_project_stage_fee" type="measure"/>-->
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

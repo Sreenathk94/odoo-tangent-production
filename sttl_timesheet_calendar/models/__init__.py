@@ -9,3 +9,6 @@ from . import hr_employee
 # from . import project_profit_report
 from . import hr_individual_timesheet_report
 from . import res_users
+from . import hr_timesheet_status
+from . import project_cost_stage
+from . import project_cost_stage_variation

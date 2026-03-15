@@ -16,8 +16,8 @@ class AccountAnalyticLine(models.Model):
         result['unit_amount'] = 0.0
         if 'from_date' in result:
             employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1).id
-            if self.env['hr.timesheet.submit.line'].search([('employee_id','=',employee_id),('submit_id.from_date','<=',result.get('date')),('submit_id.to_date','>=',result.get('date')),('state','=','lock')]):
-                result['message'] = "You can not create/update timesheet for this date"
+#            if self.env['hr.timesheet.submit.line'].search([('employee_id','=',employee_id),('submit_id.from_date','<=',result.get('date')),('submit_id.to_date','>=',result.get('date')),('state','=','lock')]):
+#                result['message'] = "You can not create/update timesheet for this date"
         return result
 
     @api.model
@@ -107,9 +107,9 @@ class AccountAnalyticLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         lines = super(AccountAnalyticLine, self).create(vals_list)
-        for res in lines:
-            if self.env['hr.timesheet.submit.line'].search([('employee_id','=',res.employee_id.id),('submit_id.from_date','<=',res.date),('submit_id.to_date','>=',res.date),('state','=','lock')]):
-                raise UserError(_("You can not create/update timesheet for this date"))
+ #       for res in lines:
+  #          if self.env['hr.timesheet.submit.line'].search([('employee_id','=',res.employee_id.id),('submit_id.from_date','<=',res.date),('submit_id.to_date','>=',res.date),('state','=','lock')]):
+   #             raise UserError(_("You can not create/update timesheet for this date"))
             # commented to fix, might be on odoo14 added feature
             # if res.unit_amount <= 0:
             #     raise UserError(_("You can not update zero duration timesheet"))
@@ -117,7 +117,7 @@ class AccountAnalyticLine(models.Model):
             #     raise UserError(_("Between lunch time (1 PM to 2 PM), timesheets cannot be created."))
             # if res.to_date < res.from_date:
             #     raise UserError(_("End Time should be greater than Start Time."))
-            res.project_id.timesheet_status_id = res.status_id.id
+    #        res.project_id.timesheet_status_id = res.status_id.id
         return lines
 
     def create_and_reload(self):
@@ -127,8 +127,8 @@ class AccountAnalyticLine(models.Model):
         rec = super(AccountAnalyticLine, self).write(vals)
         if 'holiday_id' in vals:
             return rec
-        if self.env['hr.timesheet.submit.line'].search([('employee_id','=',self.employee_id.id),('submit_id.from_date','<=',self.date),('submit_id.to_date','>=',self.date),('state','=','lock')]):
-            raise UserError(_("You can not create/update timesheet for this date"))
+#	if self.env['hr.timesheet.submit.line'].search([('employee_id','=',self.employee_id.id),('submit_id.from_date','<=',self.date),('submit_id.to_date','>=',self.date),('state','=','lock')]):
+ #           raise UserError(_("You can not create/update timesheet for this date"))
         # commented to fix, might be on odoo14 added feature
         # if self.unit_amount <= 0:
         #     raise UserError(_("You can not update zero duration timesheet"))

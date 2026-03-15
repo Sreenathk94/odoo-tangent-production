@@ -3,3 +3,4 @@ from . import tg_leave_form
 from . import tg_leave_report
 from . import hr_leave
 from . import hr_leave_allocation
+from . import yearly_leave_cron

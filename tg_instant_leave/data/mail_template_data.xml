@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Employee Reminder (Daily after 3 business days) -->
+        <record id="email_template_employee_reminder" model="mail.template">
+            <field name="name">Instant Leave: Employee Reminder</field>
+            <field name="model_id" ref="tg_instant_leave.model_instant_leave_request"/>
+            <field name="email_from">{{ (object.employee_id.user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}</field>
+            <field name="email_to">{{object.employee_id.work_email or ''}}</field>
+            <field name="subject">Reminder: Submit Leave Application for {{object.date.strftime('%Y-%m-%d')}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+                    <p>Dear <t t-out="object.employee_id.name"/>,</p>
+                    <p>You reported an instant leave to HR, but a formal leave application is still pending in the system.</p>
+                    <h3>Details:</h3>
+                    <ul>
+                        <li><strong>Date:</strong> <t t-out="object.date.strftime('%Y-%m-%d')"/></li>
+                        <li><strong>Reason:</strong> <t t-if="object.leave_reason"><t t-out="object.leave_reason"/></t></li>
+                    </ul>
+                    <p><strong>Action Required:</strong> Please log in to Odoo and submit a formal leave request for the above date immediately to ensure compliance.</p>
+                    <p>Best regards,<br/>HR Team</p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!-- Manager Notification (Daily after 5 business days) -->
+        <record id="email_template_manager_notification" model="mail.template">
+            <field name="name">Instant Leave: Manager Notification</field>
+            <field name="model_id" ref="model_instant_leave_request"/>
+            <field name="email_from">{{ (object.employee_id.user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}</field>
+            <field name="email_to">{{object.employee_id.parent_id.work_email or ''}}</field>
+            <field name="subject">Reminder: Employee Leave Non-Compliance for {{object.date.strftime('%Y-%m-%d')}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+                    <p>Dear <t t-out="object.employee_id.parent_id.name or 'Manager'"/>,</p>
+                    <p>An employee under your supervision has not submitted a formal leave application for a reported instant leave.</p>
+                    <h3>Details:</h3>
+                    <ul>
+                        <li><strong>Employee:</strong> <t t-out="object.employee_id.name"/></li>
+                        <li><strong>Date:</strong> <t t-out="object.date.strftime('%Y-%m-%d')"/></li>
+                        <li><strong>Reason:</strong> <t t-if="object.leave_reason"><t t-out="object.leave_reason"/></t></li>
+                    </ul>
+                    <p><strong>Action Required:</strong> Please follow up with the employee to ensure they submit the leave application promptly.</p>
+                    <p>Best regards,<br/>HR Team</p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!-- HR Escalation (Daily after 8 business days) -->
+        <record id="email_template_hr_escalation" model="mail.template">
+            <field name="name">Instant Leave: HR Escalation</field>
+            <field name="model_id" ref="model_instant_leave_request"/>
+            <field name="email_from">{{ (object.employee_id.user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}</field>
+            <field name="email_to">{{ctx.get('hr_email') or ''}}</field>
+            <field name="subject">Escalation: Unresolved Instant Leave for {{object.date.strftime('%Y-%m-%d')}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+                    <p>Dear HR Manager,</p>
+                    <p>An instant leave reported by an employee remains unresolved, with no formal leave application submitted.</p>
+                    <h3>Details:</h3>
+                    <ul>
+                        <li><strong>Employee:</strong> <t t-out="object.employee_id.name"/></li>
+                        <li><strong>Manager:</strong> <t t-out="object.employee_id.parent_id.name or 'N/A'"/></li>
+                        <li><strong>Date:</strong> <t t-out="object.date.strftime('%Y-%m-%d')"/></li>
+                        <li><strong>Reason:</strong> <t t-if="object.leave_reason"><t t-out="object.leave_reason"/></t></li>
+                    </ul>
+                    <p><strong>History:</strong> Reminders have been sent to the employee and their manager.</p>
+                    <p><strong>Action Required:</strong> Please escalate and take appropriate action to resolve this matter.</p>
+                    <p>Best regards,<br/>HR System</p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!-- Notify Template (For button) -->
+        <record id="email_template_notify" model="mail.template">
+            <field name="name">Instant Leave: Notification to Employees/Departments</field>
+            <field name="model_id" ref="model_instant_leave_request"/>
+            <field name="email_from">{{ (object.employee_id.user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}</field>
+            <field name="email_to"/>  <!-- Overridden in code -->
+            <field name="subject">Notification: Instant Leave for {{object.employee_id.name}} on {{object.date.strftime('%Y-%m-%d')}}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+                    <p>Dear Team,</p>
+                    <p>This is a notification regarding an instant leave reported by an employee.</p>
+                    <h3>Details:</h3>
+                    <ul>
+                        <li><strong>Employee:</strong> <t t-out="object.employee_id.name"/></li>
+                        <li><strong>Date:</strong> <t t-out="object.date.strftime('%Y-%m-%d')"/></li>
+                        <li><strong>Reason:</strong> <t t-if="object.leave_reason"><t t-out="object.leave_reason"/></t></li>
+                    </ul>
+                    <p>Please take note and adjust accordingly.</p>
+                    <p>Best regards,<br/>HR Team</p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+    </data>
+</odoo>

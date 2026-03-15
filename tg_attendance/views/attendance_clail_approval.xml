@@ -74,6 +74,7 @@
                             <field name="manager_id" readonly="1"/>
                             <field name="request_hour" readonly="1" widget="timesheet_uom"/>
                             <field name="approved_hour" widget="timesheet_uom"/>
+                            <field name="is_processed"  readonly="1"/>
                         </group>
                     </group>
                     <notebook>

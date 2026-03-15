@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_task_project_user_pivot_inherited_employee_cost" model="ir.ui.view">
+            <field name="name">report.project.task.user.pivot.inherited.employee_cost</field>
+            <field name="model">report.project.task.user</field>
+            <field name="inherit_id" ref="project.view_task_project_user_pivot"/>
+            <field name="arch" type="xml">
+            <xpath expr="//field[@name='total_hours_spent']" position='before'>
+                <field name="current_employee_cost"
+                       type="measure"
+                       string="Employee Cost" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+                <field name="stage_fee" type="measure" operator="max" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+
+<!--                <field name="total_stage_fee" type="measure"/>-->
+<!--                <field name="total_project_stage_fee" type="measure"/>-->
+            </xpath>
+            </field>
+        </record>
+
+
+<record id="view_project_stage_employee_pivot" model="ir.ui.view">
+    <field name="name">project.stage.employee.pivot</field>
+    <field name="model">project.stage.timesheet.report</field>
+    <field name="arch" type="xml">
+        <pivot string="Stage  Employee Analysis">
+
+            <!-- Dimensions -->
+            <field name="project_id" type="row"/>
+            <field name="stage_id" type="row"/>
+
+            <!-- Measures -->
+            <field name="hours" type="measure"/>
+            <field name="stage_fees" type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+            <field name="employee_cost" type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+            <field name="total_employee_cost" type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+
+            <field name="percentage" type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+
+            <!-- ❗ DO NOT include color in measures -->
+            <!-- color can only be used as row/column IF you want grouping -->
+            <!-- <field name="color" type="row"/> -->
+
+        </pivot>
+    </field>
+</record>
+
+    </data>
+</odoo>

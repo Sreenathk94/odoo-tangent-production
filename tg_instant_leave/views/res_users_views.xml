@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_users_form_inherit_urgent_leave" model="ir.ui.view">
+            <field name="name">res.users.form.inherit.urgent.leave</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+<!--                <xpath expr="//page[@name='access_rights']" position="inside">-->
+<!--                    <group string="Urgent Leave Access">-->
+<!--                        <field name="grant_urgent_leave_creator" string="Grant Urgent Leave Creator Access" type="object" class="btn-secondary"/>-->
+<!--                        <field name="grant_urgent_leave_admin" string="Grant Urgent Leave Admin Access" type="object" class="btn-secondary"/>-->
+<!--                    </group>-->
+<!--                </xpath>-->
+            </field>
+        </record>
+    </data>
+</odoo>
