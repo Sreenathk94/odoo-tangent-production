@@ -95,78 +95,85 @@ class ProjectStageTimesheetReport(models.Model):
 
                 SELECT
                     ROW_NUMBER() OVER () AS id,
+                    base.project_id,
+                    base.stage_id,
+                    base.hours,
+                    base.stage_fees,
+                    base.employee_cost,
+                    base.total_employee_cost,
+                    base.percentage,
+                    base.color
+                FROM (
+                    -- 1) Stages that have actual timesheet entries
+                    SELECT
+                        p.id AS project_id,
+                        aal.status_id AS stage_id,
+                        COALESCE(SUM(aal.unit_amount), 0.0) AS hours,
+                        COALESCE(MAX(s.total_amount), 0.0) AS stage_fees,
+                        COALESCE(SUM(COALESCE(rate.rate, 0.0)), 0.0) AS employee_cost,
+                        COALESCE(SUM(aal.unit_amount * COALESCE(rate.rate, 0.0)), 0.0) AS total_employee_cost,
+                        CASE
+                            WHEN MAX(s.total_amount) IS NULL OR MAX(s.total_amount) = 0 THEN 0
+                            ELSE
+                                ( SUM(aal.unit_amount * COALESCE(rate.rate, 0.0))
+                                  / MAX(s.total_amount)
+                                ) * 100
+                        END AS percentage,
+                        CASE
+                            WHEN MAX(s.total_amount) IS NULL OR MAX(s.total_amount) = 0 THEN 'none'
+                            WHEN (
+                                SUM(aal.unit_amount * COALESCE(rate.rate, 0.0))
+                                / MAX(s.total_amount)
+                            ) * 100 <= 50 THEN 'green'
+                            WHEN (
+                                SUM(aal.unit_amount * COALESCE(rate.rate, 0.0))
+                                / MAX(s.total_amount)
+                            ) * 100 <= 75 THEN 'yellow'
+                            WHEN (
+                                SUM(aal.unit_amount * COALESCE(rate.rate, 0.0))
+                                / MAX(s.total_amount)
+                            ) * 100 >= 90 THEN 'red'
+                            ELSE 'none'
+                        END AS color
+                    FROM project_project p
+                    LEFT JOIN account_analytic_line aal
+                        ON aal.project_id = p.id
+                    LEFT JOIN project_cost_stage s
+                        ON s.project_id = p.id
+                       AND s.timesheet_status_id = aal.status_id
+                    LEFT JOIN employee_cost_rate rate
+                       ON rate.employee_id = aal.employee_id
+                    GROUP BY
+                        p.id,
+                        aal.status_id
 
-                    p.id AS project_id,
-                    stage_rel.hr_timesheet_status_id AS stage_id,
+                    UNION
 
-                    -- Total hours for this project + stage
-                    COALESCE(SUM(aal.unit_amount), 0.0) AS hours,
-
-                    -- Stage fee (renamed to stage_fees)
-                    COALESCE(MAX(s.total_amount), 0.0) AS stage_fees,
-
-                    -- Employee cost
-                    COALESCE(SUM(COALESCE(rate.rate, 0.0)), 0.0) AS employee_cost,
-
-                    -- Total employee cost
-                    COALESCE(SUM(aal.unit_amount * COALESCE(rate.rate, 0.0)), 0.0) AS total_employee_cost,
-
-                    -- Percentage using total employee cost
-                    CASE
-                        WHEN MAX(s.total_amount) IS NULL OR MAX(s.total_amount) = 0 THEN 0
-                        ELSE
-                            ( SUM(aal.unit_amount * COALESCE(rate.rate, 0.0))
-                              / MAX(s.total_amount)
-                            ) * 100
-                    END AS percentage,
-
-                    -- Color logic based on total employee cost %
-                    CASE
-                        WHEN MAX(s.total_amount) IS NULL OR MAX(s.total_amount) = 0 THEN 'none'
-
-                        WHEN (
-                            SUM(aal.unit_amount * COALESCE(rate.rate, 0.0))
-                            / MAX(s.total_amount)
-                        ) * 100 <= 50
-                            THEN 'green'
-
-                        WHEN (
-                            SUM(aal.unit_amount * COALESCE(rate.rate, 0.0))
-                            / MAX(s.total_amount)
-                        ) * 100 <= 75
-                            THEN 'yellow'
-
-                        WHEN (
-                            SUM(aal.unit_amount * COALESCE(rate.rate, 0.0))
-                            / MAX(s.total_amount)
-                        ) * 100 >= 90
-                            THEN 'red'
-
-                        ELSE 'none'
-                    END AS color
-
-                FROM project_project p
-
-                -- ALLOWED STAGES TABLE NAME UPDATED
-                LEFT JOIN allowed_stage_project_rel stage_rel
-                    ON stage_rel.project_project_id = p.id
-
-                -- Timesheets
-                LEFT JOIN account_analytic_line aal
-                    ON aal.project_id = p.id
-                   AND aal.status_id = stage_rel.hr_timesheet_status_id
-
-                -- Stage cost
-                LEFT JOIN project_cost_stage s
-                    ON s.project_id = p.id
-                   AND s.timesheet_status_id = stage_rel.hr_timesheet_status_id
-
-                -- Employee hourly rates
-                LEFT JOIN employee_cost_rate rate
-                   ON rate.employee_id = aal.employee_id
-
-                GROUP BY
-                    p.id,
-                    stage_rel.hr_timesheet_status_id
+                    -- 2) Stages selected in Time Management but with NO timesheets
+                    SELECT
+                        p.id AS project_id,
+                        stage_rel.hr_timesheet_status_id AS stage_id,
+                        0.0 AS hours,
+                        COALESCE(MAX(s.total_amount), 0.0) AS stage_fees,
+                        0.0 AS employee_cost,
+                        0.0 AS total_employee_cost,
+                        0.0 AS percentage,
+                        'none' AS color
+                    FROM project_project p
+                    JOIN allowed_stage_project_rel stage_rel
+                        ON stage_rel.project_project_id = p.id
+                    LEFT JOIN project_cost_stage s
+                        ON s.project_id = p.id
+                       AND s.timesheet_status_id = stage_rel.hr_timesheet_status_id
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM account_analytic_line aal
+                        WHERE aal.project_id = p.id
+                          AND aal.status_id = stage_rel.hr_timesheet_status_id
+                    )
+                    GROUP BY
+                        p.id,
+                        stage_rel.hr_timesheet_status_id
+                ) AS base
             )
         """)

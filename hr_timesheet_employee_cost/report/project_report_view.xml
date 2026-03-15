@@ -9,8 +9,10 @@
             <xpath expr="//field[@name='total_hours_spent']" position='before'>
                 <field name="current_employee_cost"
                        type="measure"
-                       string="Employee Cost" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
-                <field name="stage_fee" type="measure" operator="max" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+                       string="Employee Cost"
+                 groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+                <field name="stage_fee" type="measure" operator="max"
+                 groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
 
 <!--                <field name="total_stage_fee" type="measure"/>-->
 <!--                <field name="total_project_stage_fee" type="measure"/>-->

@@ -9,9 +9,8 @@
                 <xpath expr="//field[@name='unit_amount']" position="after">
                     <field name="current_employee_cost"
                            string="Employee Cost"
-                           type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"
-                           />
-                    <field name="stage_fee" type="measure" operator="max" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+                           type="measure"/>
+                    <field name="stage_fee" type="measure" operator="max"/>
 
 <!--                    <field name="total_stage_fee" type="measure"/>-->
 <!--                    <field name="total_project_stage_fee" type="measure"/>-->
@@ -28,9 +27,8 @@
                 <xpath expr="//field[@name='unit_amount']" position="after">
                     <field name="current_employee_cost"
                            string="Employee Cost"
-                           type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"
-                           />
-                    <field name="stage_fee" type="measure" operator="max" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+                           type="measure"/>
+                    <field name="stage_fee" type="measure" operator="max"/>
 
 <!--                    <field name="total_stage_fee" type="measure"/>-->
 <!--                    <field name="total_project_stage_fee" type="measure"/>-->
@@ -47,9 +45,11 @@
                 <xpath expr="//field[@name='unit_amount']" position="after">
                     <field name="current_employee_cost"
                            string="Employee Cost"
-                           type="measure" groups="sttl_timesheet_calendar.group_fee_visibility_user"
-                           />
-                    <field name="stage_fee" type="measure" operator="max" groups="sttl_timesheet_calendar.group_fee_visibility_user"/>
+                            groups="sttl_timesheet_calendar.group_fee_visibility_user"
+                           type="measure"/>
+                    <field name="stage_fee"
+                            groups="sttl_timesheet_calendar.group_fee_visibility_user"
+                           type="measure" operator="max"/>
 
 <!--                    <field name="total_stage_fee" type="measure"/>-->
 <!--                    <field name="total_project_stage_fee" type="measure"/>-->

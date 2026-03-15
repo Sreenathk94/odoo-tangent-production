@@ -57,7 +57,6 @@ class HrEmployeePublic(models.Model):
     )
 
 
-
 class AccountAnalyticLine(models.Model):
     _inherit = 'account.analytic.line'
 
